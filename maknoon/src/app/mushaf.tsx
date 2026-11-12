@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Backdrop } from '@/components/Backdrop';
 import { Icon } from '@/components/Icon';
@@ -10,7 +10,8 @@ import { Squircle } from '@/components/Squircle';
 import { AyahText, Body, Caption, Display } from '@/components/Typography';
 import { RoundButton } from '@/components/ui';
 import { mushaf as m } from '@/content/design';
-import { ar, ayahPlaceholder, ayatOnPage, getAyah } from '@/content/quran';
+import { ar, ayahPlaceholder, ayatLabel, ayatOnPage, getAyah } from '@/content/quran';
+import { stripTashkeel } from '@/content/text';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
 import { quranIndex } from '@/content/worship';
@@ -44,6 +45,7 @@ function MushafPage({ page }: { page: number }) {
   const insets = useSafeAreaInsets();
   const [controls, setControls] = useState(false);
   const [zoom, setZoom] = useState(100);
+  const [picking, setPicking] = useState(false);
   const [prefs] = usePrefs();
   const size = (prefs.quranSize - 3) * (zoom / 100); // Settings size 24 → the design's 21pt page
 
@@ -71,7 +73,7 @@ function MushafPage({ page }: { page: number }) {
             <View key={b.surah} style={i > 0 ? { marginTop: 18 } : null}>
               {/* Surah banner: at the top of the page, and wherever a surah begins */}
               {i === 0 || b.starts ? (
-                <SurahBanner surah={b.surah} />
+                <SurahBanner surah={b.surah} onPress={() => setPicking(true)} />
               ) : null}
               {/* الفاتحة counts the basmala as its first ayah; التوبة has none */}
               {b.starts && b.surah !== 1 && b.surah !== 9 ? (
@@ -120,6 +122,16 @@ function MushafPage({ page }: { page: number }) {
           </View>
         </Pressable>
       </ScrollView>
+
+      <SurahPicker
+        visible={picking}
+        current={onPage[0]?.surah ?? 1}
+        onClose={() => setPicking(false)}
+        onPick={(p) => {
+          setPicking(false);
+          goTo(p);
+        }}
+      />
 
       {!controls && tasmee.note ? (
         <View style={[styles.tasmee, { top: insets.top + 6 }]} pointerEvents="box-none">
@@ -194,12 +206,12 @@ const TITLE_ART: Record<number, number> = {
 
 /**
  * The ornamented surah header from the design canvas (exported artwork, 354×61 with a soft edge).
- * Tapping it opens the surah index.
+ * Tapping it opens the surah picker.
  */
-function SurahBanner({ surah }: { surah: number }) {
+function SurahBanner({ surah, onPress }: { surah: number; onPress: () => void }) {
   const name = quranIndex.surahs[surah - 1]?.name ?? '';
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={`سورة ${name} · فهرس السور`} onPress={() => router.push('/surahs')} style={styles.banner}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`سورة ${name} · تغيير السورة`} onPress={onPress} style={styles.banner}>
       <Image source={require('../../assets/brand/surah-banner.png')} style={styles.bannerArt} contentFit="fill" />
       <View style={styles.bannerRow}>
         {TITLE_ART[surah] ? (
@@ -214,6 +226,58 @@ function SurahBanner({ surah }: { surah: number }) {
         </View>
       </View>
     </Pressable>
+  );
+}
+
+/** Bottom sheet listing the 114 surahs; choosing one turns the mushaf to its first page. */
+function SurahPicker({ visible, current, onClose, onPick }: { visible: boolean; current: number; onClose: () => void; onPick: (page: number) => void }) {
+  const insets = useSafeAreaInsets();
+  const [q, setQ] = useState('');
+  const needle = stripTashkeel(q.trim());
+  const list = needle ? quranIndex.surahs.filter((x) => stripTashkeel(x.name).includes(needle) || String(x.n) === needle || ar(x.n) === needle) : quranIndex.surahs;
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable accessibilityLabel="إغلاق" onPress={onClose} style={styles.scrim} />
+      <View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
+        <View style={styles.sheetHead}>
+          <Display size={20}>اختر السورة</Display>
+          <RoundButton icon="close" label="إغلاق" size={36} iconSize={16} onPress={onClose} />
+        </View>
+        <View style={styles.sheetSearch}>
+          <Icon name="search" size={18} color={colors.primary} />
+          <TextInput
+            value={q}
+            onChangeText={setQ}
+            placeholder="اسم السورة أو رقمها"
+            placeholderTextColor={colors.muted}
+            accessibilityLabel="ابحث عن سورة"
+            style={[styles.sheetInput, { fontFamily: F.sans }]}
+          />
+        </View>
+        <FlatList
+          data={list}
+          keyExtractor={(x) => String(x.n)}
+          initialScrollIndex={needle ? undefined : Math.max(0, current - 3)}
+          getItemLayout={(_, i) => ({ length: 56, offset: 56 * i, index: i })}
+          keyboardShouldPersistTaps="handled"
+          renderItem={({ item: x }) => (
+            <Pressable accessibilityRole="button" accessibilityState={{ selected: x.n === current }} onPress={() => onPick(x.page)} style={[styles.sheetRow, x.n === current && { backgroundColor: 'rgba(3,90,95,0.08)' }]}>
+              <View style={styles.sheetNo}>
+                <Body size={13} weight="bold" color={colors.primary} lineHeight={18}>
+                  {ar(x.n)}
+                </Body>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Display size={17}>{x.name}</Display>
+                <Caption>{`${x.type} · ${ayatLabel(x.ayat)}`}</Caption>
+              </View>
+              <Caption>{`ص ${ar(x.page)}`}</Caption>
+            </Pressable>
+          )}
+          ListEmptyComponent={<Caption style={{ padding: 16, textAlign: 'center' }}>لا نتائج</Caption>}
+        />
+      </View>
+    </Modal>
   );
 }
 
@@ -254,6 +318,13 @@ const styles = StyleSheet.create({
   bannerChevron: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.28)', alignItems: 'center', justifyContent: 'center' },
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 },
   pageNo: { minWidth: 52, height: 30, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
+  scrim: { flex: 1, backgroundColor: 'rgba(20,24,40,0.35)' },
+  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '72%', backgroundColor: '#F7F4F1', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 14 },
+  sheetHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 10 },
+  sheetSearch: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, marginHorizontal: 20, marginBottom: 8, paddingHorizontal: 14, borderRadius: 22, backgroundColor: '#FFFFFF' },
+  sheetInput: { flex: 1, minWidth: 0, fontSize: 15, color: colors.ink, textAlign: 'right', paddingVertical: 0 },
+  sheetRow: { height: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20 },
+  sheetNo: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(3,90,95,0.08)', alignItems: 'center', justifyContent: 'center' },
   tasmee: { position: 'absolute', start: 20, end: 20, alignItems: 'center', gap: 10 },
   tasmeeRow: { flexDirection: 'row', alignItems: 'center', gap: 18 },
   note: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 14 },
