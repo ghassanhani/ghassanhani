@@ -43,3 +43,6 @@ yarn-error.*
 # Thmanyah fonts: personal-use licence, never commit (see assets/fonts/README.md)
 assets/fonts/thmanyah/*
 !assets/fonts/thmanyah/.gitkeep
+
+# Raw Itqan downloads (large); rebuild with npm run itqan:pull && npm run content:build
+assets/itqan/

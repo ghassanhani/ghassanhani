@@ -11,7 +11,6 @@
  * row reuses "أخرجه في الصحيح · رقم ١٦"); do not ship them as facts.
  */
 import type { TintName } from '@/theme/tokens';
-import { tafsirSource } from './sources';
 
 export const home = {
   greeting: 'السلام عليكم',
@@ -112,29 +111,13 @@ export const mushaf = {
   searchPlaceholder: 'ابحث عن اية أو سورة',
 };
 
-export type LinkItem = {
-  source: string;
-  status: 'reviewed' | 'suggested';
-  body: string;
-  meta: string;
-};
-
-// Source title + «مركز تفسير عبر رتق · CC BY-ND» come from the Ratq catalogue (src/content/sources.ts);
-// the edition («دار ابن الجوزي») and the [placeholder] body are the design's.
-const ibnKathir = tafsirSource('ibnKathir');
-const tafsirSample = (status: LinkItem['status']): LinkItem => ({
-  source: ibnKathir.title,
-  status,
-  body: '[نص تفسير ابن كثير للآية كما نُشر، دون تعديل]',
-  meta: `يشرح · دار ابن الجوزي · ${ibnKathir.attribution}`,
-});
 
 export const ayahToday = {
   title: 'آية اليوم',
-  sections: [
-    { title: 'التفسير', count: '5', items: [tafsirSample('reviewed'), tafsirSample('suggested')], more: 'عرض التفاسير الخمسة · الطبري، السعدي، البغوي' },
-    { title: 'الأحاديث', count: '5', items: [tafsirSample('reviewed'), tafsirSample('suggested')], more: 'عرض التفاسير الخمسة · الطبري، السعدي، البغوي' },
-  ],
+  tafsirTitle: 'التفسير',
+  hadithTitle: 'الأحاديث',
+  /** The design's placeholder for a tafsir slot; shown only if the tafsir data is missing. */
+  tafsirPlaceholder: '[نص تفسير ابن كثير للآية كما نُشر، دون تعديل]',
 };
 
 export const hadith = {

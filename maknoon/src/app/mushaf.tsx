@@ -8,7 +8,7 @@ import { Squircle } from '@/components/Squircle';
 import { AyahText, Body, Display } from '@/components/Typography';
 import { RoundButton } from '@/components/ui';
 import { mushaf as m } from '@/content/design';
-import { ar, ayahEnd, ayahPlaceholder, getAyah } from '@/content/quran';
+import { ar, ayahPlaceholder, ayatOnPage, getAyah } from '@/content/quran';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
 
@@ -24,12 +24,11 @@ export default function MushafScreen() {
   const [zoom, setZoom] = useState(100);
   const size = 21 * (zoom / 100);
 
-  const body = m.ayat
-    .map((n) => {
-      const t = getAyah(m.surah, n);
-      return `${t ?? ayahPlaceholder(m.surahName, n)} ${ayahEnd(n)}`;
-    })
-    .join(' ');
+  // Page ٥٠ of the Madinah mushaf, from the KFGQPC page data (آل عمران ١–٩).
+  const onPage = ayatOnPage(50);
+  const ayat = onPage.map((x) => getAyah(x.surah, x.ayah));
+  const fontFamily = ayat[0]?.fontFamily;
+  const body = ayat.map((t, i) => t?.text ?? ayahPlaceholder(m.surahName, onPage[i].ayah)).join(' ');
 
   return (
     <View style={{ flex: 1 }}>
@@ -47,7 +46,7 @@ export default function MushafScreen() {
             {m.basmala}
           </AyahText>
 
-          <AyahText size={size} lineHeight={size * 1.95} style={{ textAlign: 'justify', marginTop: 6 }}>
+          <AyahText size={size} lineHeight={size * 1.95} style={[{ textAlign: 'justify', marginTop: 6 }, fontFamily ? { fontFamily } : null]}>
             {body}
           </AyahText>
 

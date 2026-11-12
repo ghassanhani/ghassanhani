@@ -6,7 +6,7 @@ import { Squircle } from '@/components/Squircle';
 import { AyahText, Body, Caption, Display } from '@/components/Typography';
 import { GlassCard, HeroCard, IconBubble, RoundButton, Segments } from '@/components/ui';
 import { home } from '@/content/design';
-import { ayahEnd, ayahPlaceholder, getAyah } from '@/content/quran';
+import { ayahPlaceholder, getAyah } from '@/content/quran';
 import { colors, space } from '@/theme/tokens';
 
 export default function HomeScreen() {
@@ -89,8 +89,8 @@ export default function HomeScreen() {
             <Display size={20}>{a.title}</Display>
             <IconBubble name="play" iconSize={16} color={colors.white} fill={colors.primary} glow={false} />
           </View>
-          <AyahText size={21} lineHeight={36} style={{ marginTop: 6 }}>
-            {ayah ? `${ayah} ${ayahEnd(a.ayah)}` : ayahPlaceholder(a.surahName, a.ayah)}
+          <AyahText size={21} lineHeight={38} style={[{ marginTop: 6 }, ayah && { fontFamily: ayah.fontFamily }]}>
+            {ayah ? ayah.text : ayahPlaceholder(a.surahName, a.ayah)}
           </AyahText>
           <Caption style={{ marginTop: 4 }}>{a.ref}</Caption>
         </GlassCard>

@@ -47,17 +47,34 @@ Download Thmanyah from font.thmanyah.com, put the `.otf`/`.ttf` files in `assets
 (git-ignored), then run `npm run fonts:link`. Until you do, the app falls back to Amiri (headings) and
 IBM Plex Sans Arabic (body). Shipping the app with Thmanyah needs a commercial licence from Thmanyah.
 
-## Quran text
+## Content from Itqan
 
-The app never types or generates Quran text. It reads the verbatim **Tanzil Uthmani** text
-(CC BY 3.0, no changes allowed) from `assets/content/quran-uthmani.json`, which is committed empty.
+Content comes from the **Itqan registry** (`api.cms.itqan.dev`; Ratq lists the same catalogue).
+`itqan-assets.yaml` is the official manifest:
 
 ```bash
-npm run fetch:quran   # running it means you accept https://tanzil.net/docs/text_license
+npx itqan-cli install     # official CLI, or:
+npm run itqan:pull        # same registry API over plain HTTPS → assets/itqan/ (git-ignored)
+npm run content:build     # → assets/content/*.json + assets/fonts/kfgqpc/ (committed)
 ```
 
-Until you fetch it, ayat render as placeholders such as `[نص الآية · آل عمران ٣]`. The Mushaf screen reflows the
-text with Amiri Quran. A page-faithful Madani layout needs the QCF V2 glyph fonts and their licence (plan §4.1, §5).
+| Asset | Used for | Licence |
+|---|---|---|
+| `unicode-uthmanic-font-hafs-narration` | Full Hafs text with page and juz data, plus the KFGQPC Uthmanic Hafs font | CC BY-NC-ND (KFGQPC) |
+| `tafsir-ibn-katheer`, `-altabari`, `-alsaadi`, `-albaghawi`, `-almokhtassar` | التفاسير الخمسة | CC BY-ND (مركز تفسير) |
+
+- **Quran text** is the verbatim KFGQPC Hafs text. Each ayah ends with KFGQPC's ayah-mark glyph, which only the
+  KFGQPC font draws, so KFGQPC text is rendered with that font. Amiri Quran is used if you fetch the Tanzil text
+  instead (`npm run fetch:quran`, which takes priority when present).
+- **Mushaf** page ٥٠ is taken from the KFGQPC page data (آل عمران ١–٩, the same page as the design).
+  The registry's `madinah-mushaf-hafs-1441` package holds 604 Adobe Illustrator print files (466 MB), not app data,
+  so it isn't used.
+- **Tafsir** text is shown exactly as published. Rows marked «قابل للنشر = لا» are skipped. Publisher markup is
+  turned into formatting only: `¬…¥` edition notes appear small, and `_…_` gharib words appear in teal.
+- **Status chips** on tafsir cards show **the publisher's editorial stage** from the file («مرحلة الاعتماد» → مُراجَع;
+  المراجعة or الادخال → مقترح). They are not Maknoon scholar review, which doesn't exist yet. Ibn Kathir v2.1 doesn't state a stage.
+- Only the ayat the UI shows today are bundled (`tafsir-sample.json`). Full tafsir (≈100 MB) needs the
+  downloadable SQLite packs from plan §7.4.
 
 ## Sources: Ratq (رَتْق)
 
