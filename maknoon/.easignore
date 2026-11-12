@@ -1,0 +1,8 @@
+# EAS uploads follow this file instead of .gitignore, so the locally downloaded
+# Thmanyah fonts ARE bundled into native builds (allowed: embedded in the app).
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+assets/itqan/

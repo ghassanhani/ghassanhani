@@ -1,0 +1,144 @@
+# المكنون · Maknoon (app)
+
+Expo (React Native) + TypeScript app built from the Maknoon design canvas.
+Arabic-first and right-to-left, laid out on the 402pt iPhone 17 frame.
+
+## Run
+
+```bash
+npm install
+npx expo start          # i / a / w for iOS, Android, web
+npm run typecheck
+```
+
+## Screens in this batch
+
+| Route | Screen | Canvas artboard |
+|---|---|---|
+| `/` (tab) | الرئيسية: next prayer, ayah of the day, wird, adhkar, hifz review, learn, topic | Main |
+| `/quran` (tab) | القرآن الكريم: resume, khatma, shortcuts, listen, hifz plan, understand, my Quran | QuranHub / QuranHubFull |
+| `/mushaf` | المصحف, tap the page for reading controls (zoom, search) | Mushaf / MushafControls |
+| `/ayah/3:3` | آية اليوم with link drawers (التفسير، الأحاديث) | AyahToday |
+| `/hadith/bukhari-8` | Hadith: matn, attributed gradings, isnad, shuruh | Hadith |
+| `/library` (tab) | المكتبة الإسلامية shelves with coverage meters | Library |
+| `/search` (tab) | ابحث: root-aware results + assistant entry | Search |
+| `/surahs` | فهرس السور: 114 surahs, 30 juz, my memorisation | SurahIndex |
+| `/hifz` | برنامج الحفظ: three tracks, overdue-review lock, mushaf map, pace, spaced review, reminders | Hifz |
+| `/hifz/session` | جلسة حفظ: steps, ayah chaining, 20/20 repetition counters, hide-to-recite | HifzSession |
+| `/prayer` | مواقيت الصلاة: **live on-device times (Adhan)**, alerts, qibla, Asr rule | Prayer |
+| `/adhkar` | الأذكار: five categories, tap counters, source/grading chips | Adhkar |
+| `/zakat` | حاسبة الزكاة: nisab by gold or silver, 2.5% | Zakat |
+| `/inheritance` | حاسبة المواريث: **worked example only**; engine off until scholar-validated | Inheritance |
+| `/me` (tab) | Tool list for now; Me/Settings/Plus artboards come later | (none yet) |
+
+### Notes on batch 2
+
+- **Prayer times** are computed on the device with [Adhan](https://github.com/batoulapps/adhan-js) (MIT), using Muslim World League
+  (Fajr 18°, Isha 17°) for the default city, Barcelona. Home's prayer card uses the same live values. For the design's date
+  (10 November) Adhan gives the design's Fajr, sunrise and Dhuhr exactly, and Asr, Maghrib and Isha within 2 minutes. The qibla
+  bearing is computed (≈111°; the design's 115° was a sample). The compass doesn't follow device heading yet (needs a sensor).
+- **Surah index** names, ayah counts and juz starts come from the KFGQPC data, and Makki/Madani from
+  [quran-meta](https://github.com/quran-center/quran-meta) (MIT), generated at build time (`assets/content/quran-index.json`).
+  The design's per-surah "reviewed links %" numbers were sample values and are not shown.
+- **Adhkar** text, virtues and source chips are the designer's draft, copied verbatim. The canvas says each must be
+  reviewed before launch. Items without a source show «المصدر والحكم بانتظار المراجعة».
+- **Zakat** only does arithmetic on the one rule the screen states. The default amounts and gram prices are the design's
+  examples («الأسعار قيم مثال»).
+- **Inheritance** computes only the design's worked example (زوجة + ابن + بنت). Any other combination shows the canvas's
+  notice that the full engine is enabled only after scholar-reviewed test cases pass (plan §4.6).
+
+## Design system
+
+- `src/theme/tokens.ts` holds the colours, radii and tint blobs read from the canvas (teal `#035A5F` primary).
+- `src/components/Squircle.tsx`: every rounded box uses **94% corner smoothing** (via `figma-squircle`), drawn in SVG with
+  the glass fill, colour blobs and inner glows. Pills and circles stay fully round.
+- `GlassCard` (white 70%, radius 36, inner glow), `HeroCard` (dark tinted), `Chip`
+  (`مُراجَع` is a green gradient with the badge icon on the leading/right edge; `مقترح` is a blue gradient), `Cta`, `Segments`.
+- `Backdrop` is a fixed tinted gradient behind the scrolling content, with one variant per screen.
+- `TabBar` floats over content: blurred white 50% pill, with the active tab as a teal pill plus its label.
+- Icons come from Hugeicons (the set the canvas uses).
+
+## Fonts
+
+| Role | Font | In the repo? |
+|---|---|---|
+| Headings | Thmanyah Serif Display (Black) | No (see licence below) |
+| Body | Thmanyah Sans (Regular, Medium, Bold) | No |
+| Ayat | KFGQPC Uthmanic Hafs (with KFGQPC text), Amiri Quran (with Tanzil text) | Yes |
+| Fallbacks | Amiri, IBM Plex Sans Arabic | Yes (OFL) |
+
+**Thmanyah licence** ([font.thmanyah.com/licenses](https://font.thmanyah.com/licenses)):
+- Allowed: commercial use, including bundling the font *inside* a mobile app.
+- Not allowed: hosting, sharing or uploading the font files. That includes a git repo.
+- Not allowed: making the files extractable by end users, which includes serving them to a browser.
+- The files may only be downloaded from font.thmanyah.com.
+
+So:
+
+1. Download Thmanyah Serif Display and Thmanyah Sans from **font.thmanyah.com** and put the `.otf`/`.ttf` files in
+   `assets/fonts/thmanyah/` (git-ignored).
+2. Run `npm run fonts:link`. This writes `src/theme/thmanyah.local.native.ts`; don't commit it with entries.
+3. iOS and Android builds now use Thmanyah. EAS uploads follow `.easignore`, which keeps the local fonts, so cloud builds
+   bundle them too. **The web build always uses the fallbacks.**
+
+## Content from Itqan
+
+Content comes from the **Itqan registry** (`api.cms.itqan.dev`; Ratq lists the same catalogue).
+`itqan-assets.yaml` is the official manifest:
+
+```bash
+npx itqan-cli install     # official CLI, or:
+npm run itqan:pull        # same registry API over plain HTTPS → assets/itqan/ (git-ignored)
+npm run content:build     # → assets/content/*.json + assets/fonts/kfgqpc/ (committed)
+```
+
+| Asset | Used for | Licence |
+|---|---|---|
+| `unicode-uthmanic-font-hafs-narration` | Full Hafs text with page and juz data, plus the KFGQPC Uthmanic Hafs font | CC BY-NC-ND (KFGQPC) |
+| `tafsir-ibn-katheer`, `-altabari`, `-alsaadi`, `-albaghawi`, `-almokhtassar` | التفاسير الخمسة | CC BY-ND (مركز تفسير) |
+
+- **Quran text** is the verbatim KFGQPC Hafs text. Each ayah ends with KFGQPC's ayah-mark glyph, which only the
+  KFGQPC font draws, so KFGQPC text is rendered with that font. Amiri Quran is used if you fetch the Tanzil text
+  instead (`npm run fetch:quran`, which takes priority when present).
+- **Mushaf** page ٥٠ is taken from the KFGQPC page data (آل عمران ١–٩, the same page as the design).
+  The registry's `madinah-mushaf-hafs-1441` package holds 604 Adobe Illustrator print files (466 MB), not app data,
+  so it isn't used.
+- **Tafsir** text is shown exactly as published. Rows marked «قابل للنشر = لا» are skipped. Publisher markup is
+  turned into formatting only: `¬…¥` edition notes appear small, and `_…_` gharib words appear in teal.
+- **Status chips** on tafsir cards show **the publisher's editorial stage** from the file («مرحلة الاعتماد» → مُراجَع;
+  المراجعة or الادخال → مقترح). They are not Maknoon scholar review, which doesn't exist yet. Ibn Kathir v2.1 doesn't state a stage.
+- Only the ayat the UI shows today are bundled (`tafsir-sample.json`). Full tafsir (≈100 MB) needs the
+  downloadable SQLite packs from plan §7.4.
+
+## Sources: Ratq (رَتْق)
+
+[Ratq](https://ratq.itqan.dev) is Itqan's catalogue of Quranic resources. It works as the app's **rights register**:
+
+- `assets/content/ratq-catalog.json` is a snapshot of the catalogue (123 resources: name, licence, publisher,
+  Itqan CMS link). Refresh it with `npm run sync:ratq`.
+- `src/content/ratq.ts` holds the typed client (`GET https://ratq.itqan.dev/api/resources?type=&search=&license=&page=&page_size=`,
+  `GET /api/resources/:slug`), the attribution builder (gives «مركز تفسير عبر رتق · CC BY-ND») and the licence gate.
+- `src/content/sources.ts` maps each source to its Ratq slug. The five tafsirs (التفاسير الخمسة) are
+  الطبري `cms-4`, ابن كثير `cms-5`, السعدي `cms-6`, البغوي `cms-7` and المختصر `cms-8`. All come from مركز تفسير under **CC BY-ND**:
+  commercial use is allowed, but the text must be shown unmodified and credited.
+
+Ratq only lists resources. The files are downloaded from **Itqan CMS** (`cms.itqan.dev`, per-asset page in
+`source_url`), which may require an Itqan account.
+
+**Maknoon is a free app**: no ads, no subscriptions, no paid features (`DISTRIBUTION = 'free'` in
+`src/content/ratq.ts`). That makes Ratq's **CC BY-NC-ND** entries usable as well, with credit and unmodified text:
+- KFGQPC mushafs and Uthmanic fonts (Hafs, including the smart-device font)
+- التفسير الميسر and غريب القرآن
+- المختصر's surah objectives
+- the recitations (Saudi Center, Tahbeer, Quran Qiraat, Mknoon)
+
+If a paid tier, ads or sponsored placements are ever added, set `DISTRIBUTION = 'commercial'`. The gate then
+flags every NC source, and each must be removed or licensed in writing.
+
+## Content in this batch is design sample
+
+`src/content/design.ts` holds every string, number, grading and reference **copied verbatim from the canvas
+layers**, with `[placeholders]` kept exactly as written. None of it is authored by the app. It is not
+verified data. Some rows are clearly layout filler (for example, al-Tirmidhi's row reuses
+"أخرجه في الصحيح · رقم ١٦", and every library shelf shows the same subtitle). Replace this file with the licensed
+content packs and scholar-reviewed links before any release.

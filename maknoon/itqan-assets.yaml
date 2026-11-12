@@ -1,0 +1,25 @@
+# Itqan assets used by Maknoon (registry: https://api.cms.itqan.dev, catalogue: https://ratq.itqan.dev).
+# Install with the official CLI:   npx itqan-cli install
+# or without it:                   npm run itqan:pull     (same registry API, plain HTTPS)
+# Then build the app's content:    npm run content:build
+schema_version: 1
+
+# Raw downloads are large (tafsirs ≈100 MB) and stay out of git.
+assets_dir: "assets/itqan"
+
+assets:
+  # التفاسير الخمسة — مركز تفسير, CC BY-ND
+  tafsir-ibn-katheer:
+    version: "^2.1.0"
+  tafsir-altabari:
+    version: "^1.0.0"
+  tafsir-alsaadi:
+    version: "^1.0.0"
+  tafsir-albaghawi:
+    version: "^1.0.0"
+  tafsir-almokhtassar:
+    version: "^1.0.0"
+
+  # KFGQPC Uthmanic Hafs font + full Hafs text with page/line data — CC BY-NC-ND (free app only)
+  unicode-uthmanic-font-hafs-narration:
+    version: "^1.0.0"

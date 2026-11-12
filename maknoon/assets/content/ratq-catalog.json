@@ -1,0 +1,1954 @@
+{
+ "source": "https://ratq.itqan.dev/api/resources",
+ "fetchedAt": "2026-11-12T18:38:11.558Z",
+ "count": 123,
+ "resources": [
+  {
+   "slug": "cms-10",
+   "name": "French Translation",
+   "name_ar": "الترجمة الفرنسية",
+   "type": "translation",
+   "license": "CC-BY-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/10",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Rashid Maash - Translation of the Meanings of the Verses of the Holy Quran",
+   "version": null,
+   "publisher": {
+    "name": "IslamHouse",
+    "name_ar": "موقع دار الإسلام"
+   }
+  },
+  {
+   "slug": "cms-11",
+   "name": "Badr Al-Turki Recitation",
+   "name_ar": "مصحف القارئ بدر التركي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/11",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "High-quality Quran recitation by reciter Badr Al-Turki, presented exclusively by the Saudi Center for Quran Recitations. An ideal choice for developers, publishers, and content platforms seeking certified, high-quality recitations.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-12",
+   "name": "Majid Al-Zamil Recitation",
+   "name_ar": "مصحف القارئ ماجد الزامل",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/12",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "High-quality Quran recitation by reciter Majid Al-Zamil, presented exclusively by the Saudi Center for Quran Recitations. An ideal choice for developers, publishers, and content platforms seeking certified, high-quality recitations.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-123",
+   "name": "Ahmed Abdulnasser Al-Jadouri Recitation",
+   "name_ar": "مصحف القارئ أحمد عبد الناصر الجادوري",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/123",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Murattal Ricitation",
+   "version": null,
+   "publisher": {
+    "name": "Mknoon",
+    "name_ar": "جمعية مكنون"
+   }
+  },
+  {
+   "slug": "cms-124",
+   "name": "Omar Annaiem Recitation",
+   "name_ar": "مصحف القارئ عمر النعيم",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/124",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Murattal by Hafs from Asem way Naration.",
+   "version": null,
+   "publisher": {
+    "name": "Mknoon",
+    "name_ar": "جمعية مكنون"
+   }
+  },
+  {
+   "slug": "cms-125",
+   "name": "Saleh Assahood Recitation",
+   "name_ar": "مصحف القارئ صالح الصاهود",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/125",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Murattal by Hafs from Asem way Naration.",
+   "version": null,
+   "publisher": {
+    "name": "Mknoon",
+    "name_ar": "جمعية مكنون"
+   }
+  },
+  {
+   "slug": "cms-126",
+   "name": "Mansour Essalmi Recitation",
+   "name_ar": "مصحف القارئ منصور السالمي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/126",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Murattal by Hafs from Asem way Naration.",
+   "version": null,
+   "publisher": {
+    "name": "Mknoon",
+    "name_ar": "جمعية مكنون"
+   }
+  },
+  {
+   "slug": "cms-127",
+   "name": "Atef Muftah Recitation",
+   "name_ar": "مصحف القارئ عاطف مفتاح عبد الجواد",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/127",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Murattal by Hafs from Asem way Naration.",
+   "version": null,
+   "publisher": {
+    "name": "Mknoon",
+    "name_ar": "جمعية مكنون"
+   }
+  },
+  {
+   "slug": "cms-128",
+   "name": "Abdullah Ghilan Recitation",
+   "name_ar": "مصحف القارئ عبد الله محمد غيلان",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/128",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Hafs Naration from Asem way",
+   "version": null,
+   "publisher": {
+    "name": "Mknoon",
+    "name_ar": "جمعية مكنون"
+   }
+  },
+  {
+   "slug": "cms-129",
+   "name": "Abdullah Assehaibani Recitation",
+   "name_ar": "مصحف القارئ عبد الله السحيباني",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/129",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Murattal Hafs Naration from Asem way",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-13",
+   "name": "Hassan Al-Daghreeri Recitation",
+   "name_ar": "مصحف القارئ حسن الدغريري",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/13",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "High-quality Quran recitation by reciter Hassan Al-Daghreeri, presented exclusively by the Saudi Center for Quran Recitations. An ideal choice for developers, publishers, and content platforms seeking certified, high-quality recitations.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-130",
+   "name": "Abdurrahman Assuaid Recitation",
+   "name_ar": "مصحف القارئ عبد الرحمن السويد",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/130",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Abdurrahman Assuaid Recitation",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-131",
+   "name": "The Second Murattal Quran by the reciter Sheikh Muhammad Siddiq Al-Minshawi",
+   "name_ar": "المصحف المرتل الثاني للقارئ الشيخ محمد صديق المنشاوي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/131",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Second Murattal Quran by the reciter Sheikh Muhammad Siddiq Al-Minshawi",
+   "version": null,
+   "publisher": {
+    "name": "Mknoon",
+    "name_ar": "جمعية مكنون"
+   }
+  },
+  {
+   "slug": "cms-132",
+   "name": "The Murattal Quran by the reciter Sheikh Mahmoud Khalil Al-Husary (Radio Version)",
+   "name_ar": "المصحف المرتل للقارئ الشيخ محمود خليل الحصري (نسخة الإذاعة)",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/132",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "المصحف المرتل برواية حفص عن عاصم من طريق الطيبة أنتجه المجلس الأعلى للشؤون الإسلامية  بمصر وقد سجل عام 1961 م ويعد هذا المصحف الجمع الصوتي الأول للقرآن الكريم في تاريخ المسلمين.",
+   "version": null,
+   "publisher": {
+    "name": "Mknoon",
+    "name_ar": "جمعية مكنون"
+   }
+  },
+  {
+   "slug": "cms-133",
+   "name": "The Murattal Quran by the reciter Sheikh Mustafa Ismail",
+   "name_ar": "المصحف المرتل للقارئ الشيخ مصطفى إسماعيل",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/133",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran according to the narration of Hafs an Asim from the Tayyibat al-Nashr pathway is one of the Quranic recording projects of the Supreme Council for Islamic Affairs, which it recorded according to the narration of Hafs an Asim in the 1960s.",
+   "version": null,
+   "publisher": {
+    "name": "Mknoon",
+    "name_ar": "جمعية مكنون"
+   }
+  },
+  {
+   "slug": "cms-134",
+   "name": "Sheikh Mahmoud Ali Al-Banna's Murattal Quran",
+   "name_ar": "المصحف المرتل للشيخ محمود علي البنا",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/134",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran according to the narration of Hafs an Asim from the Tayyibat al-Nashr pathway is one of the Quranic recording projects of the Supreme Council for Islamic Affairs, which it recorded according to the narration of Hafs an Asim in the 1960s.",
+   "version": null,
+   "publisher": {
+    "name": "Mknoon",
+    "name_ar": "جمعية مكنون"
+   }
+  },
+  {
+   "slug": "cms-135",
+   "name": "Sheikh Abdulbasit Abdussamad's Murattal Quran (Egyptian Radio)",
+   "name_ar": "مصحف الإذاعة المصرية للقارئ الشيخ عبد الباسط عبد الصمد",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/135",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran according to the narration of Hafs an Asim from the Shatibiyyah pathway is one of the Quranic recording projects of the Supreme Council for Islamic Affairs, which it recorded according to the narration of Hafs an Asim in the 1960s.",
+   "version": null,
+   "publisher": {
+    "name": "Mknoon",
+    "name_ar": "جمعية مكنون"
+   }
+  },
+  {
+   "slug": "cms-136",
+   "name": "Abdullah Basfar Recitation",
+   "name_ar": "مصحف القارئ عبد الله علي بصفر",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/136",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran according to the narration of Hafs an Asim from the Shatibiyyah pathway.",
+   "version": null,
+   "publisher": {
+    "name": "Mknoon",
+    "name_ar": "جمعية مكنون"
+   }
+  },
+  {
+   "slug": "cms-137",
+   "name": "Unicode Uthmanic Font for Developers (Hafs Narration) for Smart Devices",
+   "name_ar": "خط الرسم العثماني للمطورين (رواية حفص) للأجهزة الذكية",
+   "type": "font",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/137",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Uthmani Script Font (Hafs Narration) for Smart Devices Creation Date: 2020-08-21\r\nLast Modified Date: 2022-06-30\r\nInformation about the new update: In the read.me file Update: 6.0\r\n\r\nThe database contains the following fields:\r\n1- id (int): Auto_increment Number\r\n2- jozz (int): Jozz Number\r\n3- sura_no (int): Sura Number\r\n4- sura_name_en (varchar): Sura Name in English\r\n5- sura_name_ar (varchar): Sura Name in Arabic (Uthman Taha Naskh font)\r\n6- page (int): Page Number\r\n7- line_start (int): Start Line of Aya\r\n8- line_end (int): End Line of Aya\r\n9- aya_no (int): Aya Number\r\n10- aya_text (text): Text of the Aya in UthmanicHafs unicode\r\n11- aya_text_emlaey (text): Emlaey Text of the Aya used for search purpose\r\n\r\nIt includes two folders:\r\n1- It contains font file and whole Qur’an data in MS document file.\r\n2- It contains files for developers (Excel, CSV, HTML5, SQL, XML, JSON and PDF).",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-138",
+   "name": "Unicode Uthmanic Font for Developers (Hafs Narration)",
+   "name_ar": "خط الرسم العثماني للمطورين (رواية حفص)",
+   "type": "font",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/138",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Uthmani Script Font (Hafs Narration) Creation Date: 2020-09-16\r\nLast Modified Date: 2023-09-19\r\nInformation about the new update is in the read.me file Update: 13.0\r\n\r\nThe database contains the following fields:\r\n1- id (int): Auto_increment Number\r\n2- jozz (int): Jozz Number\r\n3- sura_no (int): Sura Number\r\n4- sura_name_en (varchar): Sura Name in English\r\n5- sura_name_ar (varchar): Sura Name in Arabic (Uthman Taha Naskh font)\r\n6- page (int): Page Number\r\n7- line_start (int): Start Line of Aya\r\n8- line_end (int): End Line of Aya\r\n9- aya_no (int): Aya Number\r\n10- aya_text (text): Text of the Aya in kfgqpc_hafs_uthmanic_script ttf font file (Adding Aya mark as Symbol to all files in UthmanicHafs_v2-0 data folder except Excel file to display Aya mark properly)\r\n11- aya_text_emlaey (text): Emlaey Text of the Aya used for search purpose\r\n\r\nIt includes two folders:\r\n1- It contains font file and whole Qur’an data in MS document file.\r\n2- It contains files for developers (Excel, CSV, HTML5, SQL, XML, JSON, TXT and PDF).",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-139",
+   "name": "Unicode Uthmanic Font for Developers (Warsh Narration)",
+   "name_ar": "خط الرسم العثماني للمطورين (رواية ورش)",
+   "type": "font",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/139",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Uthmani Script Font (Warsh Narration) Creation Date: 2020-09-16\r\nLast Modified Date: 2022-09-07\r\nInformation about the new update in the file: read.me Update: 6.0\r\n\r\nThe database contains the following fields:\r\n1- id (int): Auto_increment Number\r\n2- jozz (int): Jozz Number\r\n3- page (varchar): Page Number (There are some Ayat in two pages we separated with – symbol)\r\n4- sura_no (int): Sura Number\r\n5- sura_name_en (varchar): Sura Name in English\r\n6- sura_name_ar (varchar): Sura Name in Arabic (kfgqpc_warsh_uthmanic_script ttf font file)\r\n7- line_start (int): Start Line of Aya\r\n8- line_end (int): End Line of Aya\r\n9- aya_no (int): Aya Number\r\n10- aya_text (text): Text of the Aya in kfgqpc_warsh_uthmanic_script ttf font file (Adding Aya mark as Symbol to all files in UthmanicWarsh_v2-0 data folder except Excel file to display Aya mark properly)\r\n\r\nIt includes two folders:\r\n1- It contains font file and whole Qur’an data in MS document file.\r\n2- It contains files for developers (Excel, CSV, HTML5, SQL, XML, JSON and PDF).",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-14",
+   "name": "Zafar Al-Qalib Recitation",
+   "name_ar": "مصحف القارئ ظفر القليب",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/14",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "High-quality Quran recitation by reciter Zafar Al-Qalib, presented exclusively by the Saudi Center for Quran Recitations. An ideal choice for developers, publishers, and content platforms seeking certified, high-quality recitations.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-140",
+   "name": "Unicode Uthmanic Font for Developers (Shubah Narration)",
+   "name_ar": "خط الرسم العثماني للمطورين (رواية شعبة)",
+   "type": "font",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/140",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Uthmani Script Font (Shu'bah Narration) Creation Date: 2020-10-11\r\nLast Modified Date: 2022-09-21\r\nInformation about the new update in the file: read.me Update: 6.0\r\n\r\nThe database contains the following fields:\r\n1- id (int): Auto_increment Number\r\n2- jozz (int): Jozz Number\r\n3- page (varchar): Page Number (There are some Ayat in two pages we separated with – symbol)\r\n4- sura_no (int): Sura Number\r\n5- sura_name_en (varchar): Sura Name in English\r\n6- sura_name_ar (varchar): Sura Name in Arabic (kfgqpc_shuba_uthmanic_script ttf font file)\r\n7- line_start (int): Start Line of Aya\r\n8- line_end (int): End Line of Aya\r\n9- aya_no (int): Aya Number\r\n10- aya_text (text): Text of the Aya in kfgqpc_shuba_uthmanic_script ttf font file (Adding Aya mark as Symbol to all files in UthmanicShuba_v2-0 data folder except Excel file to display Aya mark properly)\r\n\r\nIt includes two folders:\r\n1- It contains font file and whole Qur’an data in MS document file.\r\n2- It contains files for developers (Excel, CSV, HTML5, SQL, XML, JSON and PDF).",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-141",
+   "name": "Unicode Uthmanic Font for Developers (Qaloun Narration)",
+   "name_ar": "خط الرسم العثماني للمطورين (رواية قالون)",
+   "type": "font",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/141",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Uthmani Script Font (Qalun Narration) Creation Date: 2020-10-18\r\nLast Modified Date: 2022-09-25\r\nInformation about the new update in the file: read.me Update: 5.0\r\n\r\nThe database contains the following fields:\r\n1- id (int): Auto_increment Number\r\n2- jozz (int): Jozz Number\r\n3- page (varchar): Page Number (There are some Ayat in two pages we separated with – symbol)\r\n4- sura_no (int): Sura Number\r\n5- sura_name_en (varchar): Sura Name in English\r\n6- sura_name_ar (varchar): Sura Name in Arabic (kfgqpc_qaloun_uthmanic_script ttf font file)\r\n7- line_start (int): Start Line of Aya\r\n8- line_end (int): End Line of Aya\r\n9- aya_no (int): Aya Number\r\n10- aya_text (text): Text of the Aya in kfgqpc_qaloun_uthmanic_script ttf font file (Adding Aya mark as Symbol to all files in UthmanicQaloun_v2-1 data folder except Excel file to display Aya mark properly)\r\n\r\nIt includes two folders:\r\n1- It contains font file and whole Qur’an data in MS document file.\r\n2- It contains files for developers (Excel, CSV, HTML5, SQL, XML, JSON and PDF).",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-142",
+   "name": "Unicode Uthmanic Font for Developers (Duri Narration)",
+   "name_ar": "خط الرسم العثماني للمطورين (رواية الدوري)",
+   "type": "font",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/142",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Uthmani Script Font (Al-Duri Narration) Creation Date: 2020-10-25\r\nLast Modified Date: 2022-09-25\r\nInformation about the new update in the file: read.me Update: 3.0\r\n\r\nThe database contains the following fields:\r\n1- id (int): Auto_increment Number\r\n2- jozz (int): Jozz Number\r\n3- page (varchar): Page Number (There are some Ayat in two pages we separated with – symbol)\r\n4- sura_no (int): Sura Number\r\n5- sura_name_en (varchar): Sura Name in English\r\n6- sura_name_ar (varchar): Sura Name in Arabic (kfgqpc_douri_uthmanic_script ttf font file)\r\n7- line_start (int): Start Line of Aya\r\n8- line_end (int): End Line of Aya\r\n9- aya_no (int): Aya Number\r\n10- aya_text (text): Text of the Aya in kfgqpc_douri_uthmanic_script ttf font file (Adding Aya mark as Symbol to all files in UthmanicDouri_v2-0 data folder except Excel file to display Aya mark properly)\r\n\r\nIt includes two folders:\r\n1- It contains font file and whole Qur’an data in MS document file.\r\n2- It contains files for developers (Excel, CSV, HTML5, SQL, XML, JSON and PDF).",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-143",
+   "name": "Unicode Uthmanic Font for Developers (Susi Narration)",
+   "name_ar": "خط الرسم العثماني للمطورين (رواية السوسي)",
+   "type": "font",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/143",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Uthmani Script Font (Al-Susi Narration) Creation Date: 2020-11-02\r\nLast Modified Date: 2022-09-27\r\nInformation about the new update in the file: read.me Update: 3.0\r\n\r\nThe database contains the following fields:\r\n1- id (int): Auto_increment Number\r\n2- jozz (int): Jozz Number\r\n3- page (varchar): Page Number (There are some Ayat in two pages we separated with – symbol)\r\n4- sura_no (int): Sura Number\r\n5- sura_name_en (varchar): Sura Name in English\r\n6- sura_name_ar (varchar): Sura Name in Arabic (kfgqpc_sousi_uthmanic_script ttf font file)\r\n7- aya_no (int): Aya Number\r\n8- line_start (int): Start Line of Aya\r\n9- line_end (int): End Line of Aya\r\n10- aya_text (text): Text of the Aya in kfgqpc_sousi_uthmanic_script ttf font file (Adding Aya mark as Symbol to all files in UthmanicSousi_v2-0 data folder except Excel file to display Aya mark properly)\r\n\r\nIt includes two folders:\r\n1- It contains font file and whole Qur’an data in MS document file.\r\n2- It contains files for developers (Excel, CSV, HTML5, SQL, XML, JSON and PDF).",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-144",
+   "name": "Tafseer Muyassar",
+   "name_ar": "التفسير الميسر",
+   "type": "tafsir",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/144",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Creation Date: 2020-12-15\r\nLast Modified Date: 2023-08-01\r\nInformation about the new update in the file: read.me Update: 3.0",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-145",
+   "name": "Muyassar of Ghareeb Al-Quran",
+   "name_ar": "الميسر في غريب القرآن الكريم",
+   "type": "tafsir",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/145",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Al-Muyassar in Gharib Al-Quran (Unfamiliar Words of the Quran) Creation Date: 2021-04-06\r\nLast Modified Date: 2021-04-06\r\nInformation about the new update: Update: No updates available",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-146",
+   "name": "Tajweed Muyassar",
+   "name_ar": "التجويد الميسر",
+   "type": "tajweed",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/146",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Al-Muyassar Tajweed (Simplified Rules of Tajweed) Creation Date: 2023-01-12\r\nLast Modified Date: 2023-01-12\r\nInformation about the new update: Update: No updates available",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-147",
+   "name": "Madinah Noble Quran for Printing Works according to the Narration of Hafs from 'Asim 1421 AH",
+   "name_ar": "مصحف المدينة النبوية لأعمال الطباعة برواية حفص عن عاصم 1421 هـ",
+   "type": "mushaf",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/147",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Madinah Noble Quran in Digital Files Using Advanced Vector Graphics (Vectors) Creating digital images with unlimited quality and precision in 2D display data",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-148",
+   "name": "Madinah Noble Quran for Printing Works according to the Narration of Hafs from 'Asim 1441 AH",
+   "name_ar": "مصحف المدينة النبوية لأعمال الطباعة برواية حفص عن عاصم 1441 هـ",
+   "type": "mushaf",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/148",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Madinah Noble Quran in Digital Files Using Advanced Vector Graphics (Vectors) Creating digital images with unlimited quality and precision in 2D display data",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-149",
+   "name": "Madinah Noble Quran for Printing Works according to the Narration of Shu'bah from 'Asim",
+   "name_ar": "مصحف المدينة النبوية لأعمال الطباعة برواية شعبة عن عاصم",
+   "type": "mushaf",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/149",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Madinah Noble Quran according to the Narration of Shu'bah from 'Asim, issued by the King Fahd Glorious Quran Printing Complex, in the form of digital files using Advanced Vector Graphics (Vectors).\r\n\r\nThrough this Quran, it is possible to create digital images with unlimited quality and precision in 2D display data.",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-15",
+   "name": "Nasser Al-Asfour Recitation",
+   "name_ar": "مصحف القارئ ناصر العصفور",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/15",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "High-quality Quran recitation by reciter Nasser Al-Asfour, presented exclusively by the Saudi Center for Quran Recitations. An ideal choice for developers, publishers, and content platforms seeking certified, high-quality recitations.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-150",
+   "name": "Madinah Noble Quran for Printing Works according to the Narration of Warsh from Nafi'",
+   "name_ar": "مصحف المدينة النبوية لأعمال الطباعة برواية ورش عن نافع",
+   "type": "mushaf",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/150",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Madinah Noble Quran according to the Narration of Warsh from Nafi', issued by the King Fahd Glorious Quran Printing Complex, in the form of digital files using Advanced Vector Graphics (Vectors).\r\n\r\nThrough this Quran, it is possible to create digital images with unlimited quality and precision in 2D display data.",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-151",
+   "name": "Madinah Noble Quran for Printing Works according to the Narration of Qalun from Nafi'",
+   "name_ar": "مصحف المدينة النبوية لأعمال الطباعة برواية قالون عن نافع",
+   "type": "mushaf",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/151",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Madinah Noble Quran according to the Narration of Qalun from Nafi', issued by the King Fahd Glorious Quran Printing Complex, in the form of digital files using Advanced Vector Graphics (Vectors).\r\n\r\nThrough this Quran, it is possible to create digital images with unlimited quality and precision in 2D display data.",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-152",
+   "name": "Madinah Noble Quran for Printing Works according to the Narration of Al-Duri from Abi 'Amr",
+   "name_ar": "مصحف المدينة النبوية لأعمال الطباعة برواية الدوري عن أبي عمرو",
+   "type": "mushaf",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/152",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Madinah Noble Quran according to the Narration of Al-Duri from Abi 'Amr Al-Basri, issued by the King Fahd Glorious Quran Printing Complex, in the form of digital files using Advanced Vector Graphics (Vectors).\r\n\r\nThrough this Quran, it is possible to create digital images with unlimited quality and precision in 2D display data.",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-153",
+   "name": "The Murattal Quran in the Riwayah of Hafs from 'Asim (Tawassut)",
+   "name_ar": "المصحف المرتل برواية حفص عن عاصم بالتوسط",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/153",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran in the Riwayah of Hafs from 'Asim via the Tariq of Ash-Shatibiyyah, with Madd al-Munfasil (Tawassut).",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-154",
+   "name": "The Murattal Quran in the Riwayah of Qalun from Nafi' via Abu Nasheet Al-Marwazi from Ibn Buyan",
+   "name_ar": "المصحف المرتل برواية قالون عن نافع من طريق أبي نشيط المروزي من طريق ابن بويان",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/154",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "“The murattal Qur’an in the narration of Qālūn from Nāfiʿ, through the route of Abū Nashīṭ al‑Marwazī, via Ibn Būyān.",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-155",
+   "name": "The Murattal Quran in the Riwayah of As-Susi from Abi 'Amr",
+   "name_ar": "المصحف المرتل برواية السوسي عن أبي عمرو البصري",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/155",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran in the Riwayah of ِAssossy An Abi Amro Albasri",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-156",
+   "name": "The Murattal Quran in the Riwayah of Shu'bah from 'Asim via Ash-Shatibiyyah (Tawassut)",
+   "name_ar": "المصحف المرتل برواية شعبة عن عاصم من طريق الشاطبية بمد المنفصل (التوسط)",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/156",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran in the Riwayah of Shoabah from 'Asim via the Tariq of Ash-Shatibiyyah, with Madd al-Munfasil (Tawassut).",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-157",
+   "name": "The Murattal Quran in the Riwayah of Khalaf from Hamzah",
+   "name_ar": "المصحف المرتل برواية خلف عن الإمام حمزة الكوفي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/157",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran in the Riwayah of Khalaf from Hamzah",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-158",
+   "name": "The Murattal Quran in the Riwayah of Khallad from Hamzah",
+   "name_ar": "المصحف المرتل برواية خلاد عن الإمام حمزة الكوفي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/158",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran in the Riwayah of Khalad from Hamzah",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-159",
+   "name": "The Murattal Quran in the Riwayah of Warsh from Nafi' via Al-Asbahani",
+   "name_ar": "المصحف المرتل برواية ورش عن نافع المدني عن طريق الأصبهاني",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/159",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran in the Riwayah of Warsh An Nafea from AlAsbahani",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-16",
+   "name": "Mohammed Al-Zubaidi Recitation",
+   "name_ar": "مصحف القارئ محمد الزبيدي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/16",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "High-quality Quran recitation by reciter Mohammed Al-Zubaidi, presented exclusively by the Saudi Center for Quran Recitations. An ideal choice for developers, publishers, and content platforms seeking certified, high-quality recitations.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-160",
+   "name": "The Murattal Quran in the Riwayah of Warsh from Nafi' via Al-Azraq",
+   "name_ar": "المصحف المرتل برواية ورش عن نافع المدني من طريق الأزرق",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/160",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran in the Riwayah of Warsh An Nafea from Alazraq",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-161",
+   "name": "The Murattal Quran in the Riwayah of Qunbul from Ibn Kathir",
+   "name_ar": "المصحف المرتل برواية قنبل عن ابن كثير المكي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/161",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran in the Riwayah of Qunbul An Ibn Katheir",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-162",
+   "name": "The Murattal Quran in the Riwayah of Hisham from Ibn 'Amir via Al-Azraq from Al-Hulwani, with Ghunnah in Lam and Ra",
+   "name_ar": "المصحف المرتل برواية هشام عن ابن عامر الشامي من طريق الأزرق عن الحلواني بالغنة في اللام والرا",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/162",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran in the Hisham of Warsh An Nafea from AlAzraq from AlHalawani way with Ghunna in Lam and Ra",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-163",
+   "name": "The Murattal Quran in the Riwayah of Ibn Wardan from Abi Ja'far",
+   "name_ar": "المصحف المرتل برواية ابن وردان عن أبي جعفر المدني",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/163",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran in the Riwayah of Ibn Wardan An Abi Jaafar",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-164",
+   "name": "The Murattal Quran in the Riwayah of Ibn Jammaz from Abi Ja'far",
+   "name_ar": "المصحف المرتل برواية ابن جماز عن أبي جعفر المدني",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/164",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran in the Riwayah of Ibn Jamaz An Abi Jaafar",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-166",
+   "name": "The Murattal Quran in the Riwayah of Al-Bazzi from Ibn Kathir",
+   "name_ar": "المصحف المرتل برواية البزي عن ابن كثير المكي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/166",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran in the Riwayah of Albazy An Ibn Katheir",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-167",
+   "name": "The Murattal Quran in the Riwayah of Al-Duri from Abi 'Amr via At-Tayyibah, with Al-Idgham Al-Kabir",
+   "name_ar": "المصحف المرتل برواية الدوري عن أبي عمرو البصري من الطيبة بالإدغام الكبير",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/167",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Murattal Quran in the Riwayah of Aldoree An Abi Amro Albasri from Alteibah with Big Adgham",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-169",
+   "name": "The Murattal Quran in the Riwayah of Qalun from Nafi' via At-Tayyibah, with Idgham in Lam and Ra",
+   "name_ar": "المصحف المرتل برواية قالون عن نافع المدني من طريق الطيبة بالادغام في اللام والرا",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/169",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "**“Murattal Qur’an in the Qālūn narration from Nāfiʿ, via the Ṭayyibah path, with idghām in Lām and Rā.”**",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-17",
+   "name": "The Murattal Quran in the Riwayah of Warsh from Nafi' (Tawassut)",
+   "name_ar": "المصحف المرتل برواية ورش عن نافع بالتوسط",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/17",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to رواية ورش عن نافع بالتوسط recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-170",
+   "name": "The Murattal Quran in the Riwayah of Ruways from Ya'qub Al-Hadrami",
+   "name_ar": "المصحف المرتل برواية رويس عن يَعْقُوب الحضرمي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/170",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The murattal Qur’an in the narration of Ruways from Ya‘qūb al‑Ḥaḍramī.",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-171",
+   "name": "The Murattal Quran in the Riwayah of Ruh from Ya'qub Al-Hadrami",
+   "name_ar": "المصحف المرتل برواية روح عن يَعْقُوب الحضرمي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/171",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "“The murattal Qur’an in the narration of Rūḥ from Ya‘qūb al‑Ḥaḍramī.",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-172",
+   "name": "The Murattal Quran in the Riwayah of Ishaq from Khalaf Al-'Ashir",
+   "name_ar": "المصحف المرتل بروايةاسحاق عن خلف العاشر",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/172",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "“The murattal Qur’an in the narration of Isḥāq from Khalaf al‑ʿĀshir.",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-173",
+   "name": "The Murattal Quran in the Riwayah of Idris from Khalaf Al-'Ashir",
+   "name_ar": "المصحف المرتل برواية إدريس عن خلف العاشر",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/173",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The murattal Qur’an in the narration of Idrīs from Khalaf al‑ʿĀshir.",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-174",
+   "name": "The Murattal Quran in the Riwayah of Al-Duri from Al-Kisa'i",
+   "name_ar": "المصحف المرتل برواية الدوري عن الكسائي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/174",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "“The murattal Qur’an in the narration of al‑Dūrī from al‑Kisā’ī",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-175",
+   "name": "The Murattal Quran in the Riwayah of Abu Al-Harith from Al-Kisa'i",
+   "name_ar": "المصحف المرتل برواية أبو الحارث عن الكِسائي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/175",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The murattal Qur’an in the narration of Abū al‑Hārith from al‑Kisā’ī.",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-176",
+   "name": "The Murattal Quran in the Riwayah of Ibn Dhakwan from Ibn 'Amir",
+   "name_ar": "المصحف المرتل برواية ابن ذكوان عن ابن عامر الشامي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/176",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "“The murattal Qur’an in the narration of Ibn Dhakwān from Ibn ʿĀmir al‑Shāmī.",
+   "version": null,
+   "publisher": {
+    "name": "Quran Qiraat",
+    "name_ar": "موقع قراءات القرآن"
+   }
+  },
+  {
+   "slug": "cms-177",
+   "name": "The Azhari Mushaf (Conforming to the Shamerly Mushaf)",
+   "name_ar": "المصحف الأزهري (موافق لمصحف الشمرلي)",
+   "type": "mushaf",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/177",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A copy of the Mushaf issued by the King Fahd Complex, according to the old Azhari layout and conforming to the famous Shamerly Mushaf edition in Egypt",
+   "version": null,
+   "publisher": {
+    "name": "King Fahd Glorious Qur'an Printing Complex",
+    "name_ar": "مجمع الملك فهد لطباعة المصحف الشريف"
+   }
+  },
+  {
+   "slug": "cms-18",
+   "name": "The Murattal Quran Combining the Riwayah of Warsh from Nafi'",
+   "name_ar": "المصحف المرتل بجمع رواية ورش عن نافع",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/18",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to جمع رواية ورش عن نافع recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-181",
+   "name": "The Joint Mushaf of Riyadh Reciters",
+   "name_ar": "المصحف المشترك لقراء الرياض",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/181",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "The Joint Mushaf of Riyadh Reciters is a unique and collaborative Quranic audio project that brings together a distinguished group of prominent reciters and mosque Imams from the city of Riyadh to recite the entire Holy Quran.\n\nKey Features of this Mushaf:\n\nNarration (Riwayah): The recitations are recorded in the universally recognized transmission of Hafs 'an 'Asim.\n\nRecitation Style: It is specifically recited using the rule of \"Qasr al-Munfasil\" (shortening the disconnected elongation). This means the optional disconnected elongation (Madd Ja'iz Munfasil) is shortened to just two beats instead of the standard four or five.\n\nPurpose and Impact: The project aims to showcase the vocal diversity and beautiful recitation styles of Riyadh's Imams in a single, unified release. Thanks to the application of Qasr al-Munfasil, the recitation maintains a smooth, moderately fast pace. This makes it an ideal choice for memorizers who want to revise their Quran, or for listeners who wish to complete a full listening of the Quran in a shorter timeframe without compromising the rules of Tajweed.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-182",
+   "name": "Anas Al-Maiman Recitation",
+   "name_ar": "مصحف القارئ أنس الميمان",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/182",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "\"The Recited Quran in the Narration of Hafs 'an 'Asim via the Tariq of Ash-Shatibiyyah (with Elongation of the Disconnected Madd)\"",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-183",
+   "name": "Al Mokhtasar",
+   "name_ar": "المختصر في تفسير القرآن الكريم",
+   "type": "tafsir",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/183",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Facilitating the understanding of the Holy Quran through the Mukhtasar (Concise) exegesis, utilizing reliable scholarly content and a distinguished methodology within an institutional environment driven by continuous development and diverse partnerships. It also strives to disseminate this work globally to all beneficiaries through various outputs—printed, visual, audio, digital, and educational—while ensuring accessibility for individuals with special needs and offering it in multiple languages.\"",
+   "version": null,
+   "publisher": {
+    "name": "Dar Almukhtasar",
+    "name_ar": "دار المختصر"
+   }
+  },
+  {
+   "slug": "cms-184",
+   "name": "Objectives of the Surahs from Al-Mukhtasar",
+   "name_ar": "مقاصد السور من كتاب المختصر في تفسير القرآن الكريم",
+   "type": "tafsir",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/184",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A concise overview of the topics of each Surah in the Holy Qur'an",
+   "version": null,
+   "publisher": {
+    "name": "Dar Almukhtasar",
+    "name_ar": "دار المختصر"
+   }
+  },
+  {
+   "slug": "cms-186",
+   "name": "Al-Jami' Al-Wajeez fi Tafsir Ay Al-Kitab Al-Aziz",
+   "name_ar": "الجامع الوجيز في تفسير آي الكتاب العزيز",
+   "type": "tafsir",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/186",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Al-Jāmiʿ al-Wajīz fī Tafsīr Āyi al-Kitāb al-ʿAzīz by Dr. Ayman Fateh al-Amer is a concise commentary on the whole Quran, from al-Fatiha to an-Nas (114 surahs, 6,236 verses). It distills eight authoritative works into a single reference: Ibn Kathir, Safwat al-Bayan, Zubdat al-Tafsir, al-Saʿdi, al-Jalalayn, the Ten Recitations, and the books of the occasions of revelation by al-Suyuti and al-Wahidi. Each surah opens with an introduction and its virtues, and each verse is explained with related verses, hadiths, occasions of revelation, variant readings, and doctrinal, jurisprudential, and linguistic benefits. It has been approved by the Association of Senior Muslim Scholars and endorsed by the review committee at Dar Ihya al-Turath al-Islami in Qatar.",
+   "version": null,
+   "publisher": {
+    "name": "miqra",
+    "name_ar": "موقع مقرأ"
+   }
+  },
+  {
+   "slug": "cms-187",
+   "name": "Sciences of the Surahs from Al-Jami' Al-Wajeez",
+   "name_ar": "علوم السور من كتاب الجامع الوجيز في تفسير آي الكتاب العزيز",
+   "type": "tafsir",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/187",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "ʿUlūm al-Suwar (Surah Studies): 114 records, one per surah, from Al-Jāmiʿ al-Wajīz by Dr. Ayman Fateh al-Amer. Each gives the surah's type, verse count, name, virtues, and occasions of revelation.",
+   "version": null,
+   "publisher": {
+    "name": "miqra",
+    "name_ar": "موقع مقرأ"
+   }
+  },
+  {
+   "slug": "cms-188",
+   "name": "Word-by-Word Meanings of the Holy Quran's Vocabulary",
+   "name_ar": "معاني مفردات القرآن الكريم كلمة كلمة",
+   "type": "tafsir",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/188",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A Word-by-Word Explanation of the Holy Quran's Vocabulary from Reliable Linguistic and Exegetical Sources. Prepared by Engineer and Researcher Bashir Ahmad Sulaiman Yunus.",
+   "version": null,
+   "publisher": {
+    "name": "Dar Alnafais",
+    "name_ar": "دار النفائس"
+   }
+  },
+  {
+   "slug": "cms-189",
+   "name": "Tajweed Rulings on the Words of the Qur’an",
+   "name_ar": "أحكام التجويد في كلمات العزيز الحميد",
+   "type": "tafsir",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/189",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "This book follows the words of the Qur’an page by page in the margins of the Madinah Mushaf, noting next to each word its most prominent tajweed ruling. The rulings include ghunnah, idgham, ikhfa’ and iqlab, lengthening and shortening of madd, selected rules of stopping and starting, and features of the Mushaf’s script such as omitted and retained letters, joined and separated words, and the feminine ta’. It pays particular attention to the effects of shortening the separated madd (al-madd al-munfasil). The author states each ruling briefly, without detailed explanation, so that readers can apply it while reciting. Because the rulings recur across consecutive verses, readers build a lasting habit of correct pronunciation. The book follows the riwayah of Hafs from Asim via the Shatibiyyah route.",
+   "version": null,
+   "publisher": {
+    "name": "Dar Al-Qiblatayn for Publishing and Distribution",
+    "name_ar": "دار القبلتين للنشر والتوزيع"
+   }
+  },
+  {
+   "slug": "cms-19",
+   "name": "The Murattal Quran in the Riwayah of Qalun from Nafi' (Tawassut, with Silat Meem Al-Jam')",
+   "name_ar": "المصحف المرتل برواية قالون عن نافع بالتوسط مع صلة ميم الجمع",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/19",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to رواية قالون عن نافع بالتوسط مع صلة ميم الجمع recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-20",
+   "name": "The Murattal Quran Combining the Riwayah of Qalun from Nafi'",
+   "name_ar": "المصحف المرتل بجمع رواية قالون عن نافع",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/20",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to بجمع رواية قالون عن نافع recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-21",
+   "name": "The Murattal Quran in the Riwayah of Qalun from Nafi' with Qasr Al-Munfasil and Sukun Meem Al-Jam'",
+   "name_ar": "المصحف المرتل برواية قالون عن نافع بقصر المنفصل مع سكون ميم الجمع",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/21",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to رواية قالون عن نافع بقصر المنفصل مع سكون ميم الجمع recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-22",
+   "name": "The Murattal Quran in the Riwayah of Qalun from Nafi' with Qasr Al-Munfasil and Silat Meem Al-Jam'",
+   "name_ar": "المصحف المرتل برواية قالون عن نافع بقصر المنفصل مع صلة ميم الجمع",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/22",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to رواية قالون عن نافع بقصر المنفصل مع صلة ميم الجمع recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-24",
+   "name": "The Murattal Quran in the Riwayah of Al-Bazzi from Ibn Kathir",
+   "name_ar": "المصحف المرتل برواية البزي عن ابن كثير",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/24",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to رواية البزي عن ابن كثير recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-25",
+   "name": "The Murattal Quran in the Riwayah of Qunbul from Ibn Kathir",
+   "name_ar": "المصحف المرتل برواية قنبل عن ابن كثير",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/25",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to رواية قنبل عن ابن كثير recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-26",
+   "name": "The Murattal Quran Combining the Qira'ah of Ibn Kathir",
+   "name_ar": "المصحف المرتل بجمع قراءة ابن كثير",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/26",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to جمع قراءة ابن كثير recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-27",
+   "name": "The Murattal Quran in the Riwayah of Al-Duri from Abi 'Amr (Tawassut)",
+   "name_ar": "المصحف المرتل برواية الدوري عن أبي عمرو بالتوسط",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/27",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to رواية الدوري عن أبي عمرو بالتوسط recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-28",
+   "name": "The Murattal Quran in the Riwayah of Al-Duri from Abi 'Amr with Qasr Al-Munfasil",
+   "name_ar": "المصحف المرتل برواية الدوري عن أبي عمرو بقصر المنفصل",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/28",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to رواية الدوري عن أبي عمرو بقصر المنفصل recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-29",
+   "name": "The Murattal Quran Combining the Riwayah of Al-Duri from Abi 'Amr",
+   "name_ar": "المصحف المرتل بجمع رواية الدوري عن أبي عمرو",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/29",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to جمع رواية الدوري عن أبي عمرو recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-30",
+   "name": "The Murattal Quran in the Riwayah of As-Susi from Abi 'Amr",
+   "name_ar": "المصحف المرتل برواية السوسي عن أبي عمرو",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/30",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to رواية السوسي عن أبي عمرو recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-31",
+   "name": "The Murattal Quran in the Riwayah of Hafs from 'Asim (Tawassut)",
+   "name_ar": "المصحف المرتل برواية حفص عن عاصم بالتوسط",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/31",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to رواية حفص عن عاصم بالتوسط recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-32",
+   "name": "The Murattal Quran in the Riwayah of Hafs from 'Asim with Qasr Al-Munfasil",
+   "name_ar": "المصحف المرتل برواية حفص عن عاصم بقصر المنفصل",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/32",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to رواية حفص عن عاصم بقصر المنفصل recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-33",
+   "name": "The Murattal Quran in the Riwayah of Shu'bah from 'Asim",
+   "name_ar": "المصحف المرتل برواية شعبة عن عاصم",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/33",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to رواية شعبة عن عاصم recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-34",
+   "name": "The Murattal Quran Combining the Qira'ah of 'Asim",
+   "name_ar": "المصحف المرتل بجمع قراءة عاصم",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/34",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "A high-quality Quranic recitation according to بجمع قراءة عاصم recited by Saber Abdelhakem, with precise performance and professional audio quality, published by Tahbeer for the Ten Qira’at",
+   "version": null,
+   "publisher": {
+    "name": "Tahbeer for the Ten Qira’at",
+    "name_ar": "تحبير القراءات العشر"
+   }
+  },
+  {
+   "slug": "cms-35",
+   "name": "Ibrahim Al-Dosari Recitation",
+   "name_ar": "مصحف القارئ إبراهيم الدوسري",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/35",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "تلاوة قرآنية عالية الجودة للقارئ إبراهيم بن سعيد الدوسري، مقدّمة حصريًا من المركز السعودي للتلاوات. تعتبر خيارًا مثاليًا للمطورين والناشرين ومنصات المحتوى الباحثين عن تلاوات معتمدة وذات جودة عالية.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-36",
+   "name": "Buraik Al-Qarni Recitation",
+   "name_ar": "مصحف القارئ بريك القرني",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/36",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "تلاوة قرآنية عالية الجودة للقارئ بريك القرني، مقدّمة حصريًا من المركز السعودي للتلاوات. تعتبر خيارًا مثاليًا للمطورين والناشرين ومنصات المحتوى الباحثين عن تلاوات معتمدة وذات جودة عالية.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-37",
+   "name": "Omar Al-Nabrawi Recitation",
+   "name_ar": "مصحف القارئ عمر النبراوي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/37",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "تلاوة قرآنية عالية الجودة للقارئ عمر النبراوي، مقدّمة حصريًا من المركز السعودي للتلاوات. تعتبر خيارًا مثاليًا للمطورين والناشرين ومنصات المحتوى الباحثين عن تلاوات معتمدة وذات جودة عالية.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-38",
+   "name": "Nasser Bahaj Recitation",
+   "name_ar": "مصحف القارئ ناصر باحاج",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/38",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "تلاوة قرآنية عالية الجودة للقارئ ناصر محمد باحاج، مقدّمة حصريًا من المركز السعودي للتلاوات. تعتبر خيارًا مثاليًا للمطورين والناشرين ومنصات المحتوى الباحثين عن تلاوات معتمدة وذات جودة عالية.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-39",
+   "name": "Yousef Al-Dosari Recitation",
+   "name_ar": "مصحف القارئ يوسف الدوسري",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/39",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "High-quality Quran recitation by reciter Yosuf Addosari, presented exclusively by the Saudi Center for Quran Recitations. An ideal choice for developers, publishers, and content platforms seeking certified, high-quality recitations.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-4",
+   "name": "Tafsir Altabari",
+   "name_ar": "تفسير الطبري",
+   "type": "tafsir",
+   "license": "CC-BY-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/4",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Jami' al-Bayan 'an Ta'wil Ayat al-Qur'an by Muhammad ibn Jarir al-Tabari - Tafsir of Imam al-Tabari",
+   "version": null,
+   "publisher": {
+    "name": "Tafsir Center",
+    "name_ar": "مركز تفسير"
+   }
+  },
+  {
+   "slug": "cms-40",
+   "name": "Ahmed Al-Obaidi Recitation",
+   "name_ar": "مصحف القارئ أحمد العبيدي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/40",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "High-quality Quran recitation by reciter Ahmed Al Obaidi, presented exclusively by the Saudi Center for Quran Recitations. An ideal choice for developers, publishers, and content platforms seeking certified, high-quality recitations.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-41",
+   "name": "Sami Al-Sulami Recitation",
+   "name_ar": "مصحف القارئ سامي السلمي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/41",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "High-quality Quran recitation by reciter Sami Assolami, presented exclusively by the Saudi Center for Quran Recitations. An ideal choice for developers, publishers, and content platforms seeking certified, high-quality recitations.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-42",
+   "name": "Abdurrahman Al-Olayan Recitation",
+   "name_ar": "مصحف القارئ عبد الرحمن العليان",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/42",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "High-quality Quran recitation by reciter Abdurrahman Al-Olian, presented exclusively by the Saudi Center for Quran Recitations. An ideal choice for developers, publishers, and content platforms seeking certified, high-quality recitations.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-43",
+   "name": "Abdulaziz Al-Turki Recitation",
+   "name_ar": "مصحف القارئ عبد العزيز التركي",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/43",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "High-quality Quran recitation by reciter Abdulaziz Atturki, presented exclusively by the Saudi Center for Quran Recitations. An ideal choice for developers, publishers, and content platforms seeking certified, high-quality recitations.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-44",
+   "name": "Abdullah Al-Khalaf Recitation",
+   "name_ar": "مصحف القارئ عبد الله الخلف",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/44",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "High-quality Quran recitation by reciter Abdullah Al-Khalaf, presented exclusively by the Saudi Center for Quran Recitations. An ideal choice for developers, publishers, and content platforms seeking certified, high-quality recitations.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-45",
+   "name": "Abdulmalik Al-Masoud Recitation",
+   "name_ar": "مصحف القارئ عبد الملك المسعود",
+   "type": "recitation",
+   "license": "CC-BY-NC-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/45",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "High-quality Quran recitation by reciter Abdulmalik Al-Masoud, presented exclusively by the Saudi Center for Quran Recitations. An ideal choice for developers, publishers, and content platforms seeking certified, high-quality recitations.",
+   "version": null,
+   "publisher": {
+    "name": "Saudi Center for Quranic Recitations and Prophetic Hadiths",
+    "name_ar": "المركز السعودي للتلاوات القرآنية والأحاديث النبوية"
+   }
+  },
+  {
+   "slug": "cms-5",
+   "name": "Tafsir Ibn Katheer",
+   "name_ar": "تفسير ابن كثير",
+   "type": "tafsir",
+   "license": "CC-BY-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/5",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Tafsir al-Qur'an al-'Azim by al-Hafiz Ibn Kathir - published by Dar Ibn al-Jawzi in Saudi Arabia",
+   "version": null,
+   "publisher": {
+    "name": "Tafsir Center",
+    "name_ar": "مركز تفسير"
+   }
+  },
+  {
+   "slug": "cms-6",
+   "name": "Tafsir Alsa'adi",
+   "name_ar": "تفسير السعدي",
+   "type": "tafsir",
+   "license": "CC-BY-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/6",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Taysir al-Karim al-Rahman fi Tafsir Kalam al-Mannan by Sheikh Abdul Rahman al-Saadi - (Tafsir al-Saadi) published by Dar Ibn al-Jawzi in Saudi Arabia",
+   "version": null,
+   "publisher": {
+    "name": "Tafsir Center",
+    "name_ar": "مركز تفسير"
+   }
+  },
+  {
+   "slug": "cms-7",
+   "name": "Tafsir Al-Baghawi",
+   "name_ar": "تفسير البغوي",
+   "type": "tafsir",
+   "license": "CC-BY-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/7",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Ma'alim al-Tanzil",
+   "version": null,
+   "publisher": {
+    "name": "Tafsir Center",
+    "name_ar": "مركز تفسير"
+   }
+  },
+  {
+   "slug": "cms-8",
+   "name": "Tafsir Almokhtassar",
+   "name_ar": "المختصر في تفسير القرآن الكريم",
+   "type": "tafsir",
+   "license": "CC-BY-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/8",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Al-Mukhtasar fi Tafsir al-Qur'an al-Karim",
+   "version": null,
+   "publisher": {
+    "name": "Tafsir Center",
+    "name_ar": "مركز تفسير"
+   }
+  },
+  {
+   "slug": "cms-9",
+   "name": "English Translation",
+   "name_ar": "الترجمة الانجليزية",
+   "type": "translation",
+   "license": "CC-BY-ND",
+   "source_url": "https://cms.itqan.dev/gallery/asset/9",
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Noor International Center - Translation of the Meanings of the Verses of the Holy Quran",
+   "version": null,
+   "publisher": {
+    "name": "IslamHouse",
+    "name_ar": "موقع دار الإسلام"
+   }
+  },
+  {
+   "slug": "payload-alfanous",
+   "name": "Alfanous",
+   "name_ar": null,
+   "type": "search",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": null,
+   "github_url": "https://github.com/Alfanous-team/alfanous.git",
+   "short_description": "Open-source Arabic Quran full-text search engine API built on Whoosh.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-aqqac",
+   "name": "AQQAC",
+   "name_ar": null,
+   "type": "dataset",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Annotated dataset of ~2224 Arabic Quran questions and answers.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-equran",
+   "name": "eQuran",
+   "name_ar": null,
+   "type": "program",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": null,
+   "github_url": "https://github.com/ya27hw/equran_app",
+   "short_description": "Mobile Quran app with surah/juz browsing, favorites, and recitation playback.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-kalimat",
+   "name": "Kalimat",
+   "name_ar": null,
+   "type": "search",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": "https://www.kalimat.dev/",
+   "github_url": null,
+   "short_description": "Neural semantic search engine API for Quran and Sunnah, supporting 130+ languages.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-mushafimad",
+   "name": "MushafImad",
+   "name_ar": null,
+   "type": "library",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": null,
+   "github_url": "https://github.com/ibo2001/MushafImad",
+   "short_description": "Native Mushaf-reading UI packages for iOS, Android, and Flutter.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-noor-ul-huda",
+   "name": "Noor-Ul-Huda",
+   "name_ar": null,
+   "type": "program",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": null,
+   "github_url": "https://github.com/mirfatif/NoorUlHuda",
+   "short_description": "Offline-first Quran reading app with prayer times, Duas, tags, and bookmarks.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-othman-quran-browser",
+   "name": "Othman Quran Browser",
+   "name_ar": null,
+   "type": "search",
+   "license": "Waqf Public License",
+   "source_url": null,
+   "website_url": null,
+   "github_url": "https://github.com/ojuba-org/othman.git",
+   "short_description": "Electronic Quran browser with fast search over the Othmani script.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-qqac",
+   "name": "QQAC",
+   "name_ar": null,
+   "type": "dataset",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Bilingual (Arabic/English) dataset of 1224 annotated Quran Q&A pairs on HuggingFace.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-quran-analysis",
+   "name": "Quran Analysis",
+   "name_ar": null,
+   "type": "search",
+   "license": "GPL-3.0",
+   "source_url": null,
+   "website_url": "https://qurananalysis.com/",
+   "github_url": "https://github.com/karimouda/qurananalysis/",
+   "short_description": "Semantic search and intelligence system for the Quran with morphological analysis and Q&A.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-quran-com",
+   "name": "quran.com",
+   "name_ar": null,
+   "type": "program",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": "https://quran.com/",
+   "github_url": "https://github.com/quran/quran.com-frontend-next",
+   "short_description": "Full-featured Quran web app from Quran.Foundation with translations, tafsir, and audio.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-quran-com-api",
+   "name": "quran.com-api",
+   "name_ar": null,
+   "type": "api",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": null,
+   "github_url": "https://github.com/quran/quran.com-api",
+   "short_description": "RESTful content API from Quran.Foundation powering quran.com and QuranReflect.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-quran-json",
+   "name": "quran-json",
+   "name_ar": null,
+   "type": "json",
+   "license": "CC-BY-SA 4.0",
+   "source_url": null,
+   "website_url": null,
+   "github_url": "https://github.com/risan/quran-json",
+   "short_description": "JavaScript package delivering Quran text, transliteration, and translations in JSON.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-quran-revision-companion",
+   "name": "Quran Revision Companion",
+   "name_ar": null,
+   "type": "program",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": null,
+   "github_url": "https://github.com/Waqar144/quran_memorization_helper",
+   "short_description": "Memorization (hifz) companion app with quizzes and multiple Mushaf layouts.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-quran-svg",
+   "name": "quran-svg",
+   "name_ar": null,
+   "type": "dataset",
+   "license": "CC0 1.0",
+   "source_url": null,
+   "website_url": null,
+   "github_url": "https://github.com/quranpedia/quran-svg",
+   "short_description": "مصاحف بصيغة SVG جاهزة للاستخدام في التطبيقات",
+   "version": null,
+   "publisher": {
+    "name": "abdullah"
+   }
+  },
+  {
+   "slug": "payload-quranenc",
+   "name": "QuranEnc",
+   "name_ar": null,
+   "type": "translation",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": "https://quranenc.com/",
+   "github_url": null,
+   "short_description": "Portal of verified Quran translations and exegeses in 79 languages.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-quranic",
+   "name": "Quranic",
+   "name_ar": null,
+   "type": "search",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": null,
+   "github_url": "https://github.com/kyb3r/quranic",
+   "short_description": "Semantic search engine for Quran and Hadith translations using sentence embeddings.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-quranic-questions-resources",
+   "name": "Quranic Questions Resources",
+   "name_ar": null,
+   "type": "dataset",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Curated list of external providers offering Quranic question banks for app developers.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-quranic-search-v2",
+   "name": "Quranic Search v2",
+   "name_ar": null,
+   "type": "search",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": null,
+   "github_url": "https://github.com/ahr9n/quranic-search-v2",
+   "short_description": "Hybrid lexical and semantic (Word2Vec) search web app for the Quran.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-quranic-word-level-audio-resources",
+   "name": "Quranic Word-Level Audio Resources",
+   "name_ar": null,
+   "type": "audio",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": null,
+   "github_url": null,
+   "short_description": "Curated list of word-level Quran recitation audio datasets, timestamp APIs, and alignment tools.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  },
+  {
+   "slug": "payload-tajweed-engning",
+   "name": "tajweed engning",
+   "name_ar": null,
+   "type": "library",
+   "license": "MIT",
+   "source_url": null,
+   "website_url": null,
+   "github_url": "https://github.com/quranpedia/tajweed-engine/",
+   "short_description": "Tajweed annotations for Quranic text.",
+   "version": null,
+   "publisher": {
+    "name": "abdullah"
+   }
+  },
+  {
+   "slug": "payload-tanzil",
+   "name": "Tanzil",
+   "name_ar": null,
+   "type": "mushaf",
+   "license": "Unspecified",
+   "source_url": null,
+   "website_url": "https://tanzil.net/",
+   "github_url": null,
+   "short_description": "Verified Unicode Quran text project, widely used as a source across Quranic apps.",
+   "version": null,
+   "publisher": {
+    "name": "RATQ"
+   }
+  }
+ ]
+}

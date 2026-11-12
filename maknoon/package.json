@@ -1,0 +1,50 @@
+{
+  "name": "maknoon",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "dependencies": {
+    "@expo-google-fonts/amiri": "^0.4.1",
+    "@expo-google-fonts/amiri-quran": "^0.4.1",
+    "@expo-google-fonts/ibm-plex-sans-arabic": "^0.4.2",
+    "@expo/metro-runtime": "~58.0.17",
+    "@hugeicons/core-free-icons": "^4.4.0",
+    "@hugeicons/react-native": "^1.0.16",
+    "adhan": "^4.4.6",
+    "expo": "~58.0.25",
+    "expo-blur": "~58.0.6",
+    "expo-constants": "~58.0.16",
+    "expo-font": "~58.0.12",
+    "expo-linear-gradient": "~58.0.4",
+    "expo-linking": "~58.0.17",
+    "expo-localization": "~58.0.5",
+    "expo-router": "~58.0.31",
+    "expo-splash-screen": "~58.0.14",
+    "expo-status-bar": "~58.0.5",
+    "figma-squircle": "^1.1.0",
+    "quran-meta": "^7.0.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-safe-area-context": "~5.11.1",
+    "react-native-screens": "~4.30.1",
+    "react-native-svg": "15.16.0",
+    "react-native-web": "~0.21.4"
+  },
+  "devDependencies": {
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "fetch:quran": "node scripts/fetch-quran.mjs",
+    "fonts:link": "node scripts/link-fonts.mjs",
+    "sync:ratq": "NODE_USE_ENV_PROXY=1 node scripts/sync-ratq.mjs",
+    "itqan:pull": "NODE_USE_ENV_PROXY=1 node scripts/itqan-pull.mjs",
+    "content:build": "node scripts/build-content.mjs"
+  },
+  "private": true
+}
