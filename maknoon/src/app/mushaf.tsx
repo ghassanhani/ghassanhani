@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -70,11 +71,7 @@ function MushafPage({ page }: { page: number }) {
             <View key={b.surah} style={i > 0 ? { marginTop: 18 } : null}>
               {/* Surah banner: at the top of the page, and wherever a surah begins */}
               {i === 0 || b.starts ? (
-                <Squircle radius={16} gradient={['#2C7C6E', '#2C6E73']} glow="button" stroke="rgba(255,255,255,0.5)" style={styles.banner}>
-                  <Display size={24} color={colors.white} lineHeight={34}>
-                    {`سورة ${quranIndex.surahs[b.surah - 1]?.name ?? ''}`}
-                  </Display>
-                </Squircle>
+                <SurahBanner surah={b.surah} />
               ) : null}
               {/* الفاتحة counts the basmala as its first ayah; التوبة has none */}
               {b.starts && b.surah !== 1 && b.surah !== 9 ? (
@@ -190,6 +187,36 @@ function MushafPage({ page }: { page: number }) {
   );
 }
 
+// Calligraphic surah names drawn in the design. Others fall back to the display font until their artwork exists.
+const TITLE_ART: Record<number, number> = {
+  3: require('../../assets/brand/surah-titles/3.png'),
+};
+
+/**
+ * The ornamented surah header from the design canvas (exported artwork, 354×61 with a soft edge).
+ * Tapping it opens the surah index.
+ */
+function SurahBanner({ surah }: { surah: number }) {
+  const name = quranIndex.surahs[surah - 1]?.name ?? '';
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={`سورة ${name} · فهرس السور`} onPress={() => router.push('/surahs')} style={styles.banner}>
+      <Image source={require('../../assets/brand/surah-banner.png')} style={styles.bannerArt} contentFit="fill" />
+      <View style={styles.bannerRow}>
+        {TITLE_ART[surah] ? (
+          <Image source={TITLE_ART[surah]} style={styles.bannerTitle} contentFit="contain" accessibilityLabel={`سورة ${name}`} />
+        ) : (
+          <Display size={24} color={colors.white} lineHeight={34}>
+            {`سورة ${name}`}
+          </Display>
+        )}
+        <View style={styles.bannerChevron}>
+          <Icon name="chevronDown" size={14} color={colors.white} />
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
 const NOTES: Record<Exclude<TasmeeNote, null>, string> = {
   'web-preview': 'معاينة آلية · نسخة الويب لا تستمع، والتسميع يعمل في تطبيق iOS وAndroid',
   'model-unavailable': 'نموذج التسميع لم يُنشر بعد',
@@ -219,7 +246,12 @@ function ZoomButton({ icon, label, onPress }: { icon: 'plus' | 'minus'; label: s
 }
 
 const styles = StyleSheet.create({
-  banner: { height: 56, alignItems: 'center', justifyContent: 'center' },
+  banner: { height: 61, alignItems: 'center', justifyContent: 'center' },
+  // The exported artwork carries a 4pt soft edge at the sides, 6pt above and 9pt below the 354×61 banner.
+  bannerArt: { position: 'absolute', left: -4, right: -4, top: -6, bottom: -9 },
+  bannerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  bannerTitle: { width: 122, height: 44 },
+  bannerChevron: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.28)', alignItems: 'center', justifyContent: 'center' },
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 },
   pageNo: { minWidth: 52, height: 30, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
   tasmee: { position: 'absolute', start: 20, end: 20, alignItems: 'center', gap: 10 },
