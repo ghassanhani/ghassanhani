@@ -13,9 +13,12 @@ import { thmanyahFonts } from './thmanyah.local';
  *  - sans:    Thmanyah Sans — body / UI
  *  - quran:   Amiri Quran — ayat (Tanzil text); KFGQPC Uthmanic Hafs for the KFGQPC text
  *
- * Thmanyah is licensed for personal use only and is never committed.
- * Drop the files in assets/fonts/thmanyah and run `npm run fonts:link`;
- * until then the app falls back to Amiri (display) and IBM Plex Sans Arabic (sans).
+ * Thmanyah licence (font.thmanyah.com/licenses): commercial use in apps is allowed when
+ * the font is bundled inside the app; hosting/sharing the files or making them
+ * extractable (e.g. served to a browser) is not. So: native builds only, files never
+ * committed. Download from font.thmanyah.com into assets/fonts/thmanyah and run
+ * `npm run fonts:link`. Until then — and always on web — Amiri (display) and
+ * IBM Plex Sans Arabic (sans) are used.
  */
 export const fontAssets = {
   Amiri_400Regular,

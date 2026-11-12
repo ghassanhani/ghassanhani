@@ -60,15 +60,26 @@ npm run typecheck
 
 ## Fonts
 
-| Role | Font | Status |
+| Role | Font | In the repo? |
 |---|---|---|
-| Headings | Thmanyah Serif Display (Black) | **Not bundled.** Its licence is personal use only and forbids redistribution |
-| Body | Thmanyah Sans | **Not bundled** (same licence) |
-| Ayat | Amiri Quran | Bundled (OFL) |
+| Headings | Thmanyah Serif Display (Black) | No (see licence below) |
+| Body | Thmanyah Sans (Regular, Medium, Bold) | No |
+| Ayat | KFGQPC Uthmanic Hafs (with KFGQPC text), Amiri Quran (with Tanzil text) | Yes |
+| Fallbacks | Amiri, IBM Plex Sans Arabic | Yes (OFL) |
 
-Download Thmanyah from font.thmanyah.com, put the `.otf`/`.ttf` files in `assets/fonts/thmanyah/`
-(git-ignored), then run `npm run fonts:link`. Until you do, the app falls back to Amiri (headings) and
-IBM Plex Sans Arabic (body). Shipping the app with Thmanyah needs a commercial licence from Thmanyah.
+**Thmanyah licence** ([font.thmanyah.com/licenses](https://font.thmanyah.com/licenses)):
+- Allowed: commercial use, including bundling the font *inside* a mobile app.
+- Not allowed: hosting, sharing or uploading the font files. That includes a git repo.
+- Not allowed: making the files extractable by end users, which includes serving them to a browser.
+- The files may only be downloaded from font.thmanyah.com.
+
+So:
+
+1. Download Thmanyah Serif Display and Thmanyah Sans from **font.thmanyah.com** and put the `.otf`/`.ttf` files in
+   `assets/fonts/thmanyah/` (git-ignored).
+2. Run `npm run fonts:link`. This writes `src/theme/thmanyah.local.native.ts`; don't commit it with entries.
+3. iOS and Android builds now use Thmanyah. EAS uploads follow `.easignore`, which keeps the local fonts, so cloud builds
+   bundle them too. **The web build always uses the fallbacks.**
 
 ## Content from Itqan
 
