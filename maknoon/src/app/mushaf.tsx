@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import { mushaf as m } from '@/content/design';
 import { ar, ayahPlaceholder, ayatOnPage, getAyah } from '@/content/quran';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
+import { quranIndex } from '@/content/worship';
 import { usePrefs } from '@/store/prefs';
 
 /**
@@ -19,6 +20,9 @@ import { usePrefs } from '@/store/prefs';
  * Madani layout needs the QCF V2 glyph fonts and a licence (plan §4.1 / §5).
  * Tap the page to show the reading controls.
  */
+const LAST_PAGE = 604;
+const DEFAULT_PAGE = 50; // the page the design shows
+
 export default function MushafScreen() {
   const insets = useSafeAreaInsets();
   const [controls, setControls] = useState(false);
@@ -26,40 +30,56 @@ export default function MushafScreen() {
   const [prefs] = usePrefs();
   const size = (prefs.quranSize - 3) * (zoom / 100); // Settings size 24 → the design's 21pt page
 
-  // Page ٥٠ of the Madinah mushaf, from the KFGQPC page data (آل عمران ١–٩).
-  const onPage = ayatOnPage(50);
-  const ayat = onPage.map((x) => getAyah(x.surah, x.ayah));
-  const fontFamily = ayat[0]?.fontFamily;
-  const body = ayat.map((t, i) => t?.text ?? ayahPlaceholder(m.surahName, onPage[i].ayah)).join(' ');
+  // A page of the Madinah mushaf from the page data. Without ?page= it is the design's page ٥٠ (آل عمران ١–٩).
+  const params = useLocalSearchParams<{ page?: string }>();
+  const page = Math.min(LAST_PAGE, Math.max(1, Number(params.page) || DEFAULT_PAGE));
+  const onPage = ayatOnPage(page);
+  // One block per surah on the page (the last juz has several surahs on one page).
+  const blocks: { surah: number; starts: boolean; body: string; fontFamily?: string }[] = [];
+  for (const x of onPage) {
+    const t = getAyah(x.surah, x.ayah);
+    const name = quranIndex.surahs[x.surah - 1]?.name ?? '';
+    let b = blocks[blocks.length - 1];
+    if (!b || b.surah !== x.surah) blocks.push((b = { surah: x.surah, starts: x.ayah === 1, body: '', fontFamily: t?.fontFamily }));
+    b.body += `${b.body ? ' ' : ''}${t?.text ?? ayahPlaceholder(name, x.ayah)}`;
+  }
+  const goTo = (p: number) => router.setParams({ page: String(Math.min(LAST_PAGE, Math.max(1, p))) });
 
   return (
     <View style={{ flex: 1 }}>
       <Backdrop name="sand" />
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 24, paddingBottom: insets.bottom + 40 }}>
         <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={() => setControls((v) => !v)}>
-          {/* Surah banner */}
-          <Squircle radius={16} gradient={['#2C7C6E', '#2C6E73']} glow="button" stroke="rgba(255,255,255,0.5)" style={styles.banner}>
-            <Display size={24} color={colors.white} lineHeight={34}>
-              {m.surahTitle}
-            </Display>
-          </Squircle>
-
-          <AyahText size={26} lineHeight={52} style={{ textAlign: 'center', marginTop: 10 }}>
-            {m.basmala}
-          </AyahText>
-
-          <AyahText size={size} lineHeight={size * 1.95} style={[{ textAlign: 'justify', marginTop: 6 }, fontFamily ? { fontFamily } : null]}>
-            {body}
-          </AyahText>
+          {blocks.map((b, i) => (
+            <View key={b.surah} style={i > 0 ? { marginTop: 18 } : null}>
+              {/* Surah banner: at the top of the page, and wherever a surah begins */}
+              {i === 0 || b.starts ? (
+                <Squircle radius={16} gradient={['#2C7C6E', '#2C6E73']} glow="button" stroke="rgba(255,255,255,0.5)" style={styles.banner}>
+                  <Display size={24} color={colors.white} lineHeight={34}>
+                    {`سورة ${quranIndex.surahs[b.surah - 1]?.name ?? ''}`}
+                  </Display>
+                </Squircle>
+              ) : null}
+              {/* الفاتحة counts the basmala as its first ayah; التوبة has none */}
+              {b.starts && b.surah !== 1 && b.surah !== 9 ? (
+                <AyahText size={26} lineHeight={52} style={{ textAlign: 'center', marginTop: 10 }}>
+                  {m.basmala}
+                </AyahText>
+              ) : null}
+              <AyahText size={size} lineHeight={size * 1.95} style={[{ textAlign: 'justify', marginTop: 6 }, b.fontFamily ? { fontFamily: b.fontFamily } : null]}>
+                {b.body}
+              </AyahText>
+            </View>
+          ))}
 
           {/* Footer: page number + hizb marker */}
           <View style={styles.footer}>
             <Body size={14} weight="medium" color={colors.primary}>
-              {m.marker}
+              {page === DEFAULT_PAGE ? m.marker : ''}
             </Body>
             <Squircle radius={12} fill="rgba(3,90,95,0.12)" stroke="rgba(3,90,95,0.35)" style={styles.pageNo}>
               <Body size={14} weight="bold" color={colors.primary} lineHeight={18}>
-                {m.page}
+                {ar(page)}
               </Body>
             </Squircle>
             <View style={{ width: 52 }} />
@@ -80,6 +100,13 @@ export default function MushafScreen() {
                 </Body>
               </Squircle>
               <ZoomButton icon="plus" label="تكبير" onPress={() => setZoom((z) => Math.min(160, z + 10))} />
+            </View>
+            <View style={styles.zoomRow}>
+              <RoundButton icon="chevronRight" label="الصفحة السابقة" onPress={() => goTo(page - 1)} size={48} iconSize={22} />
+              <Squircle radius={24} fill="rgba(255,255,255,0.75)" glow="glass" style={styles.zoomValue}>
+                <Body size={16} weight="bold" lineHeight={22}>{`صفحة ${ar(page)}`}</Body>
+              </Squircle>
+              <RoundButton icon="chevronLeft" label="الصفحة التالية" onPress={() => goTo(page + 1)} size={48} iconSize={22} />
             </View>
             <Squircle radius={30} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.search}>
               <Icon name="search" size={22} color={colors.primary} />

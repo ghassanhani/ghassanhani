@@ -25,7 +25,7 @@ Last updated: 2026-11-12. Run `npm run check` to re-verify everything marked "te
 | | Milestone | State | Evidence |
 |---|---|---|---|
 | M0 | Scaffold | Done except simulators | Typecheck, lint and tests run in CI (`.github/workflows/maknoon-ci.yml`). Five tabs, RTL forced. Not run on iOS/Android simulators here (no simulator in this environment); checked in the web build. |
-| M1 | Schema and Quran | Partly | 114 surahs / 6,236 ayat loaded, text hash-matches its source (tested). Ayah-mode reader for any surah (`/surah/[id]`) with the source credit. Importer re-run changes nothing. **Not done:** Tanzil as the source (item 1), tables live in Postgres (item 2). |
+| M1 | Schema and Quran | Partly | 114 surahs / 6,236 ayat loaded, text hash-matches its source (tested). The surah list opens the Mushaf page view at the tapped surah's page (the founder asked to keep that look); an ayah-mode reader exists at `/surah/[id]` but is not linked. Importer re-run changes nothing. **Not done:** Tanzil as the source (item 1), tables live in Postgres (item 2). |
 | M2 | Search v1 | Done, with one deviation | Normalizer unit tests for every §5 rule; with/without tashkeel returns the same ayat; test set runs in CI and reports top-5 (73%). **Deviation:** ranking is BM25 over a prebuilt root/stem index instead of SQLite FTS5 — same ranking family, adds roots, and also works in the web build. |
 | M3 | Tafsir | Done | Importer verifies every passage has an ayah ID and bodies are byte-identical; prints coverage (5 tafsirs × 6,236 = 100%). Attribution shown on the ayah screen. |
 | M4 | Graph and review console | Not started | Schema has `edge`, `audit_log` and an audit trigger. No console yet. `showSuggested` now defaults to off. |

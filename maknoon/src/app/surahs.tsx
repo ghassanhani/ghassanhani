@@ -79,7 +79,7 @@ export default function SurahIndexScreen() {
       {tab === 0 ? (
         <GlassCard style={{ paddingVertical: 8 }}>
           {surahs.map((s, i) => (
-            <Pressable key={s.n} accessibilityRole="link" onPress={() => router.push(`/surah/${s.n}`)} style={[styles.row, styles.surahRow, i > 0 && styles.sep]}>
+            <Pressable key={s.n} accessibilityRole="link" onPress={() => router.push(`/mushaf?page=${s.page}`)} style={[styles.row, styles.surahRow, i > 0 && styles.sep]}>
               <Squircle radius={12} fill="rgba(3,90,95,0.08)" style={styles.num}>
                 <Display size={14} color={colors.primary}>
                   {ar(s.n)}
@@ -99,7 +99,7 @@ export default function SurahIndexScreen() {
       {tab === 1 ? (
         <View style={styles.grid}>
           {quranIndex.juz.map((j) => (
-            <Pressable key={j.juz} accessibilityRole="link" onPress={() => router.push(`/surah/${j.surah}`)} style={{ width: '48.3%' }}>
+            <Pressable key={j.juz} accessibilityRole="link" onPress={() => router.push(`/mushaf?page=${j.page}`)} style={{ width: '48.3%' }}>
               <GlassCard style={styles.juz}>
                 <Caption>الجزء</Caption>
                 <Display size={26}>{ar(j.juz)}</Display>
