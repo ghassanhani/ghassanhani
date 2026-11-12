@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import type { ComponentRef, ReactNode, Ref } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { space } from '@/theme/tokens';
 import { Backdrop, type BackdropName } from './Backdrop';
@@ -13,6 +13,9 @@ export function Screen({
   header,
   withTabBar = true,
   contentStyle,
+  footer,
+  scrollRef,
+  onContentSizeChange,
 }: {
   backdrop: BackdropName;
   children: ReactNode;
@@ -20,20 +23,37 @@ export function Screen({
   header?: ReactNode;
   withTabBar?: boolean;
   contentStyle?: StyleProp<ViewStyle>;
+  /** rendered below the scroll view and kept above the keyboard (e.g. a chat input) */
+  footer?: ReactNode;
+  scrollRef?: Ref<ComponentRef<typeof ScrollView>>;
+  onContentSizeChange?: (w: number, h: number) => void;
 }) {
   const insets = useSafeAreaInsets();
-  return (
+  const body = (
     <View style={styles.root}>
       <Backdrop name={backdrop} />
-      {header ? <View style={{ paddingTop: insets.top + 12, paddingHorizontal: space.gutter }}>{header}</View> : null}
+      {header ? (
+        <View
+          style={{
+            paddingTop: insets.top + 12,
+            paddingHorizontal: space.gutter,
+          }}
+        >
+          {header}
+        </View>
+      ) : null}
       <ScrollView
+        ref={scrollRef}
+        onContentSizeChange={onContentSizeChange}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         style={styles.root}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           {
             paddingTop: header ? 16 : insets.top + 12,
             paddingHorizontal: space.gutter,
-            paddingBottom: (withTabBar ? TAB_BAR_SPACE : 32) + insets.bottom,
+            paddingBottom: footer ? 16 : (withTabBar ? TAB_BAR_SPACE : 32) + insets.bottom,
             gap: space.gap,
           },
           contentStyle,
@@ -41,7 +61,24 @@ export function Screen({
       >
         {children}
       </ScrollView>
+      {footer ? (
+        <View
+          style={{
+            paddingHorizontal: space.gutter,
+            paddingTop: 8,
+            paddingBottom: insets.bottom + 8,
+          }}
+        >
+          {footer}
+        </View>
+      ) : null}
     </View>
+  );
+  if (!footer) return body;
+  return (
+    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {body}
+    </KeyboardAvoidingView>
   );
 }
 

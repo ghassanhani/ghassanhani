@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { type ComponentRef, useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, type ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import type { Node } from '@/assistant/corpus';
 import { ask, type Answer } from '@/assistant/engine';
 import { Icon } from '@/components/Icon';
@@ -26,6 +26,7 @@ export default function AssistantScreen() {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
 
   const submit = async (q: string) => {
     const question = q.trim();
@@ -39,7 +40,36 @@ export default function AssistantScreen() {
   };
 
   return (
-    <Screen backdrop="mist" withTabBar={false} header={<PageHeader title={A.title} fallback="/search" />}>
+    <Screen
+      backdrop="mist"
+      withTabBar={false}
+      header={<PageHeader title={A.title} fallback="/search" />}
+      scrollRef={scroll}
+      // keep the latest question and answer in view
+      onContentSizeChange={() => turns.length && scroll.current?.scrollToEnd({ animated: true })}
+      footer={
+        <>
+          <Squircle radius={30} fill="rgba(255,255,255,0.7)" glow="glass" style={styles.input}>
+            <TextInput
+              value={input}
+              onChangeText={setInput}
+              onSubmitEditing={() => submit(input)}
+              returnKeyType="send"
+              placeholder={A.inputLabel}
+              placeholderTextColor={colors.muted}
+              accessibilityLabel={A.inputLabel}
+              style={[styles.field, { fontFamily: F.sans }]}
+            />
+            <Pressable accessibilityRole="button" accessibilityLabel="أرسل" onPress={() => submit(input)} disabled={busy}>
+              <Squircle radius={22} fill={colors.primary} glow="button" style={styles.send}>
+                <Icon name="arrowLeft" size={20} color={colors.white} />
+              </Squircle>
+            </Pressable>
+          </Squircle>
+          <Caption style={{ textAlign: 'center', marginTop: 6 }}>{`بحث في نصوص ${APP_NAME} يعرض المصادر كما هي · لا يُولَّد أي نص`}</Caption>
+        </>
+      }
+    >
       <GlassCard soft style={{ gap: 6 }}>
         <View style={[styles.row, { justifyContent: 'space-between' }]}>
           <Display size={17}>{A.banner.title}</Display>
@@ -74,27 +104,6 @@ export default function AssistantScreen() {
           {t.answer ? <AnswerCard answer={t.answer} /> : <ActivityIndicator color={colors.primary} />}
         </View>
       ))}
-
-      <Squircle radius={30} fill="rgba(255,255,255,0.7)" glow="glass" style={styles.input}>
-        <TextInput
-          value={input}
-          onChangeText={setInput}
-          onSubmitEditing={() => submit(input)}
-          returnKeyType="send"
-          placeholder={A.inputLabel}
-          placeholderTextColor={colors.muted}
-          accessibilityLabel={A.inputLabel}
-          style={[styles.field, { fontFamily: F.sans }]}
-        />
-        <Pressable accessibilityRole="button" accessibilityLabel="أرسل" onPress={() => submit(input)} disabled={busy}>
-          <Squircle radius={22} fill={colors.primary} glow="button" style={styles.send}>
-            <Icon name="arrowLeft" size={20} color={colors.white} />
-          </Squircle>
-        </Pressable>
-      </Squircle>
-      <Caption style={{ textAlign: 'center' }}>
-        {`بحث في نصوص ${APP_NAME} يعرض المصادر كما هي · لا يُولَّد أي نص`}
-      </Caption>
     </Screen>
   );
 }
@@ -156,7 +165,13 @@ function SourceCard({ n, num }: { n: Node; num?: number }) {
         <Display size={15} style={{ flexShrink: 1 }}>
           {n.title}
         </Display>
-        {tone ? <Chip label={n.chip ?? (tone === 'reviewed' ? 'مُراجَع' : tone === 'pending' ? 'بانتظار المراجعة' : 'مقترح')} tone={tone} badge={tone === 'reviewed'} /> : null}
+        {tone ? (
+          <Chip
+            label={n.chip ?? (tone === 'reviewed' ? 'مُراجَع' : tone === 'pending' ? 'بانتظار المراجعة' : 'مقترح')}
+            tone={tone}
+            badge={tone === 'reviewed'}
+          />
+        ) : null}
       </View>
       {ayah ? (
         <AyahText size={20} lineHeight={38} style={{ fontFamily: ayah.fontFamily }}>
@@ -183,9 +198,32 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   hairline: { height: 1, backgroundColor: colors.hairline },
   suggest: { paddingVertical: 10, paddingHorizontal: 14 },
-  bubble: { alignSelf: 'flex-start', // the user's question sits on the start (right) side in RTL
-    maxWidth: '85%', paddingVertical: 12, paddingHorizontal: 16 },
-  input: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 60, paddingStart: 18, paddingEnd: 8 },
-  field: { flex: 1, minWidth: 0, fontSize: 15, color: colors.ink, textAlign: 'right', outlineWidth: 0 },
-  send: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  bubble: {
+    alignSelf: 'flex-start', // the user's question sits on the start (right) side in RTL
+    maxWidth: '85%',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  input: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    height: 60,
+    paddingStart: 18,
+    paddingEnd: 8,
+  },
+  field: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 15,
+    color: colors.ink,
+    textAlign: 'right',
+    outlineWidth: 0,
+  },
+  send: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
