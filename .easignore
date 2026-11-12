@@ -1,0 +1,43 @@
+# EAS Build reads this file from the ROOT of the git repository (here), not from maknoon/.
+# When it exists, EAS ignores every .gitignore, so this list must cover everything to leave out.
+# It deliberately does NOT exclude maknoon/assets/fonts/thmanyah/: the Thmanyah fonts you
+# downloaded are uploaded from your Mac and embedded in the app (the licence allows embedding,
+# not sharing, which is why .gitignore keeps them out of the repository).
+
+# dependencies and build output
+node_modules/
+maknoon/.expo/
+maknoon/dist/
+maknoon/web-build/
+maknoon/expo-env.d.ts
+*.tsbuildinfo
+.metro-health-check*
+
+# generated native folders (EAS generates its own)
+maknoon/ios/
+maknoon/android/
+maknoon/.kotlin/
+
+# secrets and signing files: never upload
+*.jks
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+.env*.local
+
+# large downloads not needed in the app
+maknoon/assets/itqan/
+maknoon/assets/packs/tafsir-alsaadi.db
+maknoon/assets/packs/tafsir-ibn-katheer.db
+maknoon/assets/packs/tafsir-albaghawi.db
+maknoon/assets/packs/tafsir-altabari.db
+maknoon/pipeline/raw/
+
+# misc
+.DS_Store
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.orig.*
