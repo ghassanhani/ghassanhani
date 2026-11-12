@@ -180,6 +180,7 @@ export default function HomeScreen() {
 
       {/* Learn */}
       <Display size={20}>تعلّم</Display>
+      <Pressable accessibilityRole="link" onPress={() => router.push('/path')}>
       <GlassCard soft tint="neutral" style={{ minHeight: 174 }}>
         <View style={styles.between}>
           <Body size={12} weight="medium">
@@ -193,8 +194,10 @@ export default function HomeScreen() {
         </View>
         <Caption>{home.learn.next}</Caption>
       </GlassCard>
+      </Pressable>
 
       {/* Topic of the week */}
+      <Pressable accessibilityRole="link" onPress={() => router.push('/topic')}>
       <HeroCard hero="forest" style={{ minHeight: 139 }}>
         <View style={styles.between}>
           <Body size={12} weight="medium" color="rgba(255,255,255,0.85)">
@@ -211,6 +214,7 @@ export default function HomeScreen() {
         </Display>
         <Caption color="rgba(255,255,255,0.75)">{home.topic.meta}</Caption>
       </HeroCard>
+      </Pressable>
     </Screen>
   );
 }

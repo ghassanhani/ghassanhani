@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { Fragment } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { DetailHeader } from '@/components/DetailHeader';
@@ -53,7 +54,12 @@ export default function HadithScreen() {
         <InnerCard style={{ paddingVertical: 18 }}>
           {h.isnad.map((n, i) => (
             <Fragment key={n.name}>
-              <View style={[styles.between, { alignItems: 'center' }]}>
+              <Pressable
+                accessibilityRole={n.kind === 'companion' ? 'link' : undefined}
+                disabled={n.kind !== 'companion'}
+                onPress={() => router.push('/narrator')}
+                style={[styles.between, { alignItems: 'center' }]}
+              >
                 <View style={[styles.row, { gap: 12 }]}>
                   <IsnadDot kind={n.kind} />
                   <Display size={n.kind === 'prophet' ? 19 : 15} color={n.kind === 'author' ? colors.primary : colors.ink}>
@@ -65,7 +71,7 @@ export default function HadithScreen() {
                     {n.role}
                   </Body>
                 ) : null}
-              </View>
+              </Pressable>
               {i < h.isnad.length - 1 ? <View style={styles.link} /> : null}
             </Fragment>
           ))}

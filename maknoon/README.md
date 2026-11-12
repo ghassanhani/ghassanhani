@@ -29,6 +29,13 @@ npm run typecheck
 | `/adhkar` | الأذكار: five categories, tap counters, source/grading chips | Adhkar |
 | `/zakat` | حاسبة الزكاة: nisab by gold or silver, 2.5% | Zakat |
 | `/inheritance` | حاسبة المواريث: **worked example only**; engine off until scholar-validated | Inheritance |
+| `/fiqh` | مسألة فقهية: four madhhabs (yours first), evidence, cause of disagreement | Fiqh |
+| `/usul` | أصل فقهي: definition, applied issues, five major maxims, maqasid | Usul |
+| `/narrator` | ترجمة راوٍ: profile, jarh wa ta'dil, teachers and students, narrations | Narrator |
+| `/seerah` | السيرة النبوية: filterable timeline with expandable events | Seerah |
+| `/topic` | موضوع الصبر: ayat, sunnah, scholars, private reflection | Topic |
+| `/grammar` | قاعدة فعل الأمر: two opinions, Quran examples, lexicon, matn | Grammar |
+| `/path` | مسار التعلّم: 12 stations, current one expanded with its links | Path |
 | `/me` (tab) | Tool list for now; Me/Settings/Plus artboards come later | (none yet) |
 
 ### Notes on batch 2
@@ -46,6 +53,14 @@ npm run typecheck
   examples («الأسعار قيم مثال»).
 - **Inheritance** computes only the design's worked example (زوجة + ابن + بنت). Any other combination shows the canvas's
   notice that the full engine is enabled only after scholar-reviewed test cases pass (plan §4.6).
+
+### Notes on batch 3
+
+- Every string in `src/content/modules.ts` is copied verbatim from the canvas, including all `[placeholders]`
+  such as `[الجزء/الصفحة]`, `[عدد]` and `[رقم]`. The madhhab positions, references, chips («مُراجَع»/«مقترح»), Seerah link
+  counts and path progress are **design samples** and must be replaced by reviewed data. The Quran and hadith snippets
+  shown are the design's own strings.
+- Modules are reachable from the Library shelves, Home (learn and topic cards), and the Hadith isnad (ابن عمر → narrator).
 
 ## Design system
 

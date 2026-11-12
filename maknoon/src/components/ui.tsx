@@ -165,7 +165,7 @@ export function SectionTitle({ title, trailing }: { title: string; trailing?: Re
 
 const styles = StyleSheet.create({
   chip: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 22, paddingVertical: 2, paddingHorizontal: 7, alignSelf: 'flex-start', maxWidth: '100%' },
-  count: { minWidth: 25, height: 24, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
+  count: { minWidth: 25, height: 24, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' },
   pill: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   segRow: { flexDirection: 'row', gap: 4 },
   seg: { flex: 1, height: 12, borderRadius: 30, overflow: 'hidden' },

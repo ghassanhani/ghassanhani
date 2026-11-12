@@ -11,6 +11,7 @@ import { CountBadge, GlassCard, HeroCard, InnerCard, ReviewedChip, SuggestedChip
 import { ayahToday, home } from '@/content/design';
 import { ar, ayahPlaceholder, getAyah, quranSource } from '@/content/quran';
 import { tafsirFor, type TafsirEntry } from '@/content/tafsir';
+import { quranIndex } from '@/content/worship';
 import { colors } from '@/theme/tokens';
 
 /** Ayah detail ("آية اليوم"): canonical text on top, link drawers below. */
@@ -35,9 +36,9 @@ export default function AyahScreen() {
           </View>
         </View>
         <AyahText size={23} lineHeight={46} color={colors.white} style={[{ marginTop: 8 }, ayah && { fontFamily: ayah.fontFamily }]}>
-          {ayah ? ayah.text : ayahPlaceholder(isDesignAyah ? meta.surahName : String(s), a)}
+          {ayah ? ayah.text : ayahPlaceholder(isDesignAyah ? meta.surahName : (quranIndex.surahs[s - 1]?.name ?? String(s)), a)}
         </AyahText>
-        <Caption color="rgba(255,255,255,0.8)">{isDesignAyah ? meta.ref : `${ar(s)} : ${ar(a)}`}</Caption>
+        <Caption color="rgba(255,255,255,0.8)">{isDesignAyah ? meta.ref : `${quranIndex.surahs[s - 1]?.name ?? ar(s)} : ${ar(a)}`}</Caption>
         <Caption color="rgba(255,255,255,0.55)" style={{ fontSize: 10 }}>
           {quranSource.credit}
         </Caption>

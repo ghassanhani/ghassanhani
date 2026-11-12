@@ -8,6 +8,17 @@ import { GlassCard, HeroCard } from '@/components/ui';
 import { library as l } from '@/content/design';
 import { colors } from '@/theme/tokens';
 
+// Each shelf opens its module's sample screen from the canvas.
+const SHELF_ROUTES: Record<string, string> = {
+  الحديث: '/hadith/bukhari-8',
+  التفسير: '/ayah/3:3',
+  'الفقه وأصوله': '/fiqh',
+  'السيرة والتاريخ': '/seerah',
+  'التزكية والأخلاق': '/topic',
+  'علوم العربية': '/grammar',
+  الأذكار: '/adhkar',
+};
+
 export default function LibraryScreen() {
   return (
     <Screen backdrop="sea">
@@ -21,7 +32,10 @@ export default function LibraryScreen() {
             key={s.title}
             accessibilityRole="button"
             style={styles.cell}
-            onPress={() => (s.title === 'الحديث' ? router.push('/hadith/bukhari-8') : undefined)}
+            onPress={() => {
+              const to = SHELF_ROUTES[s.title];
+              if (to) router.push(to as never);
+            }}
           >
             <GlassCard style={styles.shelf}>
               <Display size={21}>{s.title}</Display>
@@ -42,6 +56,7 @@ export default function LibraryScreen() {
         ))}
       </View>
 
+      <Pressable accessibilityRole="link" onPress={() => router.push('/path')}>
       <HeroCard hero="forest" style={{ minHeight: 139, gap: 2 }}>
         <View style={styles.between}>
           <Body size={12} weight="medium" color="rgba(255,255,255,0.85)">
@@ -58,6 +73,7 @@ export default function LibraryScreen() {
         </Display>
         <Caption color="rgba(255,255,255,0.75)">{l.path.meta}</Caption>
       </HeroCard>
+      </Pressable>
     </Screen>
   );
 }
