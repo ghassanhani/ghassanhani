@@ -77,8 +77,40 @@ export default function AyahScreen() {
   );
 }
 
+const PAGE = 4000; // first page; later pages grow (×2, capped at 16k) so ~10 taps read even the longest entry
+const CHUNK = 3500; // render as several medium text blocks, not one huge one
+
+/** Cut index at a paragraph (or sentence/space) boundary near n, never mid-word. */
+function cutAt(text: string, n: number) {
+  if (n >= text.length) return text.length;
+  for (const sep of ['\n', '. ', '، ', ' ']) {
+    const i = text.lastIndexOf(sep, n);
+    if (i > n * 0.6) return i + sep.length;
+  }
+  return n;
+}
+
+/** [start, end) ranges of ~CHUNK characters, split at boundaries, covering text[0, end). */
+function chunks(text: string, end: number): [number, number][] {
+  const out: [number, number][] = [];
+  let a = 0;
+  while (a < end) {
+    const b = Math.min(end, cutAt(text, a + CHUNK) > a ? cutAt(text, a + CHUNK) : a + CHUNK);
+    out.push([a, b]);
+    a = b;
+  }
+  return out;
+}
+
+/**
+ * One tafsir entry. Some entries are huge (Ibn Kathir on الفاتحة ١ ≈ 131k characters),
+ * so the text is revealed page by page; it is never edited (CC BY-ND), only paginated.
+ */
 function TafsirCard({ entry }: { entry: TafsirEntry & { text: string } }) {
-  const [open, setOpen] = useState(false);
+  const [shown, setShown] = useState(0); // 0 = collapsed preview
+  const total = entry.text.length;
+  const end = shown ? cutAt(entry.text, shown) : cutAt(entry.text, 600);
+  const remaining = total - end;
   return (
     <InnerCard style={{ gap: 6 }}>
       <View style={[styles.row, { gap: 8, flexWrap: 'wrap' }]}>
@@ -86,13 +118,28 @@ function TafsirCard({ entry }: { entry: TafsirEntry & { text: string } }) {
         {/* Status = the publisher's own editorial stage in the Itqan file. */}
         {entry.stage === 'approved' ? <ReviewedChip /> : entry.stage === 'in-review' ? <SuggestedChip /> : null}
       </View>
-      <Pressable accessibilityRole="button" accessibilityLabel={open ? 'عرض أقل' : 'اقرأ التفسير كاملًا'} onPress={() => setOpen((v) => !v)}>
-        <TafsirText text={entry.text} numberOfLines={open ? undefined : 5} />
-        <Body size={12} weight="bold" color={colors.primary} style={{ marginTop: 4 }}>
-          {open ? 'عرض أقل' : 'اقرأ كاملًا'}
-        </Body>
-      </Pressable>
-      {open && entry.footnote ? <Caption>{entry.footnote}</Caption> : null}
+      {shown ? (
+        chunks(entry.text, end).map(([a, b]) => <TafsirText key={a} text={entry.text.slice(a, b)} />)
+      ) : (
+        <TafsirText text={entry.text.slice(0, end)} numberOfLines={5} />
+      )}
+      <View style={[styles.row, { gap: 16 }]}>
+        {remaining > 0 ? (
+          <Pressable accessibilityRole="button" onPress={() => setShown((v) => (v ? v + Math.min(Math.max(v, PAGE), 16000) : PAGE))}>
+            <Body size={12} weight="bold" color={colors.primary}>
+              {shown ? `اقرأ المزيد · بقي ${ar(Math.ceil((remaining / total) * 100))}٪` : 'اقرأ كاملًا'}
+            </Body>
+          </Pressable>
+        ) : null}
+        {shown ? (
+          <Pressable accessibilityRole="button" onPress={() => setShown(0)}>
+            <Body size={12} weight="bold" color={colors.muted}>
+              عرض أقل
+            </Body>
+          </Pressable>
+        ) : null}
+      </View>
+      {shown && remaining <= 0 && entry.footnote ? <Caption>{entry.footnote}</Caption> : null}
       <Caption>{`يشرح${entry.edition ? ` · ${entry.edition}` : ''} · ${entry.attribution}`}</Caption>
     </InnerCard>
   );

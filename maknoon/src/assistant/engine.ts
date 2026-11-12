@@ -1,5 +1,4 @@
 import { searchTafsirPack } from '@/content/packs';
-import { stem } from '@/search/arabic';
 import { matchCount, searchQuran } from '@/search/engine';
 import { ayatNodes, curatedNodes, type Node } from './corpus';
 import { normalize, tokens } from './normalize';
@@ -45,7 +44,7 @@ export async function ask(question: string): Promise<Answer> {
     .filter((n): n is Node => !!n);
 
   const nodes = [...curated.slice(0, 4).map((x) => x.n), ...ayat];
-  const tafsir = await searchTafsirPack(toks.map(stem), need, 3).catch(() => []);
+  const tafsir = await searchTafsirPack(q, 3).catch(() => []);
   if (!nodes.length && !tafsir.length) return { kind: 'empty', query: q };
   return { kind: 'sources', query: q, nodes, tafsir };
 }

@@ -11,7 +11,6 @@ import { search as s } from '@/content/design';
 import { searchTafsirPack } from '@/content/packs';
 import { ar, getAyah } from '@/content/quran';
 import { quranIndex } from '@/content/worship';
-import { stem } from '@/search/arabic';
 import { matchCount, rootInfo, searchQuran, terms } from '@/search/engine';
 import { F } from '@/theme/fonts';
 import { colors, space } from '@/theme/tokens';
@@ -48,8 +47,7 @@ export default function SearchScreen() {
   const [tafsir, setTafsir] = useState<Node[]>([]);
   useEffect(() => {
     let alive = true;
-    const ts = terms(q).map(stem);
-    searchTafsirPack(ts, Math.max(1, Math.ceil(ts.length * 0.6)), 5)
+    searchTafsirPack(q, 5)
       .then((r) => alive && setTafsir(r))
       .catch(() => alive && setTafsir([]));
     return () => {

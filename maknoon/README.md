@@ -106,7 +106,14 @@ npm run typecheck
   - Queries take a few milliseconds, with no network and no model.
 - The **Search tab** is live: root card with derived words (tap to search one), ranked ayat, hadith, adhkar and
   modules, al-Mukhtasar tafsir hits on iOS/Android, and working filters. The **assistant** uses the same engine.
-- Still to come: matching by *meaning* (embeddings, e.g. «الرأفة» ↔ «الرحمة»).
+- **Tafsir search** (iOS/Android) uses the same BM25 over a build-time index of the bundled al-Mukhtasar
+  (`assets/content/search-mukhtasar.json`). Examples: «الربا» → البقرة ٢٧٥, «بر الوالدين» → مريم ١٤ / الإسراء ٢٥.
+- **Long tafsir entries** are paginated, never edited. Ibn Kathir on الفاتحة ١ is about 131k characters; it's revealed in
+  growing pages (about 11 taps) and rendered as blocks of at most 3.5k characters.
+- Known limits:
+  - Weak-letter roots are approximate (أقيموا → «اقم» while يقيمون → «قيم»). Stems and exact words still find them.
+  - A root search can't tell meanings apart (رحمة "mercy" vs رَحِم "womb", both ر ح م).
+  - Both are what matching by *meaning* (embeddings) would fix next.
 
 ## Design system
 

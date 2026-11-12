@@ -4,6 +4,7 @@
 //   { keys: ["1:1", …], len: [doc lengths], avg, roots: { root: [docIdx, tf, …] }, stems: { stem: [docIdx, tf, …] },
 //     forms: { root: [up to 12 most frequent surface words] } }
 import { readFileSync, writeFileSync } from 'node:fs';
+import { DatabaseSync } from 'node:sqlite';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalize, root, stem } from '../src/search/arabic.ts';
@@ -46,3 +47,29 @@ for (const [r, m] of Object.entries(formCount)) {
 const avg = len.reduce((a, b) => a + b, 0) / len.length;
 writeFileSync(join(rootDir, 'assets/content/search-quran.json'), JSON.stringify({ keys, len, avg, roots, stems, forms }));
 console.log(`Search index: ${keys.length} ayat, ${Object.keys(roots).length} roots, ${Object.keys(stems).length} stems`);
+
+// ── al-Mukhtasar (bundled pack) — same BM25 layout, used by the native assistant/search ──
+{
+  const db = new DatabaseSync(join(rootDir, 'assets/packs/tafsir-almokhtassar.db'), { readOnly: true });
+  const rows = db.prepare('SELECT surah, ayah, text FROM tafsir ORDER BY surah, ayah').all() as { surah: number; ayah: number; text: string }[];
+  const tkeys: string[] = [];
+  const tlen: number[] = [];
+  const troots: Record<string, number[]> = {};
+  const tstems: Record<string, number[]> = {};
+  rows.forEach((r, i) => {
+    tkeys.push(`${r.surah}:${r.ayah}`);
+    const ws = normalize(r.text).split(' ').filter((w) => w.length >= 2);
+    tlen.push(ws.length);
+    const rtf: Record<string, number> = {};
+    const stf: Record<string, number> = {};
+    for (const w of ws) {
+      rtf[root(w)] = (rtf[root(w)] ?? 0) + 1;
+      stf[stem(w)] = (stf[stem(w)] ?? 0) + 1;
+    }
+    for (const [k, tf] of Object.entries(rtf)) (troots[k] ??= []).push(i, tf);
+    for (const [k, tf] of Object.entries(stf)) (tstems[k] ??= []).push(i, tf);
+  });
+  const tavg = tlen.reduce((a, b) => a + b, 0) / tlen.length;
+  writeFileSync(join(rootDir, 'assets/content/search-mukhtasar.json'), JSON.stringify({ keys: tkeys, len: tlen, avg: tavg, roots: troots, stems: tstems, forms: {} }));
+  console.log(`Tafsir index (al-Mukhtasar): ${tkeys.length} entries, ${Object.keys(troots).length} roots`);
+}

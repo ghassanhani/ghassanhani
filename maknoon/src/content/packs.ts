@@ -96,41 +96,26 @@ export async function removePack(slug: string) {
 
 export const packsSupported = true;
 
-// ── Assistant support: search the bundled al-Mukhtasar pack (normalized, cached in memory) ──
+// ── Search the bundled al-Mukhtasar pack (root-aware BM25 index built by `npm run search:build`) ──
 import type { Node } from '@/assistant/corpus';
+import { type Index, searchIndex } from '@/search/engine';
 
-let mukhtasarIndex: Promise<{ s: number; a: number; norm: string }[]> | null = null;
-const norm = (t: string) =>
-  t
-    .replace(/[ً-ٰٟۖ-ۭـ]/g, '')
-    .replace(/[أإآٱ]/g, 'ا')
-    .replace(/ى/g, 'ي')
-    .replace(/ة/g, 'ه')
-    .replace(/ؤ/g, 'و')
-    .replace(/ئ/g, 'ي');
+let mukhtasarIdx: Index | null = null;
 
-export async function searchTafsirPack(toks: string[], need: number, limit: number): Promise<Node[]> {
-  const slug = 'tafsir-almokhtassar';
-  const p = packs.find((x) => x.slug === slug);
-  if (!p || !toks.length) return [];
-  mukhtasarIndex ??= openPack(slug)
-    .then((db) => db.getAllAsync<{ surah: number; ayah: number; text: string }>('SELECT surah, ayah, text FROM tafsir'))
-    .then((rows) => rows.map((r) => ({ s: r.surah, a: r.ayah, norm: norm(r.text) })));
-  const rows = await mukhtasarIndex;
-  return rows
-    .map((r) => ({ r, hits: toks.filter((t) => r.norm.includes(t)).length }))
-    .filter((x) => x.hits >= need)
-    .sort((a, b) => b.hits - a.hits)
-    .slice(0, limit)
-    .map(({ r }) => ({
-      id: `tafsir:${slug}:${r.s}:${r.a}`,
-      kind: 'tafsir' as const,
-      title: p.title,
-      ref: `${r.s}:${r.a}`,
-      route: `/ayah/${r.s}:${r.a}`,
-      tone: null,
-      norm: r.norm,
-      surah: r.s,
-      ayah: r.a,
-    }));
+/** Ranked al-Mukhtasar entries for a query (iOS/Android). Opens the passage via the ayah screen. */
+export async function searchTafsirPack(query: string, limit: number): Promise<Node[]> {
+  const p = packs.find((x) => x.slug === 'tafsir-almokhtassar');
+  if (!p || !query.trim()) return [];
+  mukhtasarIdx ??= require('../../assets/content/search-mukhtasar.json') as Index;
+  return searchIndex(mukhtasarIdx, query, limit).map((h) => ({
+    id: `tafsir:${p.slug}:${h.key}`,
+    kind: 'tafsir' as const,
+    title: p.title,
+    ref: h.key,
+    route: `/ayah/${h.key}`,
+    tone: null,
+    norm: '',
+    surah: h.surah,
+    ayah: h.ayah,
+  }));
 }

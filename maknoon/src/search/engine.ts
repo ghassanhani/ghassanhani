@@ -7,10 +7,8 @@ import { normalize, root, spacedRoot, stem } from './arabic';
  * «رحم» finds رحمة · الرحيم · يرحم · الرحمن; tashkeel and hamza forms are ignored;
  * an exact phrase match ranks first. No network, no model.
  */
-type Index = { keys: string[]; len: number[]; avg: number; roots: Record<string, number[]>; stems: Record<string, number[]>; forms: Record<string, string[]> };
 const IDX = index as unknown as Index;
 const PLAIN = plain as Record<string, string>;
-const N = IDX.keys.length;
 const normPlain: string[] = IDX.keys.map((k) => normalize(PLAIN[k]));
 
 // Particles / question words that carry no topic (normalized spellings).
@@ -27,51 +25,60 @@ export function terms(q: string): string[] {
 
 const K1 = 1.2;
 const B = 0.75;
-function bm25(postings: number[] | undefined, scores: Float32Array, weight: number) {
+
+export type Index = { keys: string[]; len: number[]; avg: number; roots: Record<string, number[]>; stems: Record<string, number[]>; forms: Record<string, string[]> };
+export type Hit = { key: string; surah: number; ayah: number; score: number };
+
+function bm25(idx: Index, postings: number[] | undefined, scores: Float32Array, weight: number, seen?: Uint8Array) {
   if (!postings) return;
+  const n = idx.keys.length;
   const df = postings.length / 2;
-  const idf = Math.log(1 + (N - df + 0.5) / (df + 0.5));
+  const idf = Math.log(1 + (n - df + 0.5) / (df + 0.5));
   for (let i = 0; i < postings.length; i += 2) {
     const d = postings[i];
     const tf = postings[i + 1];
-    scores[d] += weight * idf * ((tf * (K1 + 1)) / (tf + K1 * (1 - B + (B * IDX.len[d]) / IDX.avg)));
+    scores[d] += weight * idf * ((tf * (K1 + 1)) / (tf + K1 * (1 - B + (B * idx.len[d]) / idx.avg)));
+    if (seen) seen[d] = 1;
   }
 }
 
-export type AyahHit = { key: string; surah: number; ayah: number; score: number };
-
-export function searchQuran(query: string, limit = 20): AyahHit[] {
-  const scores = new Float32Array(N);
+/**
+ * Root/stem BM25 over any index built by scripts/build-search.mts. Documents containing
+ * most query terms come first; if none do, falls back to plain ranking (rarer term wins).
+ */
+export function searchIndex(idx: Index, query: string, limit: number, phraseTexts?: string[]): Hit[] {
+  const n = idx.keys.length;
+  const scores = new Float32Array(n);
+  const have = new Uint8Array(n);
   const sr = spacedRoot(query);
   const ts = sr ? [] : terms(query);
-  if (sr) bm25(IDX.roots[sr], scores, 1);
+  if (sr) bm25(idx, idx.roots[sr], scores, 1);
   for (const t of ts) {
-    bm25(IDX.roots[root(t)], scores, 1);
-    bm25(IDX.stems[stem(t)], scores, 0.6);
+    const seen = new Uint8Array(n);
+    bm25(idx, idx.roots[root(t)], scores, 1, seen);
+    bm25(idx, idx.stems[stem(t)], scores, 0.6, seen);
+    for (let i = 0; i < n; i++) have[i] += seen[i];
   }
-  // Exact phrase (2+ words) → strong boost.
   const phrase = normalize(query);
-  if (!sr && phrase.includes(' ')) normPlain.forEach((p, i) => p.includes(phrase) && (scores[i] += 10));
+  if (phraseTexts && !sr && phrase.includes(' ')) phraseTexts.forEach((p, i) => p.includes(phrase) && (scores[i] += 10));
 
-  // Prefer ayat containing most query terms (by root or stem); if none do, fall back to
-  // pure BM25 ranking, which favours the rarer, more meaningful term («فضل الصبر» → صبر).
   const collect = (need: number) => {
-    const hits: AyahHit[] = [];
-    for (let i = 0; i < N; i++) {
-      if (scores[i] <= 0) continue;
-      if (need > 1) {
-        const words = normPlain[i].split(' ');
-        const have = ts.filter((t) => words.some((w) => root(w) === root(t) || stem(w) === stem(t))).length;
-        if (have < need) continue;
-      }
-      const [s, a] = IDX.keys[i].split(':').map(Number);
-      hits.push({ key: IDX.keys[i], surah: s, ayah: a, score: scores[i] });
+    const out: Hit[] = [];
+    for (let i = 0; i < n; i++) {
+      if (scores[i] <= 0 || (ts.length > 1 && have[i] < need)) continue;
+      const [s, a] = idx.keys[i].split(':').map(Number);
+      out.push({ key: idx.keys[i], surah: s, ayah: a, score: scores[i] });
     }
-    return hits;
+    return out;
   };
   let hits = collect(Math.max(1, Math.ceil(ts.length * 0.6)));
   if (!hits.length && ts.length > 1) hits = collect(1);
   return hits.sort((x, y) => y.score - x.score || x.surah - y.surah || x.ayah - y.ayah).slice(0, limit);
+}
+
+export type AyahHit = Hit;
+export function searchQuran(query: string, limit = 20): AyahHit[] {
+  return searchIndex(IDX, query, limit, normPlain);
 }
 
 /** Root card for a one-word (or spaced «ر ح م») query: the root, how many ayat, and its derived words. */
