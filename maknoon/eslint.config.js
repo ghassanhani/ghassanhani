@@ -7,7 +7,7 @@ module.exports = defineConfig([
   { ignores: ['dist/*', '.expo/*', 'node_modules/*', 'server/*', 'assets/*'] },
   {
     // Node-side code (build scripts, importers, tests) imports with explicit extensions.
-    files: ['scripts/**', 'pipeline/**', 'tests/**', 'src/search/core.ts', 'src/worship/prayer-core.ts'],
+    files: ['scripts/**', 'pipeline/**', 'tests/**', 'src/search/core.ts', 'src/worship/prayer-core.ts', 'src/recitation/**'],
     rules: { 'import/no-unresolved': 'off', 'import/extensions': 'off' },
   },
   {

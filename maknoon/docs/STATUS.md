@@ -34,7 +34,7 @@ Last updated: 2026-11-12. Run `npm run check` to re-verify everything marked "te
 | M7 | Link mining | Not started | |
 | M8 | Hadith | Blocked | Source not named (SPEC §9.1). Hadith screens show placeholders. |
 | M9 | Offline packs | Partly | SQLite packs, manifest with SHA-256, verified download, pack manager in Settings. **Not done:** hosting (`packsBaseUrl` is empty), edge tables in packs, search inside downloaded packs. |
-| M10 | Recitation check | Not started | |
+| M10 | Recitation check | Matching logic only | `src/recitation/match.ts` aligns heard words to the expected ayat and flags missing words, changed words and skipped ayat; tolerates tashkeel, hamza, repeats, word joins and stopping early (11 tests, mistakes made by script on real ayat). **Not done:** the speech model and its licence check, microphone, download pack, the screen, the recorded deliberate-mistake test set, and a word map for the 252 ayat (4%) whose search spelling splits words differently from the displayed text. |
 | M11 | Module skeletons | Screens only | Hub screens exist from the canvas with sample content. Not loading from fixtures, no coverage meter from real counts. |
 | M12 | Semantic search | Done ahead of order | All 6,236 ayat have vectors (BGE-M3, MIT). Top-5 on the test set: words 73% → words + meaning 87% (`npm run search:eval`). Cost: Cloudflare free tier (€0). Only ayat are embedded so far, since other node types don't exist yet. |
 
