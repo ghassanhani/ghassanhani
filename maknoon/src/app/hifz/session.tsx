@@ -109,7 +109,7 @@ export default function HifzSessionScreen() {
           <Display size={17}>{S.tasmee.title}</Display>
           <Caption>{S.tasmee.meta}</Caption>
         </View>
-        <Cta label={S.tasmee.cta} height={40} compact onPress={() => router.push('/hifz/tasmee')} />
+        <Cta label={S.tasmee.cta} height={40} compact onPress={() => router.push(`/mushaf?page=${S.page}`)} />
       </GlassCard>
 
       <GlassCard tint="peach" style={{ gap: 10 }}>

@@ -2,7 +2,7 @@
 // mistakes are made by script (drop a word, swap a word, skip an ayah) — nothing is typed here.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { check, checkAyah, prompt, type ExpectedAyah } from '../src/recitation/match.ts';
+import { check, checkAyah, prompt, wordCount, type ExpectedAyah } from '../src/recitation/match.ts';
 import { fold } from '../src/search/arabic.ts';
 import { readJson } from './helpers.mts';
 
@@ -154,6 +154,17 @@ test('silence flags nothing in progress, and everything once finished', () => {
   assert.equal(check([ayah(k)], '').flags.length, 0);
   const r = checkAyah(ayah(k), '');
   assert.deepEqual(r.flags, [{ kind: 'skipped-ayah', ayah: k }]);
+});
+
+test('live states: recited words show, the rest stay pending, a skipped word is marked', () => {
+  const k = sample.find((x) => words(x).length >= 8)!;
+  const w = words(k);
+  const heard = [...w.slice(0, 2), ...w.slice(3, 5)].join(' '); // said words 1-2, skipped the 3rd, said 4-5, then stopped
+  const r = check([ayah(k)], heard);
+  assert.deepEqual(r.states.slice(0, 5), ['ok', 'ok', 'missing', 'ok', 'ok']);
+  assert.ok(r.states.slice(5).every((st) => st === 'pending'));
+  assert.equal(r.last, 4);
+  assert.equal(r.states.length, wordCount(plain[k]));
 });
 
 test('the prompt never says "wrong"', () => {

@@ -30,7 +30,15 @@ export type Result = {
   expected: number;
   /** heard words that matched nothing (repetitions, fillers) — reported, never flagged */
   extra: number;
+  /** one entry per expected word, in order: what happened to it so far */
+  states: WordState[];
+  /** index of the last expected word that was matched, or -1 */
+  last: number;
 };
+export type WordState = 'ok' | 'missing' | 'changed' | 'pending';
+
+/** How many words the matcher sees in a text (the unit `states` and `Flag.word` count in). */
+export const wordCount = (text: string): number => text.split(/\s+/).filter((raw) => fold(raw).replace(/ /g, '')).length;
 export type Options = {
   /** true when the reciter signalled the end: unrecited words at the end are then flagged as missing */
   finished?: boolean;
@@ -109,7 +117,16 @@ export function check(ayat: ExpectedAyah[], heardText: string, opts: Options = {
   // Walk back from the end; state[i] says what happened to expected word i.
   const state = new Array<'ok' | 'missing' | { heard: string }>(n);
   let extra = 0;
-  for (let i = n, j = m; i > 0 || j > 0; ) {
+  // While the reciter is still going, the alignment may stop anywhere in the expected text:
+  // take the earliest stopping point with the fewest differences, so a word that occurs again
+  // later on the page is not mistaken for the one just recited.
+  let stopAt = n;
+  if (!opts.finished) {
+    stopAt = 0;
+    for (let i = 1; i <= n; i++) if (cost[i * W + m] < cost[stopAt * W + m]) stopAt = i;
+  }
+  for (let k = stopAt; k < n; k++) state[k] = 'missing'; // not reached yet (reported as pending below)
+  for (let i = stopAt, j = m; i > 0 || j > 0; ) {
     const s = step[i * W + j];
     if (s === 1) {
       state[i - 1] = E[i - 1].norm === H[j - 1] ? 'ok' : { heard: H[j - 1] };
@@ -161,7 +178,13 @@ export function check(ayat: ExpectedAyah[], heardText: string, opts: Options = {
       else flags.push({ kind: 'changed', ayah: ayat[ai].key, word: E[k].index, expected: E[k].raw, heard: st.heard });
     }
   }
-  return { flags, complete, reached, matched, expected: n, extra };
+  const states: WordState[] = E.map((_, k) => {
+    const st = state[k];
+    return k >= end ? 'pending' : st === 'ok' ? 'ok' : st === 'missing' ? 'missing' : 'changed';
+  });
+  let lastOk = n - 1;
+  while (lastOk >= 0 && state[lastOk] !== 'ok') lastOk--;
+  return { flags, complete, reached, matched, expected: n, extra, states, last: lastOk };
 }
 
 /** One ayah, checked when the reciter finishes it (SPEC §2.12: "after each ayah"). */

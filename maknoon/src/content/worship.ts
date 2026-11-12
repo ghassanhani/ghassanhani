@@ -98,7 +98,7 @@ export const hifzSession = {
   title: 'جلسة حفظ',
   head: { label: 'الحفظ الجديد', surah: 'سورة الملك', range: 'الآيات ١–٥', meta: 'الصفحة ٥٦٢ · الخطوة ٤ من ٥', done: 'ما أنجزته' },
   surah: 67,
-  ayat: [1, 5] as const, // the portion in head.range
+  page: 562, // the mushaf page in head.meta
   steps: [
     { title: '١ · افهم أولًا', meta: 'المختصر في التفسير والترجمة للمقطع', cta: 'اقرأ' },
     { title: '٢ · استمع', meta: '[القارئ المرخّص] · ٣ مرات مع المتابعة في المصحف' },

@@ -9,6 +9,6 @@ export type Listening = {
 };
 export const listeningSupported = false;
 
-export async function startListening(_onHeard?: (wordsSoFar: number) => void): Promise<Listening> {
+export async function startListening(_onHeard?: (textSoFar: string) => void): Promise<Listening> {
   throw new Error('The recitation check is available in the iOS/Android app');
 }

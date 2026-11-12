@@ -33,7 +33,7 @@ async function microphoneAllowed(): Promise<boolean> {
   return r === PermissionsAndroid.RESULTS.GRANTED;
 }
 
-export async function startListening(onHeard?: (wordsSoFar: number) => void): Promise<Listening> {
+export async function startListening(onHeard?: (textSoFar: string) => void): Promise<Listening> {
   if (!(await microphoneAllowed())) throw new Error('Microphone permission denied');
   const whisperContext = await whisper();
   const slices = new Map<number, string>(); // text per audio slice, in order
@@ -50,7 +50,7 @@ export async function startListening(onHeard?: (wordsSoFar: number) => void): Pr
       onTranscribe: (e) => {
         if (e.type !== 'transcribe' || !e.data) return;
         slices.set(e.sliceIndex, e.data.result.trim());
-        onHeard?.(text().split(/\s+/).filter(Boolean).length);
+        onHeard?.(text()); // partial results arrive while the reciter is still speaking
       },
     },
   );
