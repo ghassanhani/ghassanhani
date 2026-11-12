@@ -1,0 +1,65 @@
+{
+ "format": 1,
+ "packs": [
+  {
+   "slug": "tafsir-almokhtassar",
+   "ratq": "cms-8",
+   "title": "المختصر في تفسير القرآن الكريم",
+   "license": "CC-BY-ND",
+   "publisher": "مركز تفسير",
+   "rows": 6236,
+   "bytes": 3403776,
+   "sha256": "0ad8c8174e59d58d8c5acc9b8dc9e388092a22abea073fc06e2e8af32b77cab0",
+   "bundled": true,
+   "version": 1
+  },
+  {
+   "slug": "tafsir-alsaadi",
+   "ratq": "cms-6",
+   "title": "تفسير السعدي",
+   "license": "CC-BY-ND",
+   "publisher": "مركز تفسير",
+   "rows": 6236,
+   "bytes": 15839232,
+   "sha256": "bb02f85acfe21e58a3ece0efecd2224b6f5faddfe1d5ac52d3337e51face7e2c",
+   "bundled": false,
+   "version": 1
+  },
+  {
+   "slug": "tafsir-ibn-katheer",
+   "ratq": "cms-5",
+   "title": "تفسير ابن كثير",
+   "license": "CC-BY-ND",
+   "publisher": "مركز تفسير",
+   "rows": 6236,
+   "bytes": 34238464,
+   "sha256": "621767c17ca9d1084a4146dae7bbc1c07ee936157c5109a5e5d20ae10aecc5c3",
+   "bundled": false,
+   "version": 1
+  },
+  {
+   "slug": "tafsir-albaghawi",
+   "ratq": "cms-7",
+   "title": "تفسير البغوي",
+   "license": "CC-BY-ND",
+   "publisher": "مركز تفسير",
+   "rows": 6236,
+   "bytes": 24567808,
+   "sha256": "ad5ef43d383617b4285a1ee40b73eaa4df1bc565d07651503e3148a4e0a75e86",
+   "bundled": false,
+   "version": 1
+  },
+  {
+   "slug": "tafsir-altabari",
+   "ratq": "cms-4",
+   "title": "تفسير الطبري",
+   "license": "CC-BY-ND",
+   "publisher": "مركز تفسير",
+   "rows": 6236,
+   "bytes": 51941376,
+   "sha256": "a504fc6b2733df44884590e3158428cae6f0e6389676ba3d21fde109adc41566",
+   "bundled": false,
+   "version": 1
+  }
+ ]
+}

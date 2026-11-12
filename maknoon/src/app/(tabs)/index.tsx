@@ -10,13 +10,15 @@ import { ayahPlaceholder, getAyah } from '@/content/quran';
 import { colors, space } from '@/theme/tokens';
 import { fmtDuration, fmtTime, usePrayerDay } from '@/content/prayer';
 import { prayerScreen } from '@/content/worship';
+import { usePrefs } from '@/store/prefs';
 
 export default function HomeScreen() {
   const a = home.ayahOfDay;
   const ayah = getAyah(a.surah, a.ayah);
   // Live, on-device times (Adhan) for the default city.
   const city = prayerScreen.city;
-  const pd = usePrayerDay(city, 'j');
+  const [prefs] = usePrefs();
+  const pd = usePrayerDay(city, prefs.asr);
   const five = pd.times.filter((t) => t.key !== 'sunrise');
 
   return (

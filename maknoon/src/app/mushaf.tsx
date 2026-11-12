@@ -11,6 +11,7 @@ import { mushaf as m } from '@/content/design';
 import { ar, ayahPlaceholder, ayatOnPage, getAyah } from '@/content/quran';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
+import { usePrefs } from '@/store/prefs';
 
 /**
  * Mushaf reading (page ٥٠, آل عمران ١–٩ in the design).
@@ -22,7 +23,8 @@ export default function MushafScreen() {
   const insets = useSafeAreaInsets();
   const [controls, setControls] = useState(false);
   const [zoom, setZoom] = useState(100);
-  const size = 21 * (zoom / 100);
+  const [prefs] = usePrefs();
+  const size = (prefs.quranSize - 3) * (zoom / 100); // Settings size 24 → the design's 21pt page
 
   // Page ٥٠ of the Madinah mushaf, from the KFGQPC page data (آل عمران ١–٩).
   const onPage = ayatOnPage(50);

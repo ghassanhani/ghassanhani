@@ -1,0 +1,105 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSyncExternalStore } from 'react';
+
+/**
+ * On-device preferences and progress (plan §13: nothing leaves the device).
+ * One JSON blob in AsyncStorage, hydrated once at start-up, exposed through a
+ * tiny external store so any screen can read/write it with `usePrefs()`.
+ */
+export type Madhhab = 'all' | 'hanafi' | 'maliki' | 'shafii' | 'hanbali';
+
+export type Prefs = {
+  onboarded: boolean;
+  lang: string;
+  madhhab: Madhhab;
+  goals: Record<string, boolean>;
+  locMode: 'city' | 'gps';
+  quranSize: number;
+  hideTashkeel: boolean;
+  theme: 'light' | 'dark' | 'auto';
+  notifs: boolean[];
+  showSuggested: boolean;
+  analytics: boolean;
+  asr: 'j' | 'h';
+  prayerAlerts: Record<string, boolean>;
+  hifzSlots: boolean[];
+  hifzPace: number;
+  hifzLock: 'shown' | 'paused' | 'dismissed';
+  notes: Record<string, string>;
+  installedPacks: string[];
+};
+
+// Defaults = the canvas's initial states.
+export const DEFAULT_PREFS: Prefs = {
+  onboarded: false,
+  lang: 'ar',
+  madhhab: 'all',
+  goals: { quran: true, hadith: true },
+  locMode: 'city',
+  quranSize: 24,
+  hideTashkeel: false,
+  theme: 'auto',
+  notifs: [true, true, false, true],
+  showSuggested: true,
+  analytics: false,
+  asr: 'j',
+  prayerAlerts: { fajr: true, sunrise: false, dhuhr: true, asr: true, maghrib: true, isha: true },
+  hifzSlots: [true, true, true, false],
+  hifzPace: 1,
+  hifzLock: 'shown',
+  notes: {},
+  installedPacks: [],
+};
+
+const KEY = 'maknoon.prefs.v1';
+let state: Prefs = DEFAULT_PREFS;
+let hydrated = false;
+const listeners = new Set<() => void>();
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+function emit() {
+  listeners.forEach((l) => l());
+}
+
+export async function hydratePrefs() {
+  if (hydrated) return;
+  try {
+    const raw = await AsyncStorage.getItem(KEY);
+    if (raw) state = { ...DEFAULT_PREFS, ...(JSON.parse(raw) as Partial<Prefs>) };
+  } catch {
+    state = DEFAULT_PREFS; // corrupt or unavailable storage → start fresh
+  }
+  hydrated = true;
+  emit();
+}
+
+export function setPrefs(patch: Partial<Prefs> | ((p: Prefs) => Partial<Prefs>)) {
+  const next = typeof patch === 'function' ? patch(state) : patch;
+  state = { ...state, ...next };
+  emit();
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    AsyncStorage.setItem(KEY, JSON.stringify(state)).catch(() => {});
+  }, 250);
+}
+
+export function getPrefs() {
+  return state;
+}
+
+function subscribe(l: () => void) {
+  listeners.add(l);
+  return () => listeners.delete(l);
+}
+
+export function usePrefs(): [Prefs, typeof setPrefs] {
+  const p = useSyncExternalStore(subscribe, () => state, () => state);
+  return [p, setPrefs];
+}
+
+export const MADHHAB_NAMES: Record<Exclude<Madhhab, 'all'>, string> = {
+  hanafi: 'الحنفي',
+  maliki: 'المالكي',
+  shafii: 'الشافعي',
+  hanbali: 'الحنبلي',
+};

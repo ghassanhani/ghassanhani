@@ -75,8 +75,12 @@ npm run typecheck
   it must follow plan §8: retrieval-only, quotes rendered from the database, and fatwa questions refused as shown.
 - **Settings › المصادر والتراخيص** is generated from what the app ships (`credits()` in `src/content/sources.ts`), not
   from the design's draft list.
-- Settings and Onboarding choices are held in memory for now; persistence comes with the storage layer.
-  Onboarding is reachable from «أنا» and isn't yet forced on first launch.
+- **On-device storage** (`src/store/prefs.ts`, AsyncStorage): onboarding (shown on first launch), every Settings
+  control, Asr rule, prayer alerts, hifz reminders, pace and overdue-review choice, the Topic reflection, and installed
+  packs. Nothing leaves the device. The madhhab chosen in onboarding drives Fiqh's «عرض مذهبي أولًا»,
+  Settings › حجم الخط sets the Mushaf size, and «إخفاء التشكيل» applies to hadith and adhkar text only (never Quran or
+  ND tafsir).
+- Not yet wired: dark theme (the choice is saved, no dark palette yet), real notifications, GPS location.
 - The app icon from the canvas is in `assets/brand/app-icon.png` (716 px, corners baked in). The store icon needs a
   1024 px square master from the designer.
 
@@ -140,8 +144,14 @@ npm run content:build     # → assets/content/*.json + assets/fonts/kfgqpc/ (co
   turned into formatting only: `¬…¥` edition notes appear small, and `_…_` gharib words appear in teal.
 - **Status chips** on tafsir cards show **the publisher's editorial stage** from the file («مرحلة الاعتماد» → مُراجَع;
   المراجعة or الادخال → مقترح). They are not Maknoon scholar review, which doesn't exist yet. Ibn Kathir v2.1 doesn't state a stage.
-- Only the ayat the UI shows today are bundled (`tafsir-sample.json`). Full tafsir (≈100 MB) needs the
-  downloadable SQLite packs from plan §7.4.
+- **Tafsir packs** (plan §7.4): `npm run packs:build` turns each tafsir into a SQLite file in `assets/packs/`
+  (6,236 ayat each, text byte-for-byte, licence and publisher stored inside) plus `manifest.json` (size, SHA-256).
+  - **al-Mukhtasar (3.4 MB) ships inside the app.**
+  - al-Sa'di (15.8 MB), Ibn Kathir (34.2 MB), al-Baghawi (24.6 MB) and al-Tabari (51.9 MB) are downloaded from
+    **`expo.extra.packsBaseUrl`** in `app.json` and checked against the manifest's SHA-256 before use.
+  - Upload those four `.db` files somewhere public (a GitHub Release works; CC BY-ND allows redistribution with
+    credit) and set the URL. Until then, Settings shows «التنزيل غير مفعّل بعد».
+  - The web build has no SQLite and serves only `tafsir-sample.json`.
 
 ## Sources: Ratq (رَتْق)
 

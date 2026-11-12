@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Icon } from '@/components/Icon';
@@ -9,12 +8,16 @@ import { GlassCard, HeroCard, InnerCard, ProgressBar, RoundButton, Segmented, So
 import { type AsrRule, fmtDates, fmtDuration, fmtTime, usePrayerDay } from '@/content/prayer';
 import { ar } from '@/content/quran';
 import { prayerScreen as P } from '@/content/worship';
+import { usePrefs } from '@/store/prefs';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
 
 export default function PrayerScreen() {
-  const [asr, setAsr] = useState<AsrRule>('j');
-  const [alerts, setAlerts] = useState<Record<string, boolean>>({ fajr: true, sunrise: false, dhuhr: true, asr: true, maghrib: true, isha: true });
+  const [prefs, setPrefs] = usePrefs();
+  const asr = prefs.asr;
+  const setAsr = (v: AsrRule) => setPrefs({ asr: v });
+  const alerts = prefs.prayerAlerts;
+  const setAlerts = (f: (a: Record<string, boolean>) => Record<string, boolean>) => setPrefs((p) => ({ prayerAlerts: f(p.prayerAlerts) }));
   const { now, times, next, prev, qibla } = usePrayerDay(P.city, asr);
   const tz = P.city.tz;
   const span = prev ? next.date.getTime() - prev.date.getTime() : 1;

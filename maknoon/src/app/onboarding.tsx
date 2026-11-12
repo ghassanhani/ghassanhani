@@ -8,16 +8,22 @@ import { Squircle } from '@/components/Squircle';
 import { Body, Caption, Display } from '@/components/Typography';
 import { CountBadge, Cta, GlassCard, InnerCard } from '@/components/ui';
 import { onboarding as O } from '@/content/account';
+import { type Madhhab, usePrefs } from '@/store/prefs';
 import { colors } from '@/theme/tokens';
 
 type Opt = readonly [string, string, ...string[]];
 
 export default function OnboardingScreen() {
-  // Initial choices as drawn on the canvas.
-  const [lang, setLang] = useState('ar');
-  const [madhhab, setMadhhab] = useState('all');
-  const [goals, setGoals] = useState<Record<string, boolean>>({ quran: true, hadith: true });
-  const [loc, setLoc] = useState('city');
+  // Starts from saved choices (defaults = the canvas's initial states); saved on «متابعة».
+  const [prefs, setPrefs] = usePrefs();
+  const [lang, setLang] = useState(prefs.lang);
+  const [madhhab, setMadhhab] = useState<string>(prefs.madhhab);
+  const [goals, setGoals] = useState<Record<string, boolean>>(prefs.goals);
+  const [loc, setLoc] = useState<string>(prefs.locMode);
+  const finish = () => {
+    setPrefs({ onboarded: true, lang, madhhab: madhhab as Madhhab, goals, locMode: loc as 'city' | 'gps' });
+    router.replace('/');
+  };
 
   return (
     <Screen backdrop="mist" withTabBar={false}>
@@ -66,7 +72,7 @@ export default function OnboardingScreen() {
         </View>
       </Step>
 
-      <Cta label={O.cta} height={56} onPress={() => router.replace('/')} />
+      <Cta label={O.cta} height={56} onPress={finish} />
     </Screen>
   );
 }

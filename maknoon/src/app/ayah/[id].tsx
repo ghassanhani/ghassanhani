@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { DetailHeader } from '@/components/DetailHeader';
@@ -10,7 +10,8 @@ import { AyahText, Body, Caption, Display } from '@/components/Typography';
 import { CountBadge, GlassCard, HeroCard, InnerCard, ReviewedChip, SuggestedChip } from '@/components/ui';
 import { ayahToday, home } from '@/content/design';
 import { ar, ayahPlaceholder, getAyah, quranSource } from '@/content/quran';
-import { tafsirFor, type TafsirEntry } from '@/content/tafsir';
+import { packsSupported } from '@/content/packs';
+import { useTafsir, type TafsirEntry } from '@/content/tafsir';
 import { quranIndex } from '@/content/worship';
 import { colors } from '@/theme/tokens';
 
@@ -21,7 +22,9 @@ export default function AyahScreen() {
   const meta = home.ayahOfDay; // the design defines آل عمران ٣
   const isDesignAyah = s === meta.surah && a === meta.ayah;
   const ayah = getAyah(s, a);
-  const tafsir = tafsirFor(s, a);
+  const all = useTafsir(s, a);
+  const tafsir = (all ?? []).filter((t) => t.text);
+  const missing = (all ?? []).filter((t) => !t.installed);
 
   return (
     <Screen backdrop="sky" withTabBar={false} header={<DetailHeader title={ayahToday.title} />}>
@@ -46,7 +49,9 @@ export default function AyahScreen() {
 
       <Drawer title={ayahToday.tafsirTitle} count={tafsir.length ? String(tafsir.length) : undefined}>
         {tafsir.length ? (
-          tafsir.map((t) => <TafsirCard key={t.key} entry={t} />)
+          tafsir.map((t) => <TafsirCard key={t.key} entry={t as TafsirEntry & { text: string }} />)
+        ) : all === null ? (
+          <Caption>…</Caption>
         ) : (
           <InnerCard>
             <Body size={14} color={colors.primary}>
@@ -54,6 +59,15 @@ export default function AyahScreen() {
             </Body>
           </InnerCard>
         )}
+      {packsSupported && missing.length ? (
+          <Pressable accessibilityRole="link" onPress={() => router.push('/settings')}>
+            <Squircle radius={30} fill="rgba(247,241,241,0.61)" stroke="#FFFFFF" glow="glass" style={styles.more}>
+              <Body size={13} weight="medium" color={colors.primary}>
+                {`نزّل ${missing.map((m) => m.title).join('، ')} من حزم التفسير`}
+              </Body>
+            </Squircle>
+          </Pressable>
+        ) : null}
       </Drawer>
 
       <Drawer title={ayahToday.hadithTitle}>
@@ -63,7 +77,7 @@ export default function AyahScreen() {
   );
 }
 
-function TafsirCard({ entry }: { entry: TafsirEntry }) {
+function TafsirCard({ entry }: { entry: TafsirEntry & { text: string } }) {
   const [open, setOpen] = useState(false);
   return (
     <InnerCard style={{ gap: 6 }}>
@@ -119,5 +133,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   glassIcon: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  more: { minHeight: 46, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
   ring: { width: 37, height: 37, borderRadius: 18.5, borderWidth: 1, borderColor: colors.ring, alignItems: 'center', justifyContent: 'center' },
 });

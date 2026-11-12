@@ -35,12 +35,14 @@
           "forcesRTL": true
         }
       ],
-      "expo-image"
+      "expo-image",
+      "expo-sqlite"
     ],
     "scheme": "maknoon",
     "extra": {
       "supportsRTL": true,
-      "forcesRTL": true
+      "forcesRTL": true,
+      "packsBaseUrl": null
     },
     "experiments": {
       "typedRoutes": false

@@ -46,3 +46,7 @@ assets/fonts/thmanyah/*
 
 # Raw Itqan downloads (large); rebuild with npm run itqan:pull && npm run content:build
 assets/itqan/
+
+# Downloadable tafsir packs (built by npm run packs:build; hosted, not committed). The bundled one is committed.
+assets/packs/*.db
+!assets/packs/tafsir-almokhtassar.db

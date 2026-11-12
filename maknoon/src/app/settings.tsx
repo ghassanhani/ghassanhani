@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { Fragment, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
@@ -8,17 +8,28 @@ import { AyahText, Body, Caption, Display } from '@/components/Typography';
 import { CountBadge, GlassCard, InnerCard, Segmented, Stepper, Switch } from '@/components/ui';
 import { settings as S } from '@/content/account';
 import { ar } from '@/content/quran';
+import { downloadPack, isInstalled, packs, packsDownloadable, packsSupported, removePack } from '@/content/packs';
 import { credits } from '@/content/sources';
+import { MADHHAB_NAMES, usePrefs } from '@/store/prefs';
 import { colors } from '@/theme/tokens';
 
-/** Settings — choices are held in memory for now (persistence comes with the storage layer). */
+/** Settings — every choice is saved on the device (src/store/prefs.ts). */
 export default function SettingsScreen() {
-  const [size, setSize] = useState(24);
-  const [tashkeel, setTashkeel] = useState(false);
-  const [theme, setTheme] = useState<string>('auto');
-  const [notifs, setNotifs] = useState(S.notifications.items.map((n) => n.on));
-  const [suggested, setSuggested] = useState(true);
-  const [analytics, setAnalytics] = useState(false);
+  const [prefs, setPrefs] = usePrefs();
+  const size = prefs.quranSize;
+  const setSize = (f: (s: number) => number) => setPrefs((p) => ({ quranSize: f(p.quranSize) }));
+  const tashkeel = prefs.hideTashkeel;
+  const setTashkeel = (v: boolean) => setPrefs({ hideTashkeel: v });
+  const theme = prefs.theme as string;
+  const setTheme = (v: string) => setPrefs({ theme: v as typeof prefs.theme });
+  const notifs = prefs.notifs;
+  const setNotifs = (f: (a: boolean[]) => boolean[]) => setPrefs((p) => ({ notifs: f(p.notifs) }));
+  const suggested = prefs.showSuggested;
+  const setSuggested = (v: boolean) => setPrefs({ showSuggested: v });
+  const analytics = prefs.analytics;
+  const setAnalytics = (v: boolean) => setPrefs({ analytics: v });
+  const asrSub = prefs.asr === 'h' ? 'الحنفي (ظل المثلين)' : 'الجمهور (ظل المثل)';
+  const madhhabSub = prefs.madhhab === 'all' ? S.content.madhhab.sub : `${MADHHAB_NAMES[prefs.madhhab]} · تبقى المذاهب كلها ظاهرة`;
 
   return (
     <Screen backdrop="sand" withTabBar={false} header={<PageHeader title={S.title} fallback="/me" />}>
@@ -46,7 +57,7 @@ export default function SettingsScreen() {
       <Display size={21.5}>{S.prayer.title}</Display>
       <GlassCard style={{ paddingVertical: 8 }}>
         <LinkItem first title={S.prayer.method.title} sub={S.prayer.method.sub} route="/prayer" />
-        <LinkItem title={S.prayer.asr.title} sub={S.prayer.asr.sub} route="/prayer" />
+        <LinkItem title={S.prayer.asr.title} sub={asrSub} route="/prayer" />
         <LinkItem title={S.prayer.location.title} sub={S.prayer.location.sub} />
       </GlassCard>
 
@@ -62,10 +73,27 @@ export default function SettingsScreen() {
 
       <Display size={21.5}>{S.content.title}</Display>
       <GlassCard style={{ paddingVertical: 8 }}>
-        <LinkItem first title={S.content.madhhab.title} sub={S.content.madhhab.sub} route="/onboarding" />
+        <LinkItem first title={S.content.madhhab.title} sub={madhhabSub} route="/onboarding" />
         <LinkItem title={S.content.lang.title} sub={S.content.lang.sub} route="/onboarding" />
         <View style={styles.sep} />
         <ToggleRow title={S.content.suggested.title} sub={S.content.suggested.sub} value={suggested} onChange={setSuggested} />
+      </GlassCard>
+
+      <Display size={21.5}>حزم التفسير</Display>
+      <GlassCard style={{ paddingVertical: 8 }}>
+        {packs.map((p, i) => (
+          <Fragment key={p.slug}>
+            {i ? <View style={styles.sep} /> : null}
+            <PackRow slug={p.slug} title={p.title} bytes={p.bytes} bundled={p.bundled} installed={packsSupported && isInstalled(p.slug)} />
+          </Fragment>
+        ))}
+        <Caption style={{ paddingVertical: 8 }}>
+          {!packsSupported
+            ? 'الحزم الكاملة متاحة في تطبيق iOS وAndroid؛ نسخة الويب تعرض العيّنة فقط.'
+            : packsDownloadable
+              ? 'تُنزَّل كل حزمة مرة واحدة وتعمل دون اتصال · نص التفسير كما نُشر (CC BY-ND).'
+              : 'التنزيل غير مفعّل بعد: لم يُضبط رابط استضافة الحزم.'}
+        </Caption>
       </GlassCard>
 
       <Display size={21.5}>{S.privacy.title}</Display>
@@ -106,6 +134,43 @@ export default function SettingsScreen() {
   );
 }
 
+function PackRow({ slug, title, bytes, bundled, installed }: { slug: string; title: string; bytes: number; bundled: boolean; installed: boolean }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const mb = `${(bytes / 1e6).toFixed(1)} م.ب`;
+  const act = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      if (installed) await removePack(slug);
+      else await downloadPack(slug);
+    } catch (e) {
+      setError(e instanceof Error && e.message === 'Checksum mismatch' ? 'فشل التحقق من الملف، لم يُحفظ.' : 'تعذّر التنزيل. حاول لاحقًا.');
+    } finally {
+      setBusy(false);
+    }
+  };
+  const canAct = packsSupported && !bundled && (installed || packsDownloadable);
+  return (
+    <View style={[styles.row, { gap: 12, paddingVertical: 12 }]}>
+      <View style={{ flex: 1 }}>
+        <Display size={16}>{title}</Display>
+        <Caption>{bundled ? `مضمّنة في التطبيق · ${mb}` : installed ? `منزّلة · ${mb}` : mb}</Caption>
+        {error ? <Caption color="#B4532A">{error}</Caption> : null}
+      </View>
+      {busy ? (
+        <ActivityIndicator color={colors.primary} />
+      ) : canAct ? (
+        <Pressable accessibilityRole="button" onPress={act} style={styles.packBtn}>
+          <Body size={13} weight="bold" color={colors.primary}>
+            {installed ? 'إزالة' : 'تنزيل'}
+          </Body>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
 function ToggleRow({ title, sub, value, onChange }: { title: string; sub: string; value: boolean; onChange: (v: boolean) => void }) {
   return (
     <View style={[styles.row, { gap: 12, minHeight: 60, paddingVertical: 8 }]}>
@@ -138,4 +203,5 @@ function LinkItem({ title, sub, route, first }: { title: string; sub: string; ro
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   sep: { height: 1, backgroundColor: colors.hairline },
+  packBtn: { height: 36, paddingHorizontal: 16, borderRadius: 18, borderWidth: 1, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
 });

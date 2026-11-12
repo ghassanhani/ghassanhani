@@ -6,8 +6,9 @@
 //  - assets/fonts/kfgqpc/…ttf         the matching KFGQPC Uthmanic Hafs font
 //  - assets/content/tafsir-sample.json the five tafsirs for the ayat the UI shows today
 //    (full per-ayah packs ship later as downloadable SQLite packs — plan §7.4)
-import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { parseCsv, findFile } from './lib.mjs';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -17,39 +18,6 @@ const out = join(root, 'assets/content');
 // Ayat whose tafsir the current screens display.
 const SAMPLE_AYAT = ['3:3'];
 
-function findFile(dir, re) {
-  for (const e of readdirSync(dir, { withFileTypes: true })) {
-    const p = join(dir, e.name);
-    if (e.isDirectory()) {
-      const f = findFile(p, re);
-      if (f) return f;
-    } else if (re.test(e.name)) return p;
-  }
-  return null;
-}
-
-/** RFC 4180 CSV (quoted fields may contain commas, quotes and newlines). */
-function parseCsv(text) {
-  if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
-  const rows = [];
-  let row = [], field = '', q = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (q) {
-      if (c === '"') {
-        if (text[i + 1] === '"') { field += '"'; i++; } else q = false;
-      } else field += c;
-    } else if (c === '"') q = true;
-    else if (c === ',') { row.push(field); field = ''; }
-    else if (c === '\n' || c === '\r') {
-      if (c === '\r' && text[i + 1] === '\n') i++;
-      row.push(field); rows.push(row); row = []; field = '';
-    } else field += c;
-  }
-  if (field || row.length) { row.push(field); rows.push(row); }
-  const [header, ...body] = rows;
-  return body.filter((r) => r.length > 1).map((r) => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ''])));
-}
 
 // ── Quran (KFGQPC Hafs) ───────────────────────────────────────────────
 const hafsJson = findFile(join(raw, 'unicode-uthmanic-font-hafs-narration'), /^hafsData_v[\d-]+\.json$/);

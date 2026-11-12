@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Fragment, useState } from 'react';
+import { Fragment } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
@@ -9,13 +9,18 @@ import { Cta, GlassCard, HeroCard, IconBubble, InnerCard, ProgressBar, Segmented
 import { ar } from '@/content/quran';
 import { hifz as H } from '@/content/worship';
 import { colors } from '@/theme/tokens';
+import { usePrefs } from '@/store/prefs';
 
 type Lock = 'shown' | 'paused' | 'dismissed';
 
 export default function HifzScreen() {
-  const [lock, setLock] = useState<Lock>('shown');
-  const [pace, setPace] = useState(1);
-  const [slots, setSlots] = useState(H.slots.items.map((s) => s.on));
+  const [prefs, setPrefs] = usePrefs();
+  const lock = prefs.hifzLock;
+  const setLock = (v: Lock) => setPrefs({ hifzLock: v });
+  const pace = prefs.hifzPace;
+  const setPace = (v: number) => setPrefs({ hifzPace: v });
+  const slots = prefs.hifzSlots;
+  const setSlots = (f: (a: boolean[]) => boolean[]) => setPrefs((p) => ({ hifzSlots: f(p.hifzSlots) }));
 
   const months = Math.round(H.pace.remainingPages / pace / 30.4);
   const paceResult = months >= 24 ? `نحو ${ar(Math.round((months / 12) * 10) / 10)} سنوات` : `نحو ${ar(months)} شهرًا`;

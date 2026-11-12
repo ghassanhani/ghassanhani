@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { LinkRow } from '@/components/blocks';
 import { PageHeader } from '@/components/PageHeader';
@@ -8,9 +7,12 @@ import { Chip, GlassCard, HeroCard, IconBubble, InnerCard, RoundButton } from '@
 import { topic as T } from '@/content/modules';
 import { F } from '@/theme/fonts';
 import { colors, space } from '@/theme/tokens';
+import { usePrefs } from '@/store/prefs';
 
 export default function TopicScreen() {
-  const [note, setNote] = useState(''); // stays on the device (not persisted yet)
+  const [prefs, setPrefs] = usePrefs();
+  const note = prefs.notes['topic:sabr'] ?? ''; // saved on this device only
+  const setNote = (t: string) => setPrefs((p) => ({ notes: { ...p.notes, 'topic:sabr': t } }));
   return (
     <Screen backdrop="mint" withTabBar={false} header={<PageHeader title={T.title} action={<RoundButton icon="bookmark" label="حفظ" size={40} iconSize={18} />} />}>
       <HeroCard hero="teal" style={{ gap: 6 }}>

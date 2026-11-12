@@ -10,6 +10,8 @@ import { Chip, GlassCard, HeroCard, IconBubble } from '@/components/ui';
 import { ar } from '@/content/quran';
 import { adhkar, adhkarOrder, adhkarScreen as A, type Dhikr } from '@/content/worship';
 import { colors, space } from '@/theme/tokens';
+import { stripTashkeel } from '@/content/text';
+import { usePrefs } from '@/store/prefs';
 
 type Cat = (typeof adhkarOrder)[number];
 
@@ -78,6 +80,7 @@ export default function AdhkarScreen() {
 }
 
 function DhikrCard({ d, count, onTap }: { d: Dhikr; count: number; onTap: () => void }) {
+  const [prefs] = usePrefs();
   const finished = count >= d.n;
   const pct = Math.min(1, count / d.n);
   const r = 29;
@@ -92,7 +95,7 @@ function DhikrCard({ d, count, onTap }: { d: Dhikr; count: number; onTap: () => 
             </Body>
           ) : null}
           <Display size={19} lineHeight={32}>
-            {d.text}
+            {prefs.hideTashkeel ? stripTashkeel(d.text) : d.text}
           </Display>
         </View>
         <Pressable accessibilityRole="button" accessibilityLabel={finished ? 'تم، اضغط لإعادة العدّ' : 'عُدّ مرة'} onPress={onTap} style={styles.ring}>

@@ -1,11 +1,10 @@
-import sample from '../../assets/content/tafsir-sample.json';
+import { useEffect, useState } from 'react';
+import { usePrefs } from '@/store/prefs';
+import { isInstalled, readTafsir, type PackRow } from './packs';
 import { TAFSIRS, tafsirSource, type TafsirKey } from './sources';
 
-type Row = { edition: string | null; stage: string | null; text: string; footnote: string | null };
-const data = sample as { ayat: Record<string, Record<string, Row>> };
-
 // Registry slug for each tafsir (Itqan) ↔ Ratq catalogue slug (sources.ts).
-const REGISTRY: Record<TafsirKey, string> = {
+export const REGISTRY: Record<TafsirKey, string> = {
   ibnKathir: 'tafsir-ibn-katheer',
   tabari: 'tafsir-altabari',
   saadi: 'tafsir-alsaadi',
@@ -21,31 +20,46 @@ const EDITION_FALLBACK: Partial<Record<TafsirKey, string>> = { ibnKathir: 'دا�
 
 export type TafsirEntry = {
   key: TafsirKey;
+  slug: string;
   title: string; // from Ratq
-  edition: string | null; // from the publisher file
+  attribution: string; // «مركز تفسير عبر رتق · CC BY-ND»
+  installed: boolean;
+  edition: string | null;
   /** publisher's editorial stage: 'approved' = مرحلة الاعتماد, 'in-review' = المراجعة/الادخال, null = not stated */
   stage: 'approved' | 'in-review' | null;
-  text: string; // verbatim
+  text: string | null; // verbatim; null when not installed or no entry
   footnote: string | null;
-  attribution: string; // «مركز تفسير عبر رتق · CC BY-ND»
 };
 
-export function tafsirFor(surah: number, ayah: number): TafsirEntry[] {
-  const rows = data.ayat[`${surah}:${ayah}`];
-  if (!rows) return [];
-  return ORDER.filter((k) => rows[REGISTRY[k]]).map((key) => {
-    const r = rows[REGISTRY[key]];
-    const src = tafsirSource(key);
-    return {
-      key,
-      title: src.title,
-      edition: r.edition ?? EDITION_FALLBACK[key] ?? null,
-      stage: r.stage === 'مرحلة الاعتماد' ? 'approved' : r.stage ? 'in-review' : null,
-      text: r.text,
-      footnote: r.footnote,
-      attribution: src.attribution,
+function toEntry(key: TafsirKey, row: PackRow | null): TafsirEntry {
+  const src = tafsirSource(key);
+  return {
+    key,
+    slug: REGISTRY[key],
+    title: src.title,
+    attribution: src.attribution,
+    installed: isInstalled(REGISTRY[key]),
+    edition: row?.edition ?? EDITION_FALLBACK[key] ?? null,
+    stage: row?.stage === 'مرحلة الاعتماد' ? 'approved' : row?.stage ? 'in-review' : null,
+    text: row?.text ?? null,
+    footnote: row?.footnote ?? null,
+  };
+}
+
+/** All five tafsirs for one ayah; entries whose pack isn't installed come back with text = null. */
+export function useTafsir(surah: number, ayah: number) {
+  const [prefs] = usePrefs();
+  const [entries, setEntries] = useState<TafsirEntry[] | null>(null);
+  useEffect(() => {
+    let alive = true;
+    Promise.all(ORDER.map(async (k) => toEntry(k, await readTafsir(REGISTRY[k], surah, ayah).catch(() => null)))).then((e) => {
+      if (alive) setEntries(e);
+    });
+    return () => {
+      alive = false;
     };
-  });
+  }, [surah, ayah, prefs.installedPacks]);
+  return entries;
 }
 
 export const TAFSIR_COUNT = Object.keys(TAFSIRS).length;

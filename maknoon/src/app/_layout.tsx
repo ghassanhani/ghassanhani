@@ -2,9 +2,10 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router/stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { I18nManager, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { hydratePrefs } from '@/store/prefs';
 import { fontAssets } from '@/theme/fonts';
 
 // Arabic-first: the whole app is right-to-left.
@@ -23,12 +24,16 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const [loaded, error] = useFonts(fontAssets);
+  const [prefsReady, setPrefsReady] = useState(false);
+  useEffect(() => {
+    hydratePrefs().finally(() => setPrefsReady(true));
+  }, []);
 
   useEffect(() => {
-    if (loaded || error) SplashScreen.hideAsync().catch(() => {});
-  }, [loaded, error]);
+    if ((loaded || error) && prefsReady) SplashScreen.hideAsync().catch(() => {});
+  }, [loaded, error, prefsReady]);
 
-  if (!loaded && !error) return null;
+  if ((!loaded && !error) || !prefsReady) return null;
 
   return (
     <SafeAreaProvider>
@@ -38,6 +43,7 @@ export default function RootLayout() {
         <Stack.Screen name="mushaf" options={{ animation: 'fade' }} />
         <Stack.Screen name="ayah/[id]" />
         <Stack.Screen name="hadith/[id]" />
+        <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
       </Stack>
     </SafeAreaProvider>
   );

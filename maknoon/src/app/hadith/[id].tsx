@@ -9,12 +9,15 @@ import { Body, Caption, Display } from '@/components/Typography';
 import { Chip, CountBadge, GlassCard, InnerCard } from '@/components/ui';
 import { hadith as h } from '@/content/design';
 import { colors } from '@/theme/tokens';
+import { stripTashkeel } from '@/content/text';
+import { usePrefs } from '@/store/prefs';
 
 /**
  * Hadith detail: matn, attributed gradings (grader → verdict → reference),
  * isnad chain, shuruh and parallel narrations. Content = design sample (see content/design.ts).
  */
 export default function HadithScreen() {
+  const [prefs] = usePrefs();
   return (
     <Screen backdrop="sand" withTabBar={false} header={<DetailHeader title={h.title} />}>
       <GlassCard style={{ gap: 6 }}>
@@ -23,7 +26,7 @@ export default function HadithScreen() {
           {h.narrator}
         </Body>
         <Display size={22} lineHeight={44} selectable>
-          {h.matn}
+          {prefs.hideTashkeel ? stripTashkeel(h.matn) : h.matn}
         </Display>
         <Pressable accessibilityRole="button" style={{ alignSelf: 'center', marginTop: 8 }}>
           <Squircle radius={18} fill={colors.white} style={styles.evidence}>

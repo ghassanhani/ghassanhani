@@ -6,3 +6,7 @@ dist/
 web-build/
 expo-env.d.ts
 assets/itqan/
+assets/packs/tafsir-alsaadi.db
+assets/packs/tafsir-ibn-katheer.db
+assets/packs/tafsir-albaghawi.db
+assets/packs/tafsir-altabari.db

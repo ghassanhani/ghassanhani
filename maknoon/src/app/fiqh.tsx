@@ -9,11 +9,16 @@ import { Chip, CountBadge, GlassCard, InnerCard, ReviewedChip, RoundButton, Swit
 import { fiqh as Q } from '@/content/modules';
 import { ar } from '@/content/quran';
 import { colors } from '@/theme/tokens';
+import { MADHHAB_NAMES, usePrefs } from '@/store/prefs';
+
+const MADHHAB_ID = { hanafi: 'h', maliki: 'm', shafii: 's', hanbali: 'b' } as const;
 
 /** Fiqh issue: madhhab positions (attributed), evidence, cause of disagreement. Information, not a fatwa. */
 export default function FiqhScreen() {
+  const [prefs] = usePrefs();
+  // The user's madhhab (from onboarding/settings); «عرض الكل» → none highlighted.
+  const mine = prefs.madhhab === 'all' ? null : MADHHAB_ID[prefs.madhhab];
   const [mineFirst, setMineFirst] = useState(true);
-  const mine = Q.mineToggle.mineId;
   const list = mineFirst ? [...Q.madhhabs.filter((m) => m.id === mine), ...Q.madhhabs.filter((m) => m.id !== mine)] : Q.madhhabs;
 
   return (
@@ -31,13 +36,15 @@ export default function FiqhScreen() {
         <StatTiles items={Q.stats} />
       </GlassCard>
 
-      <GlassCard soft style={[styles.row, { gap: 12, paddingVertical: 16 }]}>
-        <View style={{ flex: 1 }}>
-          <Display size={17}>{Q.mineToggle.title}</Display>
-          <Caption>{Q.mineToggle.sub}</Caption>
-        </View>
-        <Switch label={Q.mineToggle.title} value={mineFirst} onChange={setMineFirst} />
-      </GlassCard>
+      {mine && prefs.madhhab !== 'all' ? (
+        <GlassCard soft style={[styles.row, { gap: 12, paddingVertical: 16 }]}>
+          <View style={{ flex: 1 }}>
+            <Display size={17}>{Q.mineToggle.title}</Display>
+            <Caption>{`مذهبك: ${MADHHAB_NAMES[prefs.madhhab]} · تبقى المذاهب كلها ظاهرة`}</Caption>
+          </View>
+          <Switch label={Q.mineToggle.title} value={mineFirst} onChange={setMineFirst} />
+        </GlassCard>
+      ) : null}
 
       {list.map((m) => {
         const isMine = mineFirst && m.id === mine;
