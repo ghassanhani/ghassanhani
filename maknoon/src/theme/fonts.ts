@@ -37,6 +37,8 @@ const has = (name: string) => name in thmanyahFonts;
 export const F = {
   display: has('ThmanyahSerifDisplay-Black') ? 'ThmanyahSerifDisplay-Black' : 'Amiri_700Bold',
   displayBold: has('ThmanyahSerifDisplay-Bold') ? 'ThmanyahSerifDisplay-Bold' : 'Amiri_700Bold',
+  /** CTA labels — the canvas sets buttons in Thmanyah Serif Text, black */
+  cta: has('ThmanyahSerifText-Black') ? 'ThmanyahSerifText-Black' : 'Amiri_700Bold',
   sans: has('ThmanyahSans-Regular') ? 'ThmanyahSans-Regular' : 'IBMPlexSansArabic_400Regular',
   sansMedium: has('ThmanyahSans-Medium') ? 'ThmanyahSans-Medium' : 'IBMPlexSansArabic_500Medium',
   sansBold: has('ThmanyahSans-Bold') ? 'ThmanyahSans-Bold' : 'IBMPlexSansArabic_700Bold',

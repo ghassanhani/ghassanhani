@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Pressable, type PressableProps, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { F } from '@/theme/fonts';
 import { colors, heroes, type HeroName, radius, space, tints, type TintName } from '@/theme/tokens';
 import { Icon, type IconName } from './Icon';
 import { Squircle } from './Squircle';
@@ -103,7 +104,7 @@ export function Cta({ label, onPress, height = 50, style, compact }: { label: st
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={style}>
       <Squircle radius={36} fill={colors.primary} glow="button" style={{ height, paddingHorizontal: compact ? 18 : 24, alignItems: 'center', justifyContent: 'center' }}>
-        <Display size={14} color={colors.white} lineHeight={20}>
+        <Display size={14} color={colors.white} lineHeight={20} style={{ fontFamily: F.cta }}>
           {label}
         </Display>
       </Squircle>

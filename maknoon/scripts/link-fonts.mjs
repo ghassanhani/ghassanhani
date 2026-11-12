@@ -5,6 +5,7 @@
 // The web build never loads them (licence: files must not be extractable by end users).
 // The font files are git-ignored: the licence forbids hosting or sharing them.
 import { readdirSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -36,3 +37,11 @@ writeFileSync(
 );
 console.log(`Linked ${entries.length} Thmanyah font file(s).`);
 if (!entries.length) console.log('No .otf/.ttf files found in assets/fonts/thmanyah — fallbacks stay active.');
+
+// Keep the generated (local) font map out of commits: the committed copy stays empty
+// so clones without the font files still build.
+try {
+  execFileSync('git', ['update-index', '--skip-worktree', 'src/theme/thmanyah.local.native.ts'], { cwd: root, stdio: 'ignore' });
+} catch {
+  // not a git checkout — nothing to do
+}
