@@ -10,7 +10,8 @@
       "supportsTablet": false,
       "bundleIdentifier": "app.maknoon",
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "يستمع المكنون إلى تلاوتك للتسميع فقط. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل."
+        "NSMicrophoneUsageDescription": "يستمع المكنون إلى تلاوتك للتسميع فقط. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
