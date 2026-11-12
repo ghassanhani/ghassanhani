@@ -38,7 +38,9 @@
   },
   "devDependencies": {
     "@types/react": "~19.3.0",
-    "typescript": "~6.0.3"
+    "eslint": "^9.39.5",
+    "typescript": "~6.0.3",
+    "eslint-config-expo": "~58.0.4"
   },
   "scripts": {
     "start": "expo start",
@@ -46,14 +48,20 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "fetch:quran": "node scripts/fetch-quran.mjs",
+    "fetch:quran": "NODE_USE_ENV_PROXY=1 node pipeline/importers/tanzil/import.mjs --download",
     "fonts:link": "node scripts/link-fonts.mjs",
     "sync:ratq": "NODE_USE_ENV_PROXY=1 node scripts/sync-ratq.mjs",
-    "itqan:pull": "NODE_USE_ENV_PROXY=1 node scripts/itqan-pull.mjs",
+    "itqan:pull": "NODE_USE_ENV_PROXY=1 node pipeline/importers/ratq/pull.mjs",
     "content:build": "node scripts/build-content.mjs",
-    "packs:build": "node --no-warnings scripts/build-packs.mjs",
+    "packs:build": "node --no-warnings pipeline/importers/ratq/import.mjs",
     "search:build": "node --no-warnings --experimental-strip-types scripts/build-search.mts",
-    "embeddings:build": "NODE_USE_ENV_PROXY=1 node --no-warnings scripts/build-embeddings.mjs"
+    "embeddings:build": "NODE_USE_ENV_PROXY=1 node --no-warnings scripts/build-embeddings.mjs",
+    "lint": "eslint .",
+    "test": "node --no-warnings --experimental-strip-types --test tests/*.test.mts",
+    "search:eval": "NODE_USE_ENV_PROXY=1 node --no-warnings --experimental-strip-types tests/eval-hybrid.mts",
+    "check": "npm run typecheck && npm run lint && npm test",
+    "import:tanzil": "node pipeline/importers/tanzil/import.mjs",
+    "import:ratq": "node --no-warnings pipeline/importers/ratq/import.mjs"
   },
   "private": true
 }

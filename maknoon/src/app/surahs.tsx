@@ -7,7 +7,7 @@ import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
 import { Body, Caption, Display } from '@/components/Typography';
 import { Chip, Cta, GlassCard, HeroCard } from '@/components/ui';
-import { ar } from '@/content/quran';
+import { ar, ayatLabel } from '@/content/quran';
 import { quranIndex, surahIndexScreen as S } from '@/content/worship';
 import { F } from '@/theme/fonts';
 import { colors, space } from '@/theme/tokens';
@@ -79,7 +79,7 @@ export default function SurahIndexScreen() {
       {tab === 0 ? (
         <GlassCard style={{ paddingVertical: 8 }}>
           {surahs.map((s, i) => (
-            <Pressable key={s.n} accessibilityRole="button" onPress={() => router.push('/mushaf')} style={[styles.row, styles.surahRow, i > 0 && styles.sep]}>
+            <Pressable key={s.n} accessibilityRole="link" onPress={() => router.push(`/surah/${s.n}`)} style={[styles.row, styles.surahRow, i > 0 && styles.sep]}>
               <Squircle radius={12} fill="rgba(3,90,95,0.08)" style={styles.num}>
                 <Display size={14} color={colors.primary}>
                   {ar(s.n)}
@@ -87,7 +87,7 @@ export default function SurahIndexScreen() {
               </Squircle>
               <View style={{ flex: 1 }}>
                 <Display size={18}>{s.name}</Display>
-                <Body size={12} color={colors.primary}>{`${s.type} · ${ar(s.ayat)} آية`}</Body>
+                <Body size={12} color={colors.primary}>{`${s.type} · ${ayatLabel(s.ayat)}`}</Body>
               </View>
               <Caption>{`ص ${ar(s.page)}`}</Caption>
             </Pressable>
@@ -99,11 +99,13 @@ export default function SurahIndexScreen() {
       {tab === 1 ? (
         <View style={styles.grid}>
           {quranIndex.juz.map((j) => (
-            <GlassCard key={j.juz} style={styles.juz}>
-              <Caption>الجزء</Caption>
-              <Display size={26}>{ar(j.juz)}</Display>
-              <Body size={12} color={colors.primary}>{`${name(j.surah)} ${ar(j.ayah)}`}</Body>
-            </GlassCard>
+            <Pressable key={j.juz} accessibilityRole="link" onPress={() => router.push(`/surah/${j.surah}`)} style={{ width: '48.3%' }}>
+              <GlassCard style={styles.juz}>
+                <Caption>الجزء</Caption>
+                <Display size={26}>{ar(j.juz)}</Display>
+                <Body size={12} color={colors.primary}>{`${name(j.surah)} ${ar(j.ayah)}`}</Body>
+              </GlassCard>
+            </Pressable>
           ))}
         </View>
       ) : null}
@@ -141,5 +143,5 @@ const styles = StyleSheet.create({
   sep: { borderTopWidth: 1, borderTopColor: colors.hairline },
   num: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 12 },
-  juz: { width: '48.3%', padding: 16, gap: 2 },
+  juz: { padding: 16, gap: 2 },
 });

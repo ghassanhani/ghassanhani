@@ -44,7 +44,6 @@
       "supportsRTL": true,
       "forcesRTL": true,
       "packsBaseUrl": null,
-      "assistantUrl": null,
       "searchWorkerUrl": "https://maknoon-assistant.ghassanhani0.workers.dev"
     },
     "experiments": {

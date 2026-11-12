@@ -8,8 +8,20 @@ Arabic-first and right-to-left, laid out on the 402pt iPhone 17 frame.
 ```bash
 npm install
 npx expo start          # i / a / w for iOS, Android, web
-npm run typecheck
+npm run check           # typecheck + lint + tests (also runs in CI)
 ```
+
+**Read first:** `CLAUDE.md` (the founder's fixed decisions and hard rules), `docs/SPEC.md` (modules, data model,
+sources, milestones) and `docs/STATUS.md` (where each milestone stands and what's waiting on the founder).
+
+### Checks
+
+| Command | What it proves |
+|---|---|
+| `npm test` | Normalizer rules (SPEC §5), tashkeel-invariant search, search test set top-5 rate, prayer times against Adhan's reference tables, bundled text hash-matches its source, hifz tracks, zakat arithmetic |
+| `npm run search:eval` | Word search vs word + meaning search on the test set (needs network) |
+| `npm run import:ratq` | Rebuilds the tafsir packs and verifies them (ayah IDs, byte-identical bodies, coverage) |
+| `npm run fetch:quran` | Downloads the Tanzil text, verifies it (114 surahs, 6,236 ayat, hash) and switches the app to it |
 
 ## Screens in this batch
 
@@ -77,10 +89,8 @@ npm run typecheck
      with source cards rendered verbatim, each with its review status. Personal-ruling questions get «هذا سؤال عن حكم
      شخصي» with related fiqh issues and "consult a scholar". Out-of-scope topics are declined. It's free, works offline,
      and nothing leaves the phone.
-  2. **Optional AI linking sentences**, using **Cloudflare Workers AI** (free tier, no training on prompts). It's
-     a Worker template in `server/assistant-worker/`, off until you deploy it and set `expo.extra.assistantUrl`. The
-     model only sees source ids, titles and references, never Quran or hadith text. The app drops any sentence that
-     cites an unknown source, quotes anything, or gives a ruling.
+  2. **No generated text.** The founder's rules (`CLAUDE.md`) say no language-model answers at launch, so the
+     linking-sentence experiment was removed from the app and from the Worker. AI only ranks search results.
 - **Settings › المصادر والتراخيص** is generated from what the app ships (`credits()` in `src/content/sources.ts`), not
   from the design's draft list.
 - **On-device storage** (`src/store/prefs.ts`, AsyncStorage): onboarding (shown on first launch), every Settings
@@ -95,8 +105,8 @@ npm run typecheck
 ### Smart search (on-device, free)
 
 - `src/search/arabic.ts`: normalization (tashkeel, Quranic marks, hamza seats, alef/ya/ta-marbuta), clitic stemming and
-  light triliteral root extraction. It gets 25/28 on a test set (أتوب → توب, كبير → كبر, أقيموا → قيم); a few
-  weak-letter roots stay approximate, and stems and exact words cover them.
+  light triliteral root extraction. One-letter prefixes are ambiguous (the ك of كتاب is a root letter, the ب of بدين
+  isn't), so each word is indexed under both readings. A few weak-letter roots stay approximate.
 - `npm run search:build` builds `assets/content/search-quran.json`: a BM25 index over roots and stems for all 6,236 ayat,
   plus the most frequent word forms per root.
 - `src/search/engine.ts` does the ranking.
@@ -130,9 +140,10 @@ npm run typecheck
   Worker, run `MAKNOON_WORKER=https://… MAKNOON_BUILD_TOKEN=… npm run embeddings:build`, then delete the secret.
 - **Cost.** About 1,075 neurons per million tokens. A search phrase is a few tokens, so the free daily allowance covers a
   very large number of searches.
-- **AI-written answers stay off** (`extra.assistantUrl: null`). In testing, the chat model added a fiqh claim that wasn't
-  in the sources it was given. The assistant shows sources only. The `POST /` route stays in the Worker for later, behind
-  the app's verifier.
+- **No AI-written answers.** In testing, a chat model added a fiqh claim that wasn't in its sources, and `CLAUDE.md`
+  rules generated religious text out. The Worker's chat route was deleted; only `/embed` remains.
+- **Switch.** Settings → الخصوصية → «البحث بالمعنى» turns it off; search then runs entirely on the device.
+- **Measured** (`npm run search:eval`, 30-query starter set): words 73% → words + meaning 87% top-5.
 
 ## Design system
 

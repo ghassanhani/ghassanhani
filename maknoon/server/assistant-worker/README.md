@@ -1,29 +1,27 @@
-# Maknoon assistant Worker (optional)
+# Maknoon search Worker
 
-Free AI layer for the in-app assistant, on **Cloudflare Workers AI**: free tier (10,000 neurons a day), and
-Cloudflare does not use customer prompts to train models. The app works without it, in sources-only mode.
+Cloudflare Worker for **meaning search** only (SPEC §5 semantic layer). No text is generated.
 
-## What it does
+- `POST /embed` `{ text }` → `{ vector, model }`: turns one search phrase (≤300 chars) into a BGE-M3 vector.
+  The app matches it on the device against the ayah vectors it ships with.
+- `POST /embed-batch`: build-time only. Needs a `BUILD_TOKEN` secret; without it the route answers 403.
 
-The app sends the question plus the **ids, titles and references** of the sources it already found on the device. The
-model (Llama 3.3 70B) returns 1–3 short linking sentences, each citing those ids.
+Workers AI doesn't retain inputs, and logging/observability is off (`wrangler.toml`).
 
-It never receives or writes Quran or hadith text; the app renders that text from its own database. The app then
-re-checks every sentence before showing it: citations must be valid, there must be no quotation marks, and no rulings.
-See `src/assistant/compose.ts`.
-
-## Deploy (free account)
+## Deploy
 
 ```bash
-cd server/assistant-worker
-npx wrangler login
-npx wrangler deploy        # prints https://maknoon-assistant.<you>.workers.dev
+npx wrangler deploy
 ```
 
-Then set the URL in `app.json` → `expo.extra.assistantUrl` and rebuild the app.
+Set the URL in `app.json` → `expo.extra.searchWorkerUrl` (`null` turns meaning search off).
 
-## Privacy
+## Rebuild the ayah vectors
 
-- Request logs and observability are off.
-- Questions aren't stored.
-- On the free plan, going over the daily limit makes requests fail (the app falls back to sources-only); it never bills.
+Only when the Quran text or the bundled tafsir changes:
+
+```bash
+npx wrangler secret put BUILD_TOKEN          # temporary
+MAKNOON_WORKER=https://… MAKNOON_BUILD_TOKEN=… npm run embeddings:build
+npx wrangler secret delete BUILD_TOKEN
+```

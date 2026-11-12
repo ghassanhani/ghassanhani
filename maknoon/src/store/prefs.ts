@@ -19,8 +19,11 @@ export type Prefs = {
   theme: 'light' | 'dark' | 'auto';
   notifs: boolean[];
   showSuggested: boolean;
+  meaningSearch: boolean; // send the search phrase to the Maknoon Worker for meaning ranking
   analytics: boolean;
   asr: 'j' | 'h';
+  city: string; // key in CITIES (manual city; coordinates never leave the device)
+  prayerMethod: string | null; // MethodKey; null = the city's suggestion
   prayerAlerts: Record<string, boolean>;
   hifzSlots: boolean[];
   hifzPace: number;
@@ -40,9 +43,12 @@ export const DEFAULT_PREFS: Prefs = {
   hideTashkeel: false,
   theme: 'auto',
   notifs: [true, true, false, true],
-  showSuggested: true,
+  showSuggested: false, // CLAUDE.md rule 4: reviewed links only by default
+  meaningSearch: true,
   analytics: false,
   asr: 'j',
+  city: 'barcelona',
+  prayerMethod: null,
   prayerAlerts: { fajr: true, sunrise: false, dhuhr: true, asr: true, maghrib: true, isha: true },
   hifzSlots: [true, true, true, false],
   hifzPace: 1,

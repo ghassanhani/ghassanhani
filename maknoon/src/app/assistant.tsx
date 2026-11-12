@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
-import { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import { compose, aiEnabled, type Sentence } from '@/assistant/compose';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import type { Node } from '@/assistant/corpus';
 import { ask, type Answer } from '@/assistant/engine';
 import { Icon } from '@/components/Icon';
@@ -13,30 +12,29 @@ import { Chip, GlassCard, InnerCard } from '@/components/ui';
 import { assistant as A } from '@/content/account';
 import { ar, getAyah } from '@/content/quran';
 import { F } from '@/theme/fonts';
+import { APP_NAME } from '@/config';
 import { colors } from '@/theme/tokens';
 
-type Turn = { q: string; answer: Answer | null; sentences: Sentence[] | null };
+type Turn = { q: string; answer: Answer | null };
 
 /**
  * Retrieval-only assistant (plan §8). Answers are cards from the app's own texts,
  * rendered verbatim with source + review status; personal rulings are refused.
- * With the optional Worker (aiEnabled), verified linking sentences appear on top.
+ * No text is generated (CLAUDE.md: no language-model answers).
  */
 export default function AssistantScreen() {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
-  const scroll = useRef<ScrollView>(null);
 
   const submit = async (q: string) => {
     const question = q.trim();
     if (!question || busy) return;
     setInput('');
     setBusy(true);
-    setTurns((t) => [...t, { q: question, answer: null, sentences: null }]);
+    setTurns((t) => [...t, { q: question, answer: null }]);
     const answer = await ask(question);
-    const sentences = answer.kind === 'sources' ? await compose(question, [...answer.nodes, ...answer.tafsir]) : null;
-    setTurns((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, answer, sentences } : x)));
+    setTurns((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, answer } : x)));
     setBusy(false);
   };
 
@@ -73,7 +71,7 @@ export default function AssistantScreen() {
               {t.q}
             </Body>
           </Squircle>
-          {t.answer ? <AnswerCard answer={t.answer} sentences={t.sentences} /> : <ActivityIndicator color={colors.primary} />}
+          {t.answer ? <AnswerCard answer={t.answer} /> : <ActivityIndicator color={colors.primary} />}
         </View>
       ))}
 
@@ -95,20 +93,20 @@ export default function AssistantScreen() {
         </Pressable>
       </Squircle>
       <Caption style={{ textAlign: 'center' }}>
-        {aiEnabled ? 'يُعرض كل نص من مصدره كما هو · الجمل الرابطة آلية وتُتحقَّق مراجعها' : 'وضع المصادر أولًا · بحث في نصوص المكنون على جهازك، دون ذكاء اصطناعي ودون اتصال'}
+        {`بحث في نصوص ${APP_NAME} يعرض المصادر كما هي · لا يُولَّد أي نص`}
       </Caption>
     </Screen>
   );
 }
 
-function AnswerCard({ answer, sentences }: { answer: Answer; sentences: Sentence[] | null }) {
+function AnswerCard({ answer }: { answer: Answer }) {
   if (answer.kind === 'ruling') {
     return (
       <GlassCard tint="peach" style={{ gap: 10 }}>
         <Chip label={A.a2.flag} tone="pending" />
         <Body size={14} color="#4A4B57" lineHeight={24}>
           لا يصدر المساعد فتوى.
-          {answer.fiqh.length ? ' هذه المسائل ذات الصلة في المكنون، بأقوال المذاهب وأدلتها:' : ' لا توجد بعد في المكنون مسألة مُراجَعة لهذا السؤال.'}
+          {answer.fiqh.length ? ` هذه المسائل ذات الصلة في ${APP_NAME}، بأقوال المذاهب وأدلتها:` : ` لا توجد بعد في ${APP_NAME} مسألة مُراجَعة لهذا السؤال.`}
         </Body>
         {answer.fiqh.map((n) => (
           <SourceCard key={n.id} n={n} />
@@ -124,26 +122,17 @@ function AnswerCard({ answer, sentences }: { answer: Answer; sentences: Sentence
         <Body size={14} color="#4A4B57" lineHeight={24}>
           {answer.kind === 'scope'
             ? 'هذا السؤال خارج نطاق المساعد. للمسائل الحسّاسة أو الشخصية ارجع إلى عالم موثوق، وفي الحالات الطارئة اتصل بخدمات الطوارئ.'
-            : 'لم أجد في نصوص المكنون ما يطابق سؤالك. جرّب كلمات أخرى، أو ابحث من شاشة «ابحث».'}
+            : `لم أجد في نصوص ${APP_NAME} ما يطابق سؤالك. جرّب كلمات أخرى، أو ابحث من شاشة «ابحث».`}
         </Body>
       </GlassCard>
     );
   }
   const all = [...answer.nodes, ...answer.tafsir];
-  const index = (id: string) => all.findIndex((n) => n.id === id) + 1;
   return (
     <GlassCard style={{ gap: 10 }}>
-      {sentences?.map((s, i) => (
-        <Body key={i} size={15} lineHeight={26}>
-          {s.text}
-          <Body size={11} weight="bold" color={colors.primary}>{` [${s.cites.map((c) => ar(index(c))).join('، ')}]`}</Body>
-        </Body>
-      ))}
-      {!sentences ? (
-        <Body size={14} color="#4A4B57">
-          {`وجدتُ ${ar(all.length)} من نصوص المكنون:`}
-        </Body>
-      ) : null}
+      <Body size={14} color="#4A4B57">
+        {`وجدتُ ${ar(all.length)} من نصوص ${APP_NAME}:`}
+      </Body>
       {all.map((n, i) => (
         <SourceCard key={n.id} n={n} num={i + 1} />
       ))}

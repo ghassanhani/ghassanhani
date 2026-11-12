@@ -2,6 +2,8 @@ import Constants from 'expo-constants';
 import { Asset } from 'expo-asset';
 import { Platform } from 'react-native';
 import meta from '../../assets/content/embeddings-ayat.json';
+import { getPrefs } from '@/store/prefs';
+import { cosineTop, type Hit } from './core';
 
 /**
  * Meaning-based search (plan §7.3). Ayah vectors (BGE-M3 over ayah + al-Mukhtasar,
@@ -14,12 +16,13 @@ const raw = (Constants.expoConfig?.extra as { searchWorkerUrl?: unknown } | unde
 const WORKER = typeof raw === 'string' && /^https:\/\//.test(raw) ? raw.replace(/\/$/, '') : null;
 export const semanticEnabled = WORKER !== null;
 
-const M = meta as { dims: number; count: number; keys: string[] };
+const M = meta as { model: string; dims: number; count: number; keys: string[] };
 let vectors: Promise<{ q: Int8Array; scale: Float32Array } | null> | null = null;
 
 async function loadVectors() {
   vectors ??= (async () => {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- Metro asset reference
       const [asset] = await Asset.loadAsync(require('../../assets/content/embeddings-ayat.bin'));
       const uri = asset.localUri ?? asset.uri;
       let buf: ArrayBuffer;
@@ -47,7 +50,9 @@ async function embedQuery(text: string): Promise<Float32Array | null> {
     const res = await fetch(`${WORKER}/embed`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: key }), signal: ctrl.signal });
     clearTimeout(t);
     if (!res.ok) return null;
-    const { vector } = (await res.json()) as { vector: number[] };
+    const { vector, model } = (await res.json()) as { vector: number[]; model?: string };
+    // The bundled ayah vectors only match phrases embedded by the same model.
+    if (model !== M.model || vector.length !== M.dims) return null;
     const norm = Math.hypot(...vector) || 1;
     const v = Float32Array.from(vector, (x) => x / norm);
     if (cache.size > 200) cache.clear();
@@ -58,50 +63,13 @@ async function embedQuery(text: string): Promise<Float32Array | null> {
   }
 }
 
-export type SemanticHit = { key: string; surah: number; ayah: number; score: number };
+export type SemanticHit = Hit;
+export { fuse } from './core';
 
-/** Top ayat by meaning (cosine), or [] when unavailable. */
+/** Top ayat by meaning (cosine), or [] when unavailable or switched off in Settings. */
 export async function searchByMeaning(query: string, limit = 30): Promise<SemanticHit[]> {
-  if (!WORKER || query.trim().length < 2) return [];
+  if (!WORKER || !getPrefs().meaningSearch || query.trim().length < 2) return [];
   const [vec, data] = await Promise.all([embedQuery(query), loadVectors()]);
   if (!vec || !data) return [];
-  const { q, scale } = data;
-  const D = M.dims;
-  const scores = new Float32Array(M.count);
-  for (let i = 0; i < M.count; i++) {
-    let d = 0;
-    const o = i * D;
-    for (let k = 0; k < D; k++) d += q[o + k] * vec[k];
-    scores[i] = d * scale[i];
-  }
-  const idx = Array.from(scores.keys()).sort((a, b) => scores[b] - scores[a]).slice(0, limit);
-  return idx.map((i) => {
-    const [s, a] = M.keys[i].split(':').map(Number);
-    return { key: M.keys[i], surah: s, ayah: a, score: scores[i] };
-  });
-}
-
-/**
- * Reciprocal rank fusion (k = 60) of word-based and meaning-based rankings —
- * ayat found by both rise to the top; either list alone still works.
- */
-export function fuse<T extends { key: string }>(lexical: T[], semantic: T[], limit = 30): (T & { via: 'both' | 'words' | 'meaning' })[] {
-  const score = new Map<string, number>();
-  const item = new Map<string, T>();
-  const from = new Map<string, Set<string>>();
-  const add = (list: T[], tag: string) =>
-    list.forEach((h, r) => {
-      score.set(h.key, (score.get(h.key) ?? 0) + 1 / (60 + r + 1));
-      if (!item.has(h.key)) item.set(h.key, h);
-      (from.get(h.key) ?? from.set(h.key, new Set()).get(h.key)!).add(tag);
-    });
-  add(lexical, 'words');
-  add(semantic, 'meaning');
-  return [...score.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, limit)
-    .map(([k]) => {
-      const f = from.get(k)!;
-      return { ...item.get(k)!, via: f.size === 2 ? 'both' : f.has('words') ? 'words' : 'meaning' } as T & { via: 'both' | 'words' | 'meaning' };
-    });
+  return cosineTop(data.q, data.scale, M.dims, M.keys, vec, limit);
 }

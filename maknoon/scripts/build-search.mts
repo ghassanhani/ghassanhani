@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { normalize, root, stem } from '../src/search/arabic.ts';
+import { fold, keysOf, root } from '../src/search/arabic.ts';
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..');
 const plain = JSON.parse(readFileSync(join(rootDir, 'assets/content/quran-search.json'), 'utf8')) as Record<string, string>;
@@ -20,17 +20,17 @@ const formCount: Record<string, Record<string, number>> = {};
 
 keys.forEach((k, i) => {
   const raw = plain[k].split(/\s+/).filter(Boolean);
-  const ws = raw.map((r) => normalize(r)).filter((w) => w.length >= 2);
+  const ws = raw.map((r) => fold(r)).filter((w) => w.length >= 2);
   len.push(ws.length);
   const rtf: Record<string, number> = {};
   const stf: Record<string, number> = {};
   raw.forEach((rw) => {
-    const w = normalize(rw);
+    const w = fold(rw);
     if (w.length < 2) return;
-    const r = root(w);
-    const st = stem(w);
-    rtf[r] = (rtf[r] ?? 0) + 1;
-    stf[st] = (stf[st] ?? 0) + 1;
+    const r = root(w); // primary root: groups the surface forms shown on the root card
+    const k = keysOf(w); // every reading of the word is searchable
+    for (const x of k.roots) rtf[x] = (rtf[x] ?? 0) + 1;
+    for (const x of k.stems) stf[x] = (stf[x] ?? 0) + 1;
     (formCount[r] ??= {})[rw] = ((formCount[r] ??= {})[rw] ?? 0) + 1; // original spelling for display
   });
   for (const [r, tf] of Object.entries(rtf)) (roots[r] ??= []).push(i, tf);
@@ -58,13 +58,14 @@ console.log(`Search index: ${keys.length} ayat, ${Object.keys(roots).length} roo
   const tstems: Record<string, number[]> = {};
   rows.forEach((r, i) => {
     tkeys.push(`${r.surah}:${r.ayah}`);
-    const ws = normalize(r.text).split(' ').filter((w) => w.length >= 2);
+    const ws = fold(r.text).split(' ').filter((w) => w.length >= 2);
     tlen.push(ws.length);
     const rtf: Record<string, number> = {};
     const stf: Record<string, number> = {};
     for (const w of ws) {
-      rtf[root(w)] = (rtf[root(w)] ?? 0) + 1;
-      stf[stem(w)] = (stf[stem(w)] ?? 0) + 1;
+      const k = keysOf(w);
+      for (const x of k.roots) rtf[x] = (rtf[x] ?? 0) + 1;
+      for (const x of k.stems) stf[x] = (stf[x] ?? 0) + 1;
     }
     for (const [k, tf] of Object.entries(rtf)) (troots[k] ??= []).push(i, tf);
     for (const [k, tf] of Object.entries(stf)) (tstems[k] ??= []).push(i, tf);

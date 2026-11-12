@@ -6,16 +6,15 @@ import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
 import { Body, Caption, Display } from '@/components/Typography';
-import { Chip, GlassCard, HeroCard, InnerCard, RoundButton, Segmented, SoftButton } from '@/components/ui';
+import { Chip, GlassCard, HeroCard, InnerCard, ReviewNotice, RoundButton, Segmented, SoftButton } from '@/components/ui';
 import { ar } from '@/content/quran';
 import { zakatScreen as Z } from '@/content/worship';
+import { CALCULATORS_REVIEWED } from '@/config';
+import { zakat } from '@/worship/zakat-core';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
 
 type Key = keyof typeof Z.sample;
-const RATE = 0.025; // ربع العشر
-const NISAB_GOLD_G = 85;
-const NISAB_SILVER_G = 595;
 
 const num = (s: string) => {
   const x = parseFloat(s.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(',', '.'));
@@ -29,9 +28,7 @@ export default function ZakatScreen() {
   const [v, setV] = useState<Record<Key, string>>({ ...Z.sample });
   const set = (k: Key) => (t: string) => setV((o) => ({ ...o, [k]: t }));
 
-  const net = num(v.cash) + num(v.gold) * num(v.gp) + num(v.silver) * num(v.sp) + num(v.trade) + num(v.owed) - num(v.debt);
-  const nisab = basis === 'gold' ? NISAB_GOLD_G * num(v.gp) : NISAB_SILVER_G * num(v.sp);
-  const due = nisab > 0 && net >= nisab;
+  const { net, nisab, due, amount } = zakat({ cash: num(v.cash), goldG: num(v.gold), goldPrice: num(v.gp), silverG: num(v.silver), silverPrice: num(v.sp), trade: num(v.trade), owed: num(v.owed), debt: num(v.debt), basis });
 
   return (
     <Screen
@@ -39,12 +36,13 @@ export default function ZakatScreen() {
       withTabBar={false}
       header={<PageHeader title={Z.title} action={<RoundButton icon="list" label="حاسبة المواريث" size={40} iconSize={20} onPress={() => router.push('/inheritance')} />} />}
     >
+      {!CALCULATORS_REVIEWED.zakat ? <ReviewNotice /> : null}
       <HeroCard hero="forest" style={{ gap: 12 }}>
         <Body size={15.5} weight="medium" color={colors.gold}>
           {Z.dueLabel}
         </Body>
         <Display size={44} color={colors.white} lineHeight={52}>
-          {due ? eur(net * RATE) : '٠ €'}
+          {due ? eur(amount) : '٠ €'}
         </Display>
         {nisab > 0 && due ? (
           <Chip label={Z.due} tone="reviewed" />

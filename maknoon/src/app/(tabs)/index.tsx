@@ -8,17 +8,17 @@ import { GlassCard, HeroCard, IconBubble, RoundButton, Segments } from '@/compon
 import { home } from '@/content/design';
 import { ayahPlaceholder, getAyah } from '@/content/quran';
 import { colors, space } from '@/theme/tokens';
-import { fmtDuration, fmtTime, usePrayerDay } from '@/content/prayer';
-import { prayerScreen } from '@/content/worship';
+import { METHODS, type MethodKey, cityByKey, fmtDuration, fmtTime, usePrayerDay } from '@/content/prayer';
+
 import { usePrefs } from '@/store/prefs';
 
 export default function HomeScreen() {
   const a = home.ayahOfDay;
   const ayah = getAyah(a.surah, a.ayah);
   // Live, on-device times (Adhan) for the default city.
-  const city = prayerScreen.city;
   const [prefs] = usePrefs();
-  const pd = usePrayerDay(city, prefs.asr);
+  const city = cityByKey(prefs.city);
+  const pd = usePrayerDay(city, prefs.asr, (METHODS.find((m) => m.key === prefs.prayerMethod)?.key ?? city.method) as MethodKey);
   const five = pd.times.filter((t) => t.key !== 'sunrise');
 
   return (

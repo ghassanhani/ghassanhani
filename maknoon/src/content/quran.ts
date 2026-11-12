@@ -10,7 +10,7 @@ import { F } from '@/theme/fonts';
  *  2. Tanzil Uthmani (CC BY 3.0) if `npm run fetch:quran` was run — drawn with Amiri Quran,
  *     the font Tanzil's text is designed for. Ayah marks are added by the app.
  */
-type TanzilFile = { _notice: string; ayat: Record<string, string> };
+type TanzilFile = { _notice?: string; ayat: Record<string, string> };
 type HafsFile = { _source: string; _license: string; surahs: Record<string, string>; ayat: Record<string, string>; pos: Record<string, [number, number]> };
 
 const tz = tanzil as TanzilFile;
@@ -18,8 +18,8 @@ const kf = hafs as unknown as HafsFile;
 const useTanzil = Object.keys(tz.ayat).length === 6236;
 
 export const quranSource = useTanzil
-  ? { name: 'Tanzil Uthmani', credit: 'نص المصحف: مشروع تنزيل (tanzil.net) · CC BY 3.0', notice: tz._notice }
-  : { name: 'KFGQPC Hafs', credit: 'نص المصحف: مجمع الملك فهد لطباعة المصحف الشريف عبر إتقان · CC BY-NC-ND', notice: kf._license };
+  ? { name: 'Tanzil Uthmani', credit: 'نص المصحف: مشروع تنزيل (tanzil.net) · CC BY 3.0', notice: tz._notice, url: 'https://tanzil.net' }
+  : { name: 'KFGQPC Hafs', credit: 'نص المصحف: مجمع الملك فهد لطباعة المصحف الشريف عبر إتقان · CC BY-NC-ND', notice: kf._license, url: 'https://ratq.itqan.dev' };
 
 const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 export const ar = (n: number | string) => String(n).replace(/[0-9]/g, (d) => AR_DIGITS[+d]);
@@ -40,6 +40,16 @@ export function getAyah(surah: number, ayah: number): Ayah | null {
   return t ? { text: t, fontFamily: F.quranHafs } : null;
 }
 
+/**
+ * The basmala shown above a surah: the canonical text of الفاتحة ١ read from the source
+ * file (never typed), without that ayah's own number mark.
+ */
+export function basmala(): Ayah | null {
+  if (useTanzil) return tz.ayat['1:1'] ? { text: tz.ayat['1:1'], fontFamily: F.quran } : null;
+  const t = kf.ayat['1:1'];
+  return t ? { text: t.replace(/[\s\u00a0]*[٠-٩]+$/, ''), fontFamily: F.quranHafs } : null;
+}
+
 /** Ayat on a Madinah mushaf page (KFGQPC page numbers), in order. */
 export function ayatOnPage(page: number): { surah: number; ayah: number }[] {
   return Object.entries(kf.pos)
@@ -49,5 +59,8 @@ export function ayatOnPage(page: number): { surah: number; ayah: number }[] {
       return { surah, ayah };
     });
 }
+
+/** «٤ آيات» · «٢٨٦ آية» — Arabic counted-noun agreement. */
+export const ayatLabel = (n: number) => `${ar(n)} ${n % 100 >= 3 && n % 100 <= 10 ? 'آيات' : 'آية'}`;
 
 export const ayahPlaceholder = (surahName: string, ayah: number) => `[نص الآية · ${surahName} ${ar(ayah)}]`;

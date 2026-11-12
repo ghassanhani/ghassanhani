@@ -1,0 +1,30 @@
+{
+ "total_ayat": 6236,
+ "tafsir": [
+  {
+   "slug": "tafsir-almokhtassar",
+   "title": "المختصر في تفسير القرآن الكريم",
+   "ayat": 6236
+  },
+  {
+   "slug": "tafsir-alsaadi",
+   "title": "تفسير السعدي",
+   "ayat": 6236
+  },
+  {
+   "slug": "tafsir-ibn-katheer",
+   "title": "تفسير ابن كثير",
+   "ayat": 6236
+  },
+  {
+   "slug": "tafsir-albaghawi",
+   "title": "تفسير البغوي",
+   "ayat": 6236
+  },
+  {
+   "slug": "tafsir-altabari",
+   "title": "تفسير الطبري",
+   "ayat": 6236
+  }
+ ]
+}

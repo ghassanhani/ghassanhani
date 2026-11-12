@@ -117,7 +117,6 @@ export const hifzSession = {
 // ── Prayer ────────────────────────────────────────────────────────────
 export const prayerScreen = {
   title: 'مواقيت الصلاة',
-  city: { name: 'برشلونة', lat: 41.3874, lng: 2.1686, tz: 'Europe/Madrid' }, // default manual city (plan §13)
   today: 'اليوم',
   qibla: { title: 'القبلة', from: 'من الشمال', hint: 'أمسك الهاتف مستويًا وأبعده عن المعادن. الاتجاه يُحسب على جهازك.', map: 'عرض على الخريطة' },
   method: { title: 'طريقة الحساب', authority: 'الجهة', authorityValue: 'رابطة العالم الإسلامي · الفجر ١٨° والعشاء ١٧°', asr: 'وقت العصر', asrJ: 'الجمهور · ظل المثل', asrH: 'الحنفية · ظل المثلين' },

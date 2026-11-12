@@ -33,7 +33,7 @@ const KIND_FILTER: Record<Node['kind'], Filter> = { ayah: 'quran', hadith: 'hadi
 export default function SearchScreen() {
   const [query, setQuery] = useState(s.query);
   const [filter, setFilter] = useState<Filter>('all');
-  const [more, setMore] = useState(false);
+  const [moreFor, setMoreFor] = useState(''); // «عرض المزيد» applies to one query + filter only
   const q = useDeferredValue(query.trim());
 
   const root = useMemo(() => (q ? rootInfo(q) : null), [q]);
@@ -66,7 +66,7 @@ export default function SearchScreen() {
       alive = false;
     };
   }, [q]);
-  useEffect(() => setMore(false), [q, filter]);
+  const more = moreFor === `${q}|${filter}`;
 
   const showQuran = filter === 'all' || filter === 'quran';
   const shownOthers = others.filter((n) => filter === 'all' || KIND_FILTER[n.kind] === filter);
@@ -162,7 +162,7 @@ export default function SearchScreen() {
           );
         })}
       {showQuran && ayat.length > ayatShown.length ? (
-        <Pressable accessibilityRole="button" onPress={() => setMore(true)}>
+        <Pressable accessibilityRole="button" onPress={() => setMoreFor(`${q}|${filter}`)}>
           <Squircle radius={30} fill="rgba(247,241,241,0.61)" stroke="#FFFFFF" glow="glass" style={styles.more}>
             <Body size={14} weight="medium" color={colors.primary}>
               {`عرض المزيد من الآيات (${ar(ayat.length - ayatShown.length)})`}

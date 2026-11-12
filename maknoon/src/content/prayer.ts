@@ -1,24 +1,13 @@
-import { CalculationMethod, Coordinates, Madhab, PrayerTimes, Qibla } from 'adhan';
 import { useEffect, useState } from 'react';
 import { ar } from './quran';
+import { type AsrRule, type City, dayFor, type MethodKey } from '@/worship/prayer-core';
 
 /**
- * Prayer times and qibla computed on the device with Adhan (MIT, batoulapps).
- * Nothing is sent to a server. Default: a manual city (plan §13), Muslim World
- * League (Fajr 18°, Isha 17°) as on the design, Asr per the user's choice.
+ * Formatting + the React hook around the tested prayer code (src/worship/prayer-core.ts).
+ * Nothing is sent to a server.
  */
-export type City = { name: string; lat: number; lng: number; tz: string };
-export type AsrRule = 'j' | 'h'; // جمهور (Shafi'i shadow) | حنفية
-
-export const PRAYERS = [
-  { key: 'fajr', name: 'الفجر' },
-  { key: 'sunrise', name: 'الشروق' },
-  { key: 'dhuhr', name: 'الظهر' },
-  { key: 'asr', name: 'العصر' },
-  { key: 'maghrib', name: 'المغرب' },
-  { key: 'isha', name: 'العشاء' },
-] as const;
-export type PrayerKey = (typeof PRAYERS)[number]['key'];
+export { CITIES, METHODS, PRAYERS, cityByKey, methodAngles } from '@/worship/prayer-core';
+export type { AsrRule, City, MethodKey, PrayerKey } from '@/worship/prayer-core';
 
 /** HH:MM in the city's time zone, Arabic-Indic digits (e.g. ١٥:١٦). */
 export function fmtTime(d: Date, tz: string) {
@@ -48,31 +37,12 @@ export function fmtDates(d: Date, tz: string) {
   return h ? `${g} · ${h}` : g;
 }
 
-export function computeDay(city: City, asr: AsrRule, date = new Date()) {
-  const coords = new Coordinates(city.lat, city.lng);
-  const params = CalculationMethod.MuslimWorldLeague();
-  params.madhab = asr === 'h' ? Madhab.Hanafi : Madhab.Shafi;
-  const pt = new PrayerTimes(coords, date, params);
-  const times = PRAYERS.map((p) => ({ ...p, date: pt[p.key] as Date }));
-  const now = date.getTime();
-  // next obligatory prayer (sunrise is not one); after Isha → tomorrow's Fajr
-  const obligatory = times.filter((t) => t.key !== 'sunrise');
-  let next = obligatory.find((t) => t.date.getTime() > now);
-  if (!next) {
-    const tomorrow = new PrayerTimes(coords, new Date(now + 86400000), params);
-    next = { key: 'fajr', name: 'الفجر', date: tomorrow.fajr };
-  }
-  const prevIdx = obligatory.findIndex((t) => t.key === next!.key) - 1;
-  const prev = prevIdx >= 0 ? obligatory[prevIdx] : null;
-  return { times, next, prev, qibla: Qibla(coords) };
-}
-
 /** Re-computes every 30 s so the countdown and "next prayer" stay current. */
-export function usePrayerDay(city: City, asr: AsrRule) {
+export function usePrayerDay(city: City, asr: AsrRule, method: MethodKey = city.method) {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(id);
   }, []);
-  return { now, ...computeDay(city, asr, now) };
+  return { now, ...dayFor({ lat: city.lat, lng: city.lng, method, asr }, now) };
 }

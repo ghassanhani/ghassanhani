@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Icon } from '@/components/Icon';
@@ -5,7 +6,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { Body, Caption, Display } from '@/components/Typography';
 import { GlassCard, HeroCard, InnerCard, ProgressBar, RoundButton, Segmented, SoftButton } from '@/components/ui';
-import { type AsrRule, fmtDates, fmtDuration, fmtTime, usePrayerDay } from '@/content/prayer';
+import { type AsrRule, CITIES, METHODS, type MethodKey, cityByKey, fmtDates, fmtDuration, fmtTime, methodAngles, usePrayerDay } from '@/content/prayer';
 import { ar } from '@/content/quran';
 import { prayerScreen as P } from '@/content/worship';
 import { usePrefs } from '@/store/prefs';
@@ -18,17 +19,23 @@ export default function PrayerScreen() {
   const setAsr = (v: AsrRule) => setPrefs({ asr: v });
   const alerts = prefs.prayerAlerts;
   const setAlerts = (f: (a: Record<string, boolean>) => Record<string, boolean>) => setPrefs((p) => ({ prayerAlerts: f(p.prayerAlerts) }));
-  const { now, times, next, prev, qibla } = usePrayerDay(P.city, asr);
-  const tz = P.city.tz;
+  const city = cityByKey(prefs.city);
+  const method = (METHODS.find((m) => m.key === prefs.prayerMethod)?.key ?? city.method) as MethodKey;
+  const [picking, setPicking] = useState<'city' | 'method' | null>(null);
+  const { now, times, next, prev, qibla } = usePrayerDay(city, asr, method);
+  const tz = city.tz;
+  const ang = methodAngles(method);
+  const methodName = METHODS.find((m) => m.key === method)!.name;
+  const angles = `الفجر ${ar(ang.fajr)}° · العشاء ${ang.ishaInterval ? `${ar(ang.ishaInterval)} دقيقة بعد المغرب` : `${ar(ang.isha)}°`}`;
   const span = prev ? next.date.getTime() - prev.date.getTime() : 1;
   const elapsed = prev ? (now.getTime() - prev.date.getTime()) / span : 0;
 
   return (
-    <Screen backdrop="lavender" withTabBar={false} header={<PageHeader title={P.title} action={<RoundButton icon="compass" label="المدينة" size={40} iconSize={20} />} />}>
+    <Screen backdrop="lavender" withTabBar={false} header={<PageHeader title={P.title} action={<RoundButton icon="compass" label="المدينة" size={40} iconSize={20} onPress={() => setPicking((v) => (v === 'city' ? null : 'city'))} />} />}>
       <HeroCard hero="night" style={{ gap: 6 }}>
         <View style={styles.between}>
           <View>
-            <Body size={14} weight="medium" color={colors.gold}>{`الصلاة القادمة · ${P.city.name}`}</Body>
+            <Body size={14} weight="medium" color={colors.gold}>{`الصلاة القادمة · ${city.name}`}</Body>
             <Display size={40} color={colors.white} lineHeight={58}>
               {next.name}
             </Display>
@@ -106,12 +113,36 @@ export default function PrayerScreen() {
 
       <GlassCard style={{ gap: 12 }}>
         <Display size={22}>{P.method.title}</Display>
-        <View>
+        <Pressable accessibilityRole="button" accessibilityLabel="تغيير المدينة" onPress={() => setPicking((v) => (v === 'city' ? null : 'city'))}>
+          <Display size={16}>المدينة</Display>
+          <Body size={13} color={colors.primary}>{`${city.name} · اضغط للتغيير`}</Body>
+        </Pressable>
+        {picking === 'city' ? (
+          <Options
+            items={CITIES.map((c) => ({ key: c.key, label: c.name }))}
+            value={city.key}
+            onPick={(k) => {
+              setPrefs({ city: k, prayerMethod: null }); // a new city starts from its own suggested authority
+              setPicking(null);
+            }}
+          />
+        ) : null}
+        <View style={styles.hairline} />
+        <Pressable accessibilityRole="button" accessibilityLabel="تغيير طريقة الحساب" onPress={() => setPicking((v) => (v === 'method' ? null : 'method'))}>
           <Display size={16}>{P.method.authority}</Display>
-          <Body size={13} color={colors.primary}>
-            {P.method.authorityValue}
-          </Body>
-        </View>
+          <Body size={13} color={colors.primary}>{`${methodName} · ${angles}`}</Body>
+        </Pressable>
+        {picking === 'method' ? (
+          <Options
+            items={METHODS.map((m) => ({ key: m.key, label: m.name }))}
+            value={method}
+            onPick={(k) => {
+              setPrefs({ prayerMethod: k });
+              setPicking(null);
+            }}
+          />
+        ) : null}
+        <Caption>تختلف طرق الحساب بين البلدان. اختر المعتمدة في بلدك، واتّبع مسجدك عند الاختلاف.</Caption>
         <View style={styles.hairline} />
         <Display size={16}>{P.method.asr}</Display>
         <Segmented
@@ -129,6 +160,24 @@ export default function PrayerScreen() {
         <Caption style={{ flex: 1 }}>{P.privacy}</Caption>
       </View>
     </Screen>
+  );
+}
+
+/** A wrap of selectable pills (city / calculation authority). */
+function Options({ items, value, onPick }: { items: { key: string; label: string }[]; value: string; onPick: (key: string) => void }) {
+  return (
+    <View accessibilityRole="radiogroup" style={styles.options}>
+      {items.map((o) => {
+        const on = o.key === value;
+        return (
+          <Pressable key={o.key} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => onPick(o.key)} style={[styles.option, on && { backgroundColor: colors.primary }]}>
+            <Body size={13} weight="medium" color={on ? colors.white : colors.ink}>
+              {o.label}
+            </Body>
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
@@ -161,4 +210,6 @@ const styles = StyleSheet.create({
   dotNext: { backgroundColor: '#D9BC85', borderWidth: 0, boxShadow: '0 0 0 4px rgba(217,188,133,0.3)' },
   bell: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   hairline: { height: 1, backgroundColor: colors.hairline },
+  options: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  option: { minHeight: 36, paddingHorizontal: 14, borderRadius: 18, backgroundColor: 'rgba(3,90,95,0.08)', alignItems: 'center', justifyContent: 'center' },
 });

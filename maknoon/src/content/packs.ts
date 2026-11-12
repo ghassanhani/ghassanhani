@@ -3,6 +3,8 @@ import * as Crypto from 'expo-crypto';
 import { Directory, File } from 'expo-file-system';
 import * as SQLite from 'expo-sqlite';
 import manifestJson from '../../assets/packs/manifest.json';
+import type { Node } from '@/assistant/corpus';
+import { type Index, searchIndex } from '@/search/engine';
 import { getPrefs, setPrefs } from '@/store/prefs';
 
 /**
@@ -97,8 +99,6 @@ export async function removePack(slug: string) {
 export const packsSupported = true;
 
 // ── Search the bundled al-Mukhtasar pack (root-aware BM25 index built by `npm run search:build`) ──
-import type { Node } from '@/assistant/corpus';
-import { type Index, searchIndex } from '@/search/engine';
 
 let mukhtasarIdx: Index | null = null;
 

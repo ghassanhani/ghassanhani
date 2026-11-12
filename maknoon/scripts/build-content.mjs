@@ -6,6 +6,7 @@
 //  - assets/fonts/kfgqpc/…ttf         the matching KFGQPC Uthmanic Hafs font
 //  - assets/content/tafsir-sample.json the five tafsirs for the ayat the UI shows today
 //    (full per-ayah packs ship later as downloadable SQLite packs — plan §7.4)
+import { createHash } from 'node:crypto';
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { parseCsv, findFile } from './lib.mjs';
@@ -35,6 +36,9 @@ writeFileSync(
   JSON.stringify({
     _source: 'KFGQPC Uthmanic Hafs Data v2.0 via Itqan (unicode-uthmanic-font-hafs-narration)',
     _license: 'CC BY-NC-ND 4.0 — King Fahd Glorious Qur\'an Printing Complex',
+    _source_id: 'kfgqpc', _edition_id: 'kfgqpc-hafs-v2.0', _license_id: 'cc-by-nc-nd-4.0',
+    // hash of "surah|ayah|text" lines taken straight from the source records (tests/content.test.mts re-checks it)
+    _verify: { surahs: 114, ayat: 6236, sha256: createHash('sha256').update(hafs.map((a) => `${a.sura_no}|${a.aya_no}|${a.aya_text}`).join('\n')).digest('hex') },
     surahs, ayat, pos,
   }),
 );

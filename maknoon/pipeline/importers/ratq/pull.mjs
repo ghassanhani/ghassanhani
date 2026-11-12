@@ -8,7 +8,7 @@ import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const root = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 const REGISTRY = process.env.ITQAN_REGISTRY_URL ?? 'https://api.cms.itqan.dev';
 
 // Minimal reader for our manifest shape (name: / version: "…").

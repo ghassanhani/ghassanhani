@@ -246,3 +246,17 @@ export function SoftButton({ label, onPress, style }: { label: string; onPress?:
   );
 }
 
+
+/** Shown on a calculator until its scholar-validated test cases pass (SPEC §2.10). */
+export function ReviewNotice() {
+  return (
+    <Squircle radius={24} gradient={['#E8CF9A', '#F3E2B9']} style={{ padding: 16, gap: 4 }}>
+      <Body size={14} weight="bold" color={colors.pendingInk}>
+        قيد المراجعة العلمية
+      </Body>
+      <Body size={13} color={colors.pendingInk}>
+        هذه الحاسبة تجريبية: لم تُعتمد حالات اختبارها من أهل العلم بعد. لا تعتمد على نتيجتها، وارجع إلى عالم موثوق.
+      </Body>
+    </Squircle>
+  );
+}

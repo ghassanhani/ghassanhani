@@ -7,10 +7,13 @@ import { Screen } from '@/components/Screen';
 import { AyahText, Body, Caption, Display } from '@/components/Typography';
 import { CountBadge, GlassCard, InnerCard, Segmented, Stepper, Switch } from '@/components/ui';
 import { settings as S } from '@/content/account';
-import { ar } from '@/content/quran';
 import { downloadPack, isInstalled, packs, packsDownloadable, packsSupported, removePack } from '@/content/packs';
 import { credits } from '@/content/sources';
 import { MADHHAB_NAMES, usePrefs } from '@/store/prefs';
+import { APP_NAME } from '@/config';
+import { METHODS, cityByKey } from '@/content/prayer';
+import { ar, basmala } from '@/content/quran';
+import { semanticEnabled } from '@/search/semantic';
 import { colors } from '@/theme/tokens';
 
 /** Settings — every choice is saved on the device (src/store/prefs.ts). */
@@ -26,6 +29,11 @@ export default function SettingsScreen() {
   const setNotifs = (f: (a: boolean[]) => boolean[]) => setPrefs((p) => ({ notifs: f(p.notifs) }));
   const suggested = prefs.showSuggested;
   const setSuggested = (v: boolean) => setPrefs({ showSuggested: v });
+  const city = cityByKey(prefs.city);
+  const methodName = METHODS.find((m) => m.key === (prefs.prayerMethod ?? city.method))?.name ?? '';
+  const preview = basmala(); // canonical text from the source file, never typed
+  const meaning = prefs.meaningSearch;
+  const setMeaning = (v: boolean) => setPrefs({ meaningSearch: v });
   const analytics = prefs.analytics;
   const setAnalytics = (v: boolean) => setPrefs({ analytics: v });
   const asrSub = prefs.asr === 'h' ? 'الحنفي (ظل المثلين)' : 'الجمهور (ظل المثل)';
@@ -45,8 +53,8 @@ export default function SettingsScreen() {
           </View>
         </View>
         <InnerCard style={{ alignItems: 'center' }}>
-          <AyahText size={size} lineHeight={size * 1.9}>
-            {S.reading.preview}
+          <AyahText size={size} lineHeight={size * 1.9} style={preview ? { fontFamily: preview.fontFamily } : null}>
+            {preview?.text ?? ''}
           </AyahText>
         </InnerCard>
         <ToggleRow title={S.reading.tashkeel.title} sub={S.reading.tashkeel.sub} value={tashkeel} onChange={setTashkeel} />
@@ -56,9 +64,9 @@ export default function SettingsScreen() {
 
       <Display size={21.5}>{S.prayer.title}</Display>
       <GlassCard style={{ paddingVertical: 8 }}>
-        <LinkItem first title={S.prayer.method.title} sub={S.prayer.method.sub} route="/prayer" />
+        <LinkItem first title={S.prayer.method.title} sub={methodName} route="/prayer" />
         <LinkItem title={S.prayer.asr.title} sub={asrSub} route="/prayer" />
-        <LinkItem title={S.prayer.location.title} sub={S.prayer.location.sub} />
+        <LinkItem title={S.prayer.location.title} sub={`${city.name} · مدينة محددة`} route="/prayer" />
       </GlassCard>
 
       <Display size={21.5}>{S.notifications.title}</Display>
@@ -106,6 +114,14 @@ export default function SettingsScreen() {
         ))}
         <View style={styles.sep} />
         <ToggleRow title={S.privacy.analytics.title} sub={S.privacy.analytics.sub} value={analytics} onChange={setAnalytics} />
+        {semanticEnabled ? (
+          <ToggleRow
+            title="البحث بالمعنى"
+            sub={`يرسل عبارة البحث وحدها إلى خادم ${APP_NAME} لترتيب النتائج بالمعنى. لا تُحفظ ولا تُسجَّل. عند الإيقاف يبقى البحث كله على جهازك.`}
+            value={meaning}
+            onChange={setMeaning}
+          />
+        ) : null}
       </GlassCard>
 
       <Display size={21.5}>{S.trust.title}</Display>

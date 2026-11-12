@@ -2,7 +2,7 @@ import searchIndex from '../../assets/content/quran-search.json';
 import { adhkar, adhkarOrder, quranIndex } from '@/content/worship';
 import { fiqh, grammar, topic, usul } from '@/content/modules';
 import { hadith } from '@/content/design';
-import { normalize } from './normalize';
+import { fold } from './normalize';
 import { ar } from '@/content/quran';
 
 /**
@@ -29,7 +29,7 @@ const surahName = (n: number) => quranIndex.surahs[n - 1]?.name ?? String(n);
 // Quran: every ayah is searchable (plain spelling); cards render the Uthmani text.
 export const ayatNodes: Node[] = Object.entries(SEARCH).map(([k, t]) => {
   const [s, a] = k.split(':').map(Number);
-  return { id: `ayah:${k}`, kind: 'ayah', title: 'آية', ref: `${surahName(s)} · ${ar(a)}`, route: `/ayah/${k}`, tone: null, norm: normalize(t), surah: s, ayah: a };
+  return { id: `ayah:${k}`, kind: 'ayah', title: 'آية', ref: `${surahName(s)} · ${ar(a)}`, route: `/ayah/${k}`, tone: null, norm: fold(t), surah: s, ayah: a };
 });
 
 // Curated nodes from the app's modules (design-sample content; statuses as shown there).
@@ -43,7 +43,7 @@ const curated: Node[] = [
     tone: 'reviewed',
     chip: 'صحيح · البخاري ومسلم',
     text: hadith.matn,
-    norm: normalize(`${hadith.matn} ${hadith.chapter} اركان الاسلام الشهاده الصلاه الزكاه الحج الصوم رمضان`),
+    norm: fold(`${hadith.matn} ${hadith.chapter} اركان الاسلام الشهاده الصلاه الزكاه الحج الصوم رمضان`),
   },
   {
     id: 'hadith:rahimun',
@@ -54,7 +54,7 @@ const curated: Node[] = [
     tone: 'reviewed',
     chip: 'حسن صحيح · الترمذي',
     text: '«الرَّاحِمُونَ يَرْحَمُهُمُ الرَّحْمَنُ…»',
-    norm: normalize('الراحمون يرحمهم الرحمن رحمه الرحمه بالخلق رحم'),
+    norm: fold('رحمه الرحمه بالخلق رحم'),
   },
   {
     id: 'fiqh:mash-ras',
@@ -63,11 +63,11 @@ const curated: Node[] = [
     ref: `${fiqh.section} · ${fiqh.disputed}`,
     route: '/fiqh',
     tone: 'reviewed',
-    norm: normalize(`${fiqh.issue} ${fiqh.section} مسح الراس الوضوء الطهاره ${fiqh.madhhabs.map((m) => m.pos).join(' ')}`),
+    norm: fold(`${fiqh.issue} ${fiqh.section} مسح الراس الوضوء الطهاره ${fiqh.madhhabs.map((m) => m.pos).join(' ')}`),
   },
-  { id: 'usul:amr', kind: 'usul', title: usul.hero.title, ref: usul.hero.label, route: '/usul', tone: 'reviewed', norm: normalize(`${usul.hero.title} ${usul.definition.brief} الامر الوجوب اصول الفقه`) },
-  { id: 'topic:sabr', kind: 'topic', title: topic.hero.title, ref: topic.hero.label, route: '/topic', tone: null, norm: normalize(`الصبر صبر الصابرين ${topic.hero.body}`) },
-  { id: 'grammar:amr', kind: 'grammar', title: grammar.rule, ref: grammar.label, route: '/grammar', tone: 'reviewed', norm: normalize(`فعل الامر نحو اعراب ${grammar.quote}`) },
+  { id: 'usul:amr', kind: 'usul', title: usul.hero.title, ref: usul.hero.label, route: '/usul', tone: 'reviewed', norm: fold(`${usul.hero.title} ${usul.definition.brief} الامر الوجوب اصول الفقه`) },
+  { id: 'topic:sabr', kind: 'topic', title: topic.hero.title, ref: topic.hero.label, route: '/topic', tone: null, norm: fold(`الصبر صبر الصابرين ${topic.hero.body}`) },
+  { id: 'grammar:amr', kind: 'grammar', title: grammar.rule, ref: grammar.label, route: '/grammar', tone: 'reviewed', norm: fold(`فعل الامر نحو اعراب ${grammar.quote}`) },
   ...adhkarOrder.flatMap((c) =>
     adhkar[c].items.map<Node>((d) => ({
       id: `dhikr:${d.id}`,
@@ -78,7 +78,7 @@ const curated: Node[] = [
       tone: 'pending' in d.s ? 'pending' : d.s.chip === 'صحيح' ? 'reviewed' : 'pending',
       chip: 'pending' in d.s ? undefined : d.s.chip,
       text: d.text,
-      norm: normalize(`${d.text} ${d.label ?? ''} ${d.virtue ?? ''} ${adhkar[c].title} ذكر اذكار`),
+      norm: fold(`${d.text} ${d.label ?? ''} ${d.virtue ?? ''} ${adhkar[c].title} ذكر اذكار`),
     })),
   ),
 ];

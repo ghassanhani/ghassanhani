@@ -10,6 +10,7 @@ import { CountBadge, Cta, GlassCard, InnerCard } from '@/components/ui';
 import { onboarding as O } from '@/content/account';
 import { type Madhhab, usePrefs } from '@/store/prefs';
 import { colors } from '@/theme/tokens';
+import { APP_NAME } from '@/config';
 
 type Opt = readonly [string, string, ...string[]];
 
@@ -28,7 +29,7 @@ export default function OnboardingScreen() {
   return (
     <Screen backdrop="mist" withTabBar={false}>
       <View style={styles.head}>
-        <Image source={require('../../assets/brand/app-icon.png')} style={styles.icon} accessibilityLabel="المكنون" />
+        <Image source={require('../../assets/brand/app-icon.png')} style={styles.icon} accessibilityLabel={APP_NAME} />
         <Display size={32} lineHeight={42} style={{ textAlign: 'center' }}>
           {O.title}
         </Display>

@@ -2,7 +2,7 @@ import { searchTafsirPack } from '@/content/packs';
 import { matchCount, searchQuran } from '@/search/engine';
 import { fuse, searchByMeaning } from '@/search/semantic';
 import { ayatNodes, curatedNodes, type Node } from './corpus';
-import { normalize, tokens } from './normalize';
+import { fold, tokens } from './normalize';
 
 const AYAH_BY_KEY = new Map(ayatNodes.map((n) => [`${n.surah}:${n.ayah}`, n]));
 
@@ -25,7 +25,7 @@ const OUT_OF_SCOPE = /(تكفير|كافر|سياس|انتخاب|حزب|انتح
 
 export async function ask(question: string): Promise<Answer> {
   const q = question.trim();
-  const nq = normalize(q);
+  const nq = fold(q);
   if (OUT_OF_SCOPE.test(nq)) return { kind: 'scope', query: q };
 
   const toks = tokens(q);

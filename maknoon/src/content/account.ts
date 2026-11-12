@@ -99,7 +99,6 @@ export const settings = {
   reading: {
     title: 'القراءة',
     size: 'حجم الخط',
-    preview: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ', // design string
     tashkeel: { title: 'إخفاء التشكيل', sub: 'لنصوص الحديث والكتب فقط · يبقى نص القرآن كاملًا' },
     theme: { title: 'المظهر', options: [['light', 'فاتح'], ['dark', 'داكن'], ['auto', 'تلقائي']] as const },
   },

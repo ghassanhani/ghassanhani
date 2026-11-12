@@ -4,7 +4,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
 import { Body, Caption, Display } from '@/components/Typography';
-import { Chip, GlassCard, InnerCard, Segmented, Stepper } from '@/components/ui';
+import { Chip, GlassCard, InnerCard, ReviewNotice, Segmented, Stepper } from '@/components/ui';
+import { CALCULATORS_REVIEWED } from '@/config';
 import { ar } from '@/content/quran';
 import { inheritanceScreen as I } from '@/content/worship';
 import { F } from '@/theme/fonts';
@@ -29,6 +30,7 @@ export default function InheritanceScreen() {
 
   return (
     <Screen backdrop="meadow" withTabBar={false} header={<PageHeader title={I.title} />}>
+      {!CALCULATORS_REVIEWED.inheritance ? <ReviewNotice /> : null}
       <Squircle radius={24} gradient={['#E8CF9A', '#F3E2B9']} style={{ padding: 16, gap: 4 }}>
         <Body size={14} weight="bold" color={colors.pendingInk}>
           {I.beta}
