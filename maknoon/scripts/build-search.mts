@@ -1,0 +1,48 @@
+#!/usr/bin/env -S node --experimental-strip-types
+// Builds the Quran search index (BM25 over roots + stems) from the KFGQPC plain-spelling text.
+//   assets/content/search-quran.json
+//   { keys: ["1:1", …], len: [doc lengths], avg, roots: { root: [docIdx, tf, …] }, stems: { stem: [docIdx, tf, …] },
+//     forms: { root: [up to 12 most frequent surface words] } }
+import { readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { normalize, root, stem } from '../src/search/arabic.ts';
+
+const rootDir = join(dirname(fileURLToPath(import.meta.url)), '..');
+const plain = JSON.parse(readFileSync(join(rootDir, 'assets/content/quran-search.json'), 'utf8')) as Record<string, string>;
+
+const keys = Object.keys(plain);
+const len: number[] = [];
+const roots: Record<string, number[]> = {};
+const stems: Record<string, number[]> = {};
+const formCount: Record<string, Record<string, number>> = {};
+
+keys.forEach((k, i) => {
+  const raw = plain[k].split(/\s+/).filter(Boolean);
+  const ws = raw.map((r) => normalize(r)).filter((w) => w.length >= 2);
+  len.push(ws.length);
+  const rtf: Record<string, number> = {};
+  const stf: Record<string, number> = {};
+  raw.forEach((rw) => {
+    const w = normalize(rw);
+    if (w.length < 2) return;
+    const r = root(w);
+    const st = stem(w);
+    rtf[r] = (rtf[r] ?? 0) + 1;
+    stf[st] = (stf[st] ?? 0) + 1;
+    (formCount[r] ??= {})[rw] = ((formCount[r] ??= {})[rw] ?? 0) + 1; // original spelling for display
+  });
+  for (const [r, tf] of Object.entries(rtf)) (roots[r] ??= []).push(i, tf);
+  for (const [st, tf] of Object.entries(stf)) (stems[st] ??= []).push(i, tf);
+});
+
+const forms: Record<string, string[]> = {};
+for (const [r, m] of Object.entries(formCount)) {
+  forms[r] = Object.entries(m)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
+    .map(([w]) => w);
+}
+const avg = len.reduce((a, b) => a + b, 0) / len.length;
+writeFileSync(join(rootDir, 'assets/content/search-quran.json'), JSON.stringify({ keys, len, avg, roots, stems, forms }));
+console.log(`Search index: ${keys.length} ayat, ${Object.keys(roots).length} roots, ${Object.keys(stems).length} stems`);

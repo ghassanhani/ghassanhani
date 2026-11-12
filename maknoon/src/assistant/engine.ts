@@ -1,6 +1,10 @@
 import { searchTafsirPack } from '@/content/packs';
+import { stem } from '@/search/arabic';
+import { matchCount, searchQuran } from '@/search/engine';
 import { ayatNodes, curatedNodes, type Node } from './corpus';
 import { normalize, tokens } from './normalize';
+
+const AYAH_BY_KEY = new Map(ayatNodes.map((n) => [`${n.surah}:${n.ayah}`, n]));
 
 /**
  * Retrieval-only assistant (plan §8). No text is generated here: an answer is a
@@ -18,11 +22,6 @@ const PERSONAL = /(هل يجوز|هل يحل|هل يحرم|هل يجب|هل عل
 // Out of scope (plan §8.2 rule 6).
 const OUT_OF_SCOPE = /(تكفير|كافر|سياس|انتخاب|حزب|انتحار|اقتل|اذي نفسي|طائف)/;
 
-function score(n: Node, toks: string[]) {
-  let s = 0;
-  for (const t of toks) if (n.norm.includes(t)) s += t.length >= 4 ? 2 : 1;
-  return s;
-}
 
 export async function ask(question: string): Promise<Answer> {
   const q = question.trim();
@@ -31,26 +30,22 @@ export async function ask(question: string): Promise<Answer> {
 
   const toks = tokens(q);
   const need = Math.max(1, Math.ceil(toks.length * 0.6)); // most topic words must appear
-  const hits = (n: Node) => toks.filter((t) => n.norm.includes(t)).length;
-  const curated = curatedNodes
-    .map((n) => ({ n, s: score(n, toks), h: hits(n) }))
-    .filter((x) => x.h >= need)
-    .sort((a, b) => b.s - a.s);
+  const scored = curatedNodes.map((n) => ({ n, h: matchCount(n.norm, q) })).sort((a, b) => b.h - a.h);
+  let curated = scored.filter((x) => x.h >= need);
+  if (!curated.length) curated = scored.filter((x) => x.h >= 1); // relaxed, like the Quran search
 
   if (PERSONAL.test(nq)) {
     return { kind: 'ruling', query: q, fiqh: curated.filter((x) => x.n.kind === 'fiqh').map((x) => x.n).slice(0, 2) };
   }
   if (!toks.length) return { kind: 'empty', query: q };
 
-  const ayat = ayatNodes
-    .map((n) => ({ n, s: score(n, toks), hits: toks.filter((t) => n.norm.includes(t)).length }))
-    .filter((x) => x.hits >= need)
-    .sort((a, b) => b.s - a.s || (a.n.surah! - b.n.surah! || a.n.ayah! - b.n.ayah!))
-    .slice(0, 5)
-    .map((x) => x.n);
+  // Root-aware BM25 over all ayat (same engine as the Search tab).
+  const ayat = searchQuran(q, 5)
+    .map((h) => AYAH_BY_KEY.get(h.key))
+    .filter((n): n is Node => !!n);
 
   const nodes = [...curated.slice(0, 4).map((x) => x.n), ...ayat];
-  const tafsir = await searchTafsirPack(toks, need, 3).catch(() => []);
+  const tafsir = await searchTafsirPack(toks.map(stem), need, 3).catch(() => []);
   if (!nodes.length && !tafsir.length) return { kind: 'empty', query: q };
   return { kind: 'sources', query: q, nodes, tafsir };
 }

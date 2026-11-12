@@ -92,6 +92,22 @@ npm run typecheck
 - The app icon from the canvas is in `assets/brand/app-icon.png` (716 px, corners baked in). The store icon needs a
   1024 px square master from the designer.
 
+### Smart search (on-device, free)
+
+- `src/search/arabic.ts`: normalization (tashkeel, Quranic marks, hamza seats, alef/ya/ta-marbuta), clitic stemming and
+  light triliteral root extraction. It gets about 20/24 on a test set; weak-letter roots such as صلاة and أقيموا stay
+  approximate, and stems and exact words cover them.
+- `npm run search:build` builds `assets/content/search-quran.json`: a BM25 index over roots and stems for all 6,236 ayat,
+  plus the most frequent word forms per root.
+- `src/search/engine.ts` does the ranking.
+  - «رحم» or «ر ح م» finds رحمة، الرحيم، يرحم، الرحمن (299 ayat).
+  - Exact phrases rank first («إن الله مع الصابرين» → البقرة ١٥٣).
+  - Ayat containing most of the query words come first. If none do, it falls back to the rarer, more meaningful word.
+  - Queries take a few milliseconds, with no network and no model.
+- The **Search tab** is live: root card with derived words (tap to search one), ranked ayat, hadith, adhkar and
+  modules, al-Mukhtasar tafsir hits on iOS/Android, and working filters. The **assistant** uses the same engine.
+- Still to come: matching by *meaning* (embeddings, e.g. «الرأفة» ↔ «الرحمة»).
+
 ## Design system
 
 - `src/theme/tokens.ts` holds the colours, radii and tint blobs read from the canvas (teal `#035A5F` primary).

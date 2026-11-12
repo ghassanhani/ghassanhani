@@ -50,7 +50,8 @@
     "sync:ratq": "NODE_USE_ENV_PROXY=1 node scripts/sync-ratq.mjs",
     "itqan:pull": "NODE_USE_ENV_PROXY=1 node scripts/itqan-pull.mjs",
     "content:build": "node scripts/build-content.mjs",
-    "packs:build": "node --no-warnings scripts/build-packs.mjs"
+    "packs:build": "node --no-warnings scripts/build-packs.mjs",
+    "search:build": "node --no-warnings --experimental-strip-types scripts/build-search.mts"
   },
   "private": true
 }

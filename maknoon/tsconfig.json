@@ -10,6 +10,7 @@
   },
   "exclude": [
     "server/**",
+    "scripts/**",
     "node_modules"
   ]
 }
