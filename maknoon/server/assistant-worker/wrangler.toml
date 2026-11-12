@@ -1,0 +1,14 @@
+name = "maknoon-assistant"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+# Workers AI binding (free tier: 10,000 neurons/day, resets 00:00 UTC; overage fails, never bills on the free plan)
+[ai]
+binding = "AI"
+
+[vars]
+# Set to your web origin to restrict browser calls (native apps don't send Origin)
+ALLOWED_ORIGIN = "*"
+
+[observability]
+enabled = false   # don't keep request logs: questions can reveal religious belief (GDPR art. 9)

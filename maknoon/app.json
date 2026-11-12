@@ -42,7 +42,8 @@
     "extra": {
       "supportsRTL": true,
       "forcesRTL": true,
-      "packsBaseUrl": null
+      "packsBaseUrl": null,
+      "assistantUrl": null
     },
     "experiments": {
       "typedRoutes": false

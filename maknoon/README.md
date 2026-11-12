@@ -71,8 +71,16 @@ npm run typecheck
 - **Plus**: the canvas designs a paid subscription. Because the app is free (`DISTRIBUTION = 'free'`) and some
   sources are NonCommercial, the subscription block (perks, price, «اشترك») is rendered only in a `'commercial'`
   build. The free app shows the always-free line and the pack sponsorship (donations need a registered non-profit).
-- **Assistant** shows the canvas's two sample exchanges. No model is connected and the input is disabled. When one is,
-  it must follow plan §8: retrieval-only, quotes rendered from the database, and fatwa questions refused as shown.
+- **Assistant** (free, plan §8) has two layers:
+  1. **Sources-first, on the device, no AI** (`src/assistant/`). It searches all 6,236 ayat (KFGQPC plain-spelling
+     index), the hadith, adhkar and modules in the app, and on iOS/Android the bundled al-Mukhtasar tafsir. It answers
+     with source cards rendered verbatim, each with its review status. Personal-ruling questions get «هذا سؤال عن حكم
+     شخصي» with related fiqh issues and "consult a scholar". Out-of-scope topics are declined. It's free, works offline,
+     and nothing leaves the phone.
+  2. **Optional AI linking sentences**, using **Cloudflare Workers AI** (free tier, no training on prompts). It's
+     a Worker template in `server/assistant-worker/`, off until you deploy it and set `expo.extra.assistantUrl`. The
+     model only sees source ids, titles and references, never Quran or hadith text. The app drops any sentence that
+     cites an unknown source, quotes anything, or gives a ruling.
 - **Settings › المصادر والتراخيص** is generated from what the app ships (`credits()` in `src/content/sources.ts`), not
   from the design's draft list.
 - **On-device storage** (`src/store/prefs.ts`, AsyncStorage): onboarding (shown on first launch), every Settings

@@ -26,3 +26,7 @@ export async function downloadPack() {
 }
 
 export async function removePack() {}
+
+export async function searchTafsirPack(): Promise<never[]> {
+  return []; // web build: no SQLite packs
+}

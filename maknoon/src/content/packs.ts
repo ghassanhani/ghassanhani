@@ -26,7 +26,8 @@ export type PackInfo = {
 export type PackRow = { edition: string | null; stage: string | null; text: string; footnote: string | null };
 
 export const packs = (manifestJson as { packs: PackInfo[] }).packs;
-const baseUrl = (Constants.expoConfig?.extra as { packsBaseUrl?: string | null } | undefined)?.packsBaseUrl ?? null;
+const rawBase = (Constants.expoConfig?.extra as { packsBaseUrl?: unknown } | undefined)?.packsBaseUrl;
+const baseUrl = typeof rawBase === 'string' && /^https:\/\//.test(rawBase) ? rawBase : null;
 export const packsDownloadable = !!baseUrl;
 
 const BUNDLED_ASSETS: Record<string, number> = {
@@ -94,3 +95,42 @@ export async function removePack(slug: string) {
 }
 
 export const packsSupported = true;
+
+// ── Assistant support: search the bundled al-Mukhtasar pack (normalized, cached in memory) ──
+import type { Node } from '@/assistant/corpus';
+
+let mukhtasarIndex: Promise<{ s: number; a: number; norm: string }[]> | null = null;
+const norm = (t: string) =>
+  t
+    .replace(/[ً-ٰٟۖ-ۭـ]/g, '')
+    .replace(/[أإآٱ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/ؤ/g, 'و')
+    .replace(/ئ/g, 'ي');
+
+export async function searchTafsirPack(toks: string[], need: number, limit: number): Promise<Node[]> {
+  const slug = 'tafsir-almokhtassar';
+  const p = packs.find((x) => x.slug === slug);
+  if (!p || !toks.length) return [];
+  mukhtasarIndex ??= openPack(slug)
+    .then((db) => db.getAllAsync<{ surah: number; ayah: number; text: string }>('SELECT surah, ayah, text FROM tafsir'))
+    .then((rows) => rows.map((r) => ({ s: r.surah, a: r.ayah, norm: norm(r.text) })));
+  const rows = await mukhtasarIndex;
+  return rows
+    .map((r) => ({ r, hits: toks.filter((t) => r.norm.includes(t)).length }))
+    .filter((x) => x.hits >= need)
+    .sort((a, b) => b.hits - a.hits)
+    .slice(0, limit)
+    .map(({ r }) => ({
+      id: `tafsir:${slug}:${r.s}:${r.a}`,
+      kind: 'tafsir' as const,
+      title: p.title,
+      ref: `${r.s}:${r.a}`,
+      route: `/ayah/${r.s}:${r.a}`,
+      tone: null,
+      norm: r.norm,
+      surah: r.s,
+      ayah: r.a,
+    }));
+}

@@ -1,24 +1,47 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
-import { LinkRow } from '@/components/blocks';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { compose, aiEnabled, type Sentence } from '@/assistant/compose';
+import type { Node } from '@/assistant/corpus';
+import { ask, type Answer } from '@/assistant/engine';
 import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
-import { Body, Caption, Display } from '@/components/Typography';
-import { Chip, GlassCard, InnerCard, RoundButton } from '@/components/ui';
+import { AyahText, Body, Caption, Display } from '@/components/Typography';
+import { Chip, GlassCard, InnerCard } from '@/components/ui';
 import { assistant as A } from '@/content/account';
+import { ar, getAyah } from '@/content/quran';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
 
+type Turn = { q: string; answer: Answer | null; sentences: Sentence[] | null };
+
 /**
- * Retrieval-only assistant (plan §8). The canvas shows two sample exchanges: a
- * sourced answer, and a personal-ruling question that is refused with madhhab
- * positions + "consult a scholar". No model is connected yet, so input is disabled.
+ * Retrieval-only assistant (plan §8). Answers are cards from the app's own texts,
+ * rendered verbatim with source + review status; personal rulings are refused.
+ * With the optional Worker (aiEnabled), verified linking sentences appear on top.
  */
 export default function AssistantScreen() {
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const scroll = useRef<ScrollView>(null);
+
+  const submit = async (q: string) => {
+    const question = q.trim();
+    if (!question || busy) return;
+    setInput('');
+    setBusy(true);
+    setTurns((t) => [...t, { q: question, answer: null, sentences: null }]);
+    const answer = await ask(question);
+    const sentences = answer.kind === 'sources' ? await compose(question, [...answer.nodes, ...answer.tafsir]) : null;
+    setTurns((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, answer, sentences } : x)));
+    setBusy(false);
+  };
+
   return (
-    <Screen backdrop="mist" withTabBar={false} header={<PageHeader title={A.title} fallback="/search" action={<RoundButton icon="note" label="محادثات سابقة" size={40} iconSize={18} />} />}>
+    <Screen backdrop="mist" withTabBar={false} header={<PageHeader title={A.title} fallback="/search" />}>
       <GlassCard soft style={{ gap: 6 }}>
         <View style={[styles.row, { justifyContent: 'space-between' }]}>
           <Display size={17}>{A.banner.title}</Display>
@@ -29,93 +52,148 @@ export default function AssistantScreen() {
         </Body>
       </GlassCard>
 
-      <Bubble text={A.q1} />
-      <GlassCard style={{ gap: 10 }}>
-        <Line text={A.a1.lines[0].text} cite={A.a1.lines[0].cite} />
-        <LinkRow route="/hadith/bukhari-8">
-          <Display size={17} lineHeight={30}>
-            {A.a1.card.text}
-          </Display>
-          <Chip label={A.a1.card.chip} tone="reviewed" badge />
-          <Caption>{A.a1.card.ref}</Caption>
-        </LinkRow>
-        <Line text={A.a1.lines[1].text} cite={A.a1.lines[1].cite} />
-        <View style={styles.hairline} />
-        <Caption>{A.a1.sourcesTitle}</Caption>
-        {A.a1.sources.map((s) => (
-          <View key={s.text} style={[styles.row, { gap: 8 }]}>
-            <Chip label={s.label} tone={s.tone} badge={s.tone === 'reviewed'} />
-            <Display size={14} style={{ flex: 1 }}>
-              {s.text}
-            </Display>
-          </View>
-        ))}
-      </GlassCard>
-
-      <Bubble text={A.q2} />
-      <GlassCard tint="peach" style={{ gap: 10 }}>
-        <Chip label={A.a2.flag} tone="pending" />
-        <Body size={14} color="#4A4B57" lineHeight={24}>
-          {A.a2.intro}
-        </Body>
-        <InnerCard style={{ gap: 6 }}>
-          <Display size={15}>{A.a2.issue}</Display>
-          {A.a2.positions.map((p) => (
-            <Body key={p} size={14}>
-              {p}
-            </Body>
+      {!turns.length ? (
+        <View style={[styles.row, { gap: 8, flexWrap: 'wrap' }]}>
+          {[A.q1, A.q2, 'الصبر', 'أذكار الصباح والمساء'].map((s) => (
+            <Pressable key={s} accessibilityRole="button" onPress={() => submit(s)}>
+              <Squircle radius={20} fill="rgba(255,255,255,0.7)" glow="glass" stroke="#FFFFFF" style={styles.suggest}>
+                <Body size={13} weight="medium" color={colors.primary}>
+                  {s}
+                </Body>
+              </Squircle>
+            </Pressable>
           ))}
-          <Pressable accessibilityRole="link" onPress={() => router.push('/fiqh')} style={[styles.row, { gap: 4 }]}>
-            <Body size={13} weight="medium" color={colors.primary}>
-              {A.a2.link}
+        </View>
+      ) : null}
+
+      {turns.map((t, i) => (
+        <View key={i} style={{ gap: 12 }}>
+          <Squircle radius={22} fill={colors.primary} glow="button" style={styles.bubble}>
+            <Body size={15} weight="medium" color={colors.white}>
+              {t.q}
             </Body>
-            <Icon name="chevronLeft" size={16} color={colors.primary} />
-          </Pressable>
-        </InnerCard>
-        <Display size={16}>{A.a2.consultTitle}</Display>
-        <Caption>{A.a2.consultBody}</Caption>
-      </GlassCard>
+          </Squircle>
+          {t.answer ? <AnswerCard answer={t.answer} sentences={t.sentences} /> : <ActivityIndicator color={colors.primary} />}
+        </View>
+      ))}
 
       <Squircle radius={30} fill="rgba(255,255,255,0.7)" glow="glass" style={styles.input}>
         <TextInput
-          editable={false}
+          value={input}
+          onChangeText={setInput}
+          onSubmitEditing={() => submit(input)}
+          returnKeyType="send"
           placeholder={A.inputLabel}
           placeholderTextColor={colors.muted}
           accessibilityLabel={A.inputLabel}
           style={[styles.field, { fontFamily: F.sans }]}
         />
-        <Squircle radius={20} fill={colors.primary} glow="button" style={styles.send}>
-          <Icon name="arrowLeft" size={20} color={colors.white} />
-        </Squircle>
+        <Pressable accessibilityRole="button" accessibilityLabel="أرسل" onPress={() => submit(input)} disabled={busy}>
+          <Squircle radius={22} fill={colors.primary} glow="button" style={styles.send}>
+            <Icon name="arrowLeft" size={20} color={colors.white} />
+          </Squircle>
+        </Pressable>
       </Squircle>
-      <Caption style={{ textAlign: 'center' }}>{A.notConnected}</Caption>
+      <Caption style={{ textAlign: 'center' }}>
+        {aiEnabled ? 'يُعرض كل نص من مصدره كما هو · الجمل الرابطة آلية وتُتحقَّق مراجعها' : 'وضع المصادر أولًا · بحث في نصوص المكنون على جهازك، دون ذكاء اصطناعي ودون اتصال'}
+      </Caption>
     </Screen>
   );
 }
 
-function Bubble({ text }: { text: string }) {
+function AnswerCard({ answer, sentences }: { answer: Answer; sentences: Sentence[] | null }) {
+  if (answer.kind === 'ruling') {
+    return (
+      <GlassCard tint="peach" style={{ gap: 10 }}>
+        <Chip label={A.a2.flag} tone="pending" />
+        <Body size={14} color="#4A4B57" lineHeight={24}>
+          لا يصدر المساعد فتوى.
+          {answer.fiqh.length ? ' هذه المسائل ذات الصلة في المكنون، بأقوال المذاهب وأدلتها:' : ' لا توجد بعد في المكنون مسألة مُراجَعة لهذا السؤال.'}
+        </Body>
+        {answer.fiqh.map((n) => (
+          <SourceCard key={n.id} n={n} />
+        ))}
+        <Display size={16}>{A.a2.consultTitle}</Display>
+        <Caption>حالتك ومذهبك وظروفك تؤثر في الجواب.</Caption>
+      </GlassCard>
+    );
+  }
+  if (answer.kind === 'scope' || answer.kind === 'empty') {
+    return (
+      <GlassCard style={{ gap: 6 }}>
+        <Body size={14} color="#4A4B57" lineHeight={24}>
+          {answer.kind === 'scope'
+            ? 'هذا السؤال خارج نطاق المساعد. للمسائل الحسّاسة أو الشخصية ارجع إلى عالم موثوق، وفي الحالات الطارئة اتصل بخدمات الطوارئ.'
+            : 'لم أجد في نصوص المكنون ما يطابق سؤالك. جرّب كلمات أخرى، أو ابحث من شاشة «ابحث».'}
+        </Body>
+      </GlassCard>
+    );
+  }
+  const all = [...answer.nodes, ...answer.tafsir];
+  const index = (id: string) => all.findIndex((n) => n.id === id) + 1;
   return (
-    <Squircle radius={22} fill={colors.primary} glow="button" style={styles.bubble}>
-      <Body size={15} weight="medium" color={colors.white}>
-        {text}
-      </Body>
-    </Squircle>
+    <GlassCard style={{ gap: 10 }}>
+      {sentences?.map((s, i) => (
+        <Body key={i} size={15} lineHeight={26}>
+          {s.text}
+          <Body size={11} weight="bold" color={colors.primary}>{` [${s.cites.map((c) => ar(index(c))).join('، ')}]`}</Body>
+        </Body>
+      ))}
+      {!sentences ? (
+        <Body size={14} color="#4A4B57">
+          {`وجدتُ ${ar(all.length)} من نصوص المكنون:`}
+        </Body>
+      ) : null}
+      {all.map((n, i) => (
+        <SourceCard key={n.id} n={n} num={i + 1} />
+      ))}
+      <View style={styles.hairline} />
+      <Caption>المصادر تُعرض كما هي في قاعدة البيانات، بعلامة حالة مراجعتها.</Caption>
+    </GlassCard>
   );
 }
 
-function Line({ text, cite }: { text: string; cite: string }) {
-  return (
-    <Body size={15} lineHeight={26}>
-      {text}
-      <Body size={11} weight="bold" color={colors.primary}>{` [${cite}]`}</Body>
-      {'.'}
-    </Body>
+function SourceCard({ n, num }: { n: Node; num?: number }) {
+  const ayah = n.kind === 'ayah' && n.surah ? getAyah(n.surah, n.ayah!) : null;
+  const tone = n.tone ?? (n.kind === 'ayah' ? null : 'suggested');
+  const body = (
+    <InnerCard style={{ gap: 6 }}>
+      <View style={[styles.row, { gap: 8, flexWrap: 'wrap' }]}>
+        {num ? (
+          <Body size={12} weight="bold" color={colors.primary}>
+            {`${ar(num)} ·`}
+          </Body>
+        ) : null}
+        <Display size={15} style={{ flexShrink: 1 }}>
+          {n.title}
+        </Display>
+        {tone ? <Chip label={n.chip ?? (tone === 'reviewed' ? 'مُراجَع' : tone === 'pending' ? 'بانتظار المراجعة' : 'مقترح')} tone={tone} badge={tone === 'reviewed'} /> : null}
+      </View>
+      {ayah ? (
+        <AyahText size={20} lineHeight={38} style={{ fontFamily: ayah.fontFamily }}>
+          {ayah.text}
+        </AyahText>
+      ) : n.text ? (
+        <Display size={16} lineHeight={28}>
+          {n.text}
+        </Display>
+      ) : null}
+      <Caption>{n.kind === 'tafsir' && n.surah ? `${n.ref} · المختصر في التفسير` : n.ref}</Caption>
+    </InnerCard>
+  );
+  return n.route ? (
+    <Pressable accessibilityRole="link" onPress={() => router.push(n.route as never)}>
+      {body}
+    </Pressable>
+  ) : (
+    body
   );
 }
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   hairline: { height: 1, backgroundColor: colors.hairline },
+  suggest: { paddingVertical: 10, paddingHorizontal: 14 },
   bubble: { alignSelf: 'flex-end', maxWidth: '85%', paddingVertical: 12, paddingHorizontal: 16 },
   input: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 60, paddingStart: 18, paddingEnd: 8 },
   field: { flex: 1, minWidth: 0, fontSize: 15, color: colors.ink, textAlign: 'right' },

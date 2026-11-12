@@ -85,3 +85,10 @@ const juzStarts = [];
 for (const a of hafs) if (!juzStarts[a.jozz - 1]) juzStarts[a.jozz - 1] = { juz: a.jozz, surah: a.sura_no, ayah: a.aya_no, page: a.page };
 writeFileSync(join(out, 'quran-index.json'), JSON.stringify({ surahs: surahIndex, juz: juzStarts }) + '\n');
 console.log(`Index: ${surahIndex.length} surahs, ${juzStarts.length} juz`);
+
+// ── Quran search index: KFGQPC "emlaey" (plain spelling) text, for search only ──
+// Display always uses the Uthmani aya_text; this is never shown to users.
+const search = {};
+for (const a of hafs) search[`${a.sura_no}:${a.aya_no}`] = a.aya_text_emlaey;
+writeFileSync(join(out, 'quran-search.json'), JSON.stringify(search));
+console.log('Search index: 6236 ayat (emlaey text)');
