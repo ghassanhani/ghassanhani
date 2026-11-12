@@ -102,3 +102,18 @@ for (const [, slug] of Object.entries(tafsirs)) {
 }
 writeFileSync(join(out, 'tafsir-sample.json'), JSON.stringify({ _source: 'Itqan registry · مركز تفسير · CC BY-ND', ayat: sample }, null, 1) + '\n');
 console.log(`Tafsir sample: ${Object.keys(sample).length} ayah(s) × ${Object.keys(tafsirs).length} tafsirs`);
+
+// ── Surah + juz index (names/ayah counts/juz starts from KFGQPC; Makki/Madani from quran-meta, MIT) ──
+const { createHafs } = await import('quran-meta');
+const qm = createHafs();
+const surahIndex = [];
+for (let s = 1; s <= 114; s++) {
+  const m = qm.getSurahMeta(s);
+  const count = Object.keys(ayat).filter((k) => k.startsWith(`${s}:`)).length;
+  if (count !== m.ayahCount) throw new Error(`Ayah count mismatch for surah ${s}`);
+  surahIndex.push({ n: s, name: surahs[s], ayat: count, type: m.isMeccan ? 'مكية' : 'مدنية', page: pos[`${s}:1`][0] });
+}
+const juzStarts = [];
+for (const a of hafs) if (!juzStarts[a.jozz - 1]) juzStarts[a.jozz - 1] = { juz: a.jozz, surah: a.sura_no, ayah: a.aya_no, page: a.page };
+writeFileSync(join(out, 'quran-index.json'), JSON.stringify({ surahs: surahIndex, juz: juzStarts }) + '\n');
+console.log(`Index: ${surahIndex.length} surahs, ${juzStarts.length} juz`);

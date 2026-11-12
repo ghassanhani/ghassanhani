@@ -60,8 +60,8 @@ export const quranHub = {
   shortcuts: [
     { title: 'المصحف الشريف', icon: 'quran2', route: '/mushaf' },
     { title: 'آيات للدراسة', icon: 'sparkle', route: null },
-    { title: 'فهرس سور القران', icon: 'list', route: null },
-    { title: 'أذكار بعد الصلاة', icon: 'quran2', route: null },
+    { title: 'فهرس سور القران', icon: 'list', route: '/surahs' },
+    { title: 'أذكار بعد الصلاة', icon: 'quran2', route: '/adhkar' },
   ] as const,
   listen: { title: 'استمع', surah: 'سورة الكهف', meta: '[القارئ المرخّص] · من الآية ٧٧' },
   hifz: {

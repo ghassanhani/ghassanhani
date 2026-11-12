@@ -1,7 +1,7 @@
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import Svg, { Defs, Ellipse, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
 
-export type BackdropName = 'sand' | 'mint' | 'sea' | 'mist' | 'sky';
+export type BackdropName = 'sand' | 'mint' | 'sea' | 'mist' | 'sky' | 'lavender' | 'dune' | 'meadow';
 
 type Spec = {
   base: [string, string]; // diagonal gradient
@@ -30,6 +30,30 @@ const specs: Record<BackdropName, Spec> = {
     ],
   },
   mist: { base: ['#D3E4E2', '#D3E4E2'], blobs: [] },
+  lavender: {
+    base: ['#F0E8E8', '#F0E8E8'],
+    panel: '#D8DAEE',
+    blobs: [
+      { color: '#7D7FC5', opacity: 0.55, cx: 0.1, cy: 0.9, rx: 1.0, ry: 0.35 },
+      { color: '#C57D7E', opacity: 0.35, cx: 1.05, cy: 1.0, rx: 0.6, ry: 0.3 },
+    ],
+  },
+  dune: {
+    base: ['#F0E8E8', '#F0E8E8'],
+    panel: '#EEE3D2',
+    blobs: [
+      { color: '#DA753A', opacity: 0.35, cx: 0.4, cy: 0.9, rx: 1.0, ry: 0.35 },
+      { color: '#7FC57D', opacity: 0.25, cx: 1.05, cy: 0.3, rx: 0.4, ry: 0.25 },
+    ],
+  },
+  meadow: {
+    base: ['#F0E8E8', '#F0E8E8'],
+    panel: '#E2EBCF',
+    blobs: [
+      { color: '#BADA47', opacity: 0.55, cx: 0.1, cy: 0.9, rx: 1.0, ry: 0.35 },
+      { color: '#D9BC85', opacity: 0.45, cx: 1.1, cy: 1.05, rx: 0.7, ry: 0.3 },
+    ],
+  },
   sky: {
     base: ['#E3D8CE', '#E2E2E2'],
     panel: '#CEDFEA',

@@ -33,9 +33,9 @@ export function HeroCard({ hero, style, children }: Box & { hero: HeroName }) {
 }
 
 /** Solid white inner card (radius 20) used for list rows inside glass cards. */
-export function InnerCard({ style, children }: Box) {
+export function InnerCard({ style, children, selected }: Box & { selected?: boolean }) {
   return (
-    <Squircle radius={radius.inner} fill={colors.white} style={[{ paddingVertical: 14, paddingHorizontal: 16 }, style]}>
+    <Squircle radius={radius.inner} fill={colors.white} stroke={selected ? colors.primary : undefined} strokeWidth={2} style={[{ paddingVertical: 14, paddingHorizontal: 16 }, style]}>
       {children}
     </Squircle>
   );
@@ -164,7 +164,7 @@ export function SectionTitle({ title, trailing }: { title: string; trailing?: Re
 }
 
 const styles = StyleSheet.create({
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 22, paddingHorizontal: 7, alignSelf: 'flex-start' },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 22, paddingVertical: 2, paddingHorizontal: 7, alignSelf: 'flex-start', maxWidth: '100%' },
   count: { minWidth: 25, height: 24, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
   pill: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   segRow: { flexDirection: 'row', gap: 4 },
@@ -173,4 +173,75 @@ const styles = StyleSheet.create({
   segOff: { backgroundColor: colors.track, boxShadow: 'inset 4px 4px 4px -1px rgba(0,0,0,0.25)' },
   segPart: { position: 'absolute', end: 0, top: 0, bottom: 0, width: '66%', backgroundColor: '#B8975A', borderRadius: 30 },
   sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  segTrack: { flexDirection: 'row', gap: 6, padding: 4, borderRadius: 30, backgroundColor: 'rgba(129,130,144,0.12)' },
+  segBtn: { minHeight: 42, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
+  switch: { width: 50, height: 30, borderRadius: 15, padding: 3, justifyContent: 'center' },
+  switchOn: { backgroundColor: colors.primary, boxShadow: 'inset 0 3px 4px rgba(255,255,255,0.35)' },
+  switchOff: { backgroundColor: 'rgba(129,130,144,0.3)', boxShadow: 'inset 3px 3px 4px -1px rgba(0,0,0,0.25)' },
+  knob: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.white, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' },
+  stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  stepBtn: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: colors.ring, alignItems: 'center', justifyContent: 'center' },
+  soft: { minHeight: 46, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
 });
+
+/** Two-or-more option segmented control (white pill on a grey track). */
+export function Segmented<T extends string | number>({ options, value, onChange }: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+  return (
+    <View accessibilityRole="radiogroup" style={styles.segTrack}>
+      {options.map((o) => {
+        const on = o.value === value;
+        return (
+          <Pressable key={String(o.value)} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => onChange(o.value)} style={{ flex: 1 }}>
+            <Squircle radius={22} fill={on ? colors.white : undefined} style={[styles.segBtn, on && { boxShadow: '0 2px 6px rgba(39,40,51,0.08)' }]}>
+              <Body size={13} weight={on ? 'bold' : 'medium'} color={on ? colors.primary : '#4A4B57'} lineHeight={18}>
+                {o.label}
+              </Body>
+            </Squircle>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/** iOS-style switch in the canvas colours. */
+export function Switch({ value, onChange, label }: { value: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <Pressable accessibilityRole="switch" accessibilityLabel={label} accessibilityState={{ checked: value }} onPress={() => onChange(!value)} hitSlop={8}>
+      <View style={[styles.switch, value ? styles.switchOn : styles.switchOff]}>
+        <View style={[styles.knob, { alignSelf: value ? 'flex-start' : 'flex-end' }]} />
+      </View>
+    </Pressable>
+  );
+}
+
+/** − n + stepper. */
+export function Stepper({ value, onInc, onDec, label }: { value: string; onInc: () => void; onDec: () => void; label: string }) {
+  return (
+    <View style={styles.stepper}>
+      <Pressable accessibilityRole="button" accessibilityLabel={`إنقاص ${label}`} onPress={onDec} style={styles.stepBtn}>
+        <Icon name="minus" size={18} color={colors.ink} />
+      </Pressable>
+      <Display size={18} lineHeight={24}>
+        {value}
+      </Display>
+      <Pressable accessibilityRole="button" accessibilityLabel={`زيادة ${label}`} onPress={onInc} style={styles.stepBtn}>
+        <Icon name="plus" size={18} color={colors.ink} />
+      </Pressable>
+    </View>
+  );
+}
+
+/** Soft outline button (rgba(247,241,241,.61) + white stroke). */
+export function SoftButton({ label, onPress, style }: { label: string; onPress?: () => void; style?: StyleProp<ViewStyle> }) {
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={style}>
+      <Squircle radius={30} fill="rgba(247,241,241,0.61)" stroke="#FFFFFF" glow="glass" style={styles.soft}>
+        <Body size={14} weight="medium" color={colors.primary} lineHeight={20}>
+          {label}
+        </Body>
+      </Squircle>
+    </Pressable>
+  );
+}
+

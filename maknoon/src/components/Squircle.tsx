@@ -27,8 +27,9 @@ export type SquircleProps = ViewProps & {
   blobs?: Blob[];
   /** inner glow recipe: glass cards, CTA buttons, or none */
   glow?: GlowStrength;
-  /** 1px stroke drawn on the squircle edge */
+  /** stroke drawn on the squircle edge (inside the shape) */
   stroke?: string;
+  strokeWidth?: number;
   style?: StyleProp<ViewStyle>;
   children?: ReactNode;
 };
@@ -41,7 +42,7 @@ export type SquircleProps = ViewProps & {
  * fill → tint blobs → inner glow (white inset light, as in the canvas CSS:
  * `inset 0 4px 14px 3px #fff/.65, inset 0 4px 4px #fff/.95, inset 0 -4px 4px #fff/.65`).
  */
-export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke, style, children, onLayout, ...rest }: SquircleProps) {
+export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke, strokeWidth = 1, style, children, onLayout, ...rest }: SquircleProps) {
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
 
@@ -121,7 +122,11 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke,
               </>
             ) : null}
           </G>
-          {stroke ? <Path d={d} fill="none" stroke={stroke} strokeWidth={1} /> : null}
+          {stroke ? (
+            <G clipPath={`url(#c${uid})`}>
+              <Path d={d} fill="none" stroke={stroke} strokeWidth={strokeWidth * 2} />
+            </G>
+          ) : null}
         </Svg>
         </View>
       ) : null}

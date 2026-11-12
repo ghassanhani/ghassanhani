@@ -22,7 +22,30 @@ npm run typecheck
 | `/hadith/bukhari-8` | Hadith: matn, attributed gradings, isnad, shuruh | Hadith |
 | `/library` (tab) | المكتبة الإسلامية shelves with coverage meters | Library |
 | `/search` (tab) | ابحث: root-aware results + assistant entry | Search |
-| `/me` (tab) | Placeholder; Me/Settings/Plus come in the next batch | (none yet) |
+| `/surahs` | فهرس السور: 114 surahs, 30 juz, my memorisation | SurahIndex |
+| `/hifz` | برنامج الحفظ: three tracks, overdue-review lock, mushaf map, pace, spaced review, reminders | Hifz |
+| `/hifz/session` | جلسة حفظ: steps, ayah chaining, 20/20 repetition counters, hide-to-recite | HifzSession |
+| `/prayer` | مواقيت الصلاة: **live on-device times (Adhan)**, alerts, qibla, Asr rule | Prayer |
+| `/adhkar` | الأذكار: five categories, tap counters, source/grading chips | Adhkar |
+| `/zakat` | حاسبة الزكاة: nisab by gold or silver, 2.5% | Zakat |
+| `/inheritance` | حاسبة المواريث: **worked example only**; engine off until scholar-validated | Inheritance |
+| `/me` (tab) | Tool list for now; Me/Settings/Plus artboards come later | (none yet) |
+
+### Notes on batch 2
+
+- **Prayer times** are computed on the device with [Adhan](https://github.com/batoulapps/adhan-js) (MIT), using Muslim World League
+  (Fajr 18°, Isha 17°) for the default city, Barcelona. Home's prayer card uses the same live values. For the design's date
+  (10 November) Adhan gives the design's Fajr, sunrise and Dhuhr exactly, and Asr, Maghrib and Isha within 2 minutes. The qibla
+  bearing is computed (≈111°; the design's 115° was a sample). The compass doesn't follow device heading yet (needs a sensor).
+- **Surah index** names, ayah counts and juz starts come from the KFGQPC data, and Makki/Madani from
+  [quran-meta](https://github.com/quran-center/quran-meta) (MIT), generated at build time (`assets/content/quran-index.json`).
+  The design's per-surah "reviewed links %" numbers were sample values and are not shown.
+- **Adhkar** text, virtues and source chips are the designer's draft, copied verbatim. The canvas says each must be
+  reviewed before launch. Items without a source show «المصدر والحكم بانتظار المراجعة».
+- **Zakat** only does arithmetic on the one rule the screen states. The default amounts and gram prices are the design's
+  examples («الأسعار قيم مثال»).
+- **Inheritance** computes only the design's worked example (زوجة + ابن + بنت). Any other combination shows the canvas's
+  notice that the full engine is enabled only after scholar-reviewed test cases pass (plan §4.6).
 
 ## Design system
 

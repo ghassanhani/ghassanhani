@@ -8,10 +8,16 @@ import { GlassCard, HeroCard, IconBubble, RoundButton, Segments } from '@/compon
 import { home } from '@/content/design';
 import { ayahPlaceholder, getAyah } from '@/content/quran';
 import { colors, space } from '@/theme/tokens';
+import { fmtDuration, fmtTime, usePrayerDay } from '@/content/prayer';
+import { prayerScreen } from '@/content/worship';
 
 export default function HomeScreen() {
   const a = home.ayahOfDay;
   const ayah = getAyah(a.surah, a.ayah);
+  // Live, on-device times (Adhan) for the default city.
+  const city = prayerScreen.city;
+  const pd = usePrayerDay(city, 'j');
+  const five = pd.times.filter((t) => t.key !== 'sunrise');
 
   return (
     <Screen backdrop="sand">
@@ -42,45 +48,50 @@ export default function HomeScreen() {
       </View>
 
       {/* Next prayer */}
-      <HeroCard hero="night" style={{ minHeight: 249, paddingTop: 30 }}>
-        <View style={styles.between}>
-          <View>
-            <Body size={14} weight="medium" color={colors.gold}>
-              {home.prayer.label}
-            </Body>
-            <Display size={44} color={colors.white} lineHeight={64}>
-              {home.prayer.next}
-            </Display>
-            <Body size={12} color={colors.white} lineHeight={16}>
-              {home.prayer.countdown}
-            </Body>
-          </View>
-          <View style={{ alignItems: 'flex-end', gap: 14 }}>
-            <IconBubble name="compass" iconSize={20} color={colors.white} fill="rgba(255,255,255,0.12)" glow={false} />
-            <Display size={44} color={colors.white} lineHeight={60}>
-              {home.prayer.time}
-            </Display>
-          </View>
-        </View>
-        <View style={[styles.row, { gap: 7.6, marginTop: 'auto' }]}>
-          {home.prayer.times.map((p) => (
-            <Squircle
-              key={p.name}
-              radius={12}
-              fill={p.active ? 'rgba(12,17,64,0.55)' : 'rgba(255,255,255,0.08)'}
-              stroke="rgba(255,255,255,0.18)"
-              style={styles.prayerChip}
-            >
-              <Body size={11} weight="medium" color={colors.white} lineHeight={15}>
-                {p.name}
+      <Pressable accessibilityRole="button" onPress={() => router.push('/prayer')}>
+        <HeroCard hero="night" style={{ minHeight: 249, paddingTop: 30 }}>
+          <View style={styles.between}>
+            <View>
+              <Body size={14} weight="medium" color={colors.gold}>
+                {`الصلاة القادمة · ${city.name}`}
               </Body>
-              <Body size={12} weight="bold" color={colors.white} lineHeight={16}>
-                {p.time}
+              <Display size={44} color={colors.white} lineHeight={64}>
+                {pd.next.name}
+              </Display>
+              <Body size={12} color={colors.white} lineHeight={16}>
+                {fmtDuration(pd.next.date.getTime() - pd.now.getTime())}
               </Body>
-            </Squircle>
-          ))}
-        </View>
-      </HeroCard>
+            </View>
+            <View style={{ alignItems: 'flex-end', gap: 14 }}>
+              <IconBubble name="compass" iconSize={20} color={colors.white} fill="rgba(255,255,255,0.12)" glow={false} />
+              <Display size={44} color={colors.white} lineHeight={60}>
+                {fmtTime(pd.next.date, city.tz)}
+              </Display>
+            </View>
+          </View>
+          <View style={[styles.row, { gap: 7.6, marginTop: 'auto' }]}>
+            {five.map((p) => {
+              const active = p.key === pd.next.key;
+              return (
+                <Squircle
+                  key={p.key}
+                  radius={12}
+                  fill={active ? 'rgba(12,17,64,0.55)' : 'rgba(255,255,255,0.08)'}
+                  stroke="rgba(255,255,255,0.18)"
+                  style={styles.prayerChip}
+                >
+                  <Body size={11} weight="medium" color={colors.white} lineHeight={15}>
+                    {p.name}
+                  </Body>
+                  <Body size={12} weight="bold" color={colors.white} lineHeight={16}>
+                    {fmtTime(p.date, city.tz)}
+                  </Body>
+                </Squircle>
+              );
+            })}
+          </View>
+        </HeroCard>
+      </Pressable>
 
       {/* Ayah of the day */}
       <Pressable accessibilityRole="button" onPress={() => router.push('/ayah/3:3')}>
@@ -113,7 +124,8 @@ export default function HomeScreen() {
             <View style={[styles.thickFill, { width: `${home.wird.progress * 100}%` }]} />
           </View>
         </GlassCard>
-        <GlassCard soft tint="mint" style={styles.half}>
+        <Pressable accessibilityRole="button" style={{ flex: 1 }} onPress={() => router.push('/adhkar')}>
+        <GlassCard soft tint="mint" style={[styles.half, { flex: undefined }]}>
           <View style={styles.between}>
             <Body size={14} weight="medium">
               {home.adhkarCard.label}
@@ -124,16 +136,18 @@ export default function HomeScreen() {
             {home.adhkarCard.title}
           </Display>
           <Caption>{home.adhkarCard.meta}</Caption>
-          <Pressable accessibilityRole="button" style={[styles.row, { gap: 4, marginTop: 'auto' }]}>
+          <View style={[styles.row, { gap: 4, marginTop: 'auto' }]}>
             <Display size={14} color={colors.primary}>
               {home.adhkarCard.cta}
             </Display>
             <Icon name="arrowLeft" size={20} color={colors.primary} />
-          </Pressable>
+          </View>
         </GlassCard>
+        </Pressable>
       </View>
 
       {/* Hifz review */}
+      <Pressable accessibilityRole="button" onPress={() => router.push('/hifz')}>
       <GlassCard soft tint="peach" style={{ minHeight: 139 }}>
         <View style={styles.between}>
           <Body size={15} weight="medium">
@@ -152,12 +166,15 @@ export default function HomeScreen() {
           ))}
         </View>
       </GlassCard>
+      </Pressable>
 
       {/* Adhkar rail */}
       <Display size={20}>الأذكار</Display>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.rail} contentContainerStyle={styles.railContent}>
         {home.adhkarRail.map((d, i) => (
-          <MiniCard key={i} title={d.title} icon={d.icon} />
+          <Pressable key={i} accessibilityRole="button" onPress={() => router.push('/adhkar')}>
+            <MiniCard title={d.title} icon={d.icon} />
+          </Pressable>
         ))}
       </ScrollView>
 

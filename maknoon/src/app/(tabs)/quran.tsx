@@ -92,7 +92,9 @@ export default function QuranHubScreen() {
       </GlassCard>
 
       {/* Memorise */}
-      <Display size={22}>{q.hifz.title}</Display>
+      <Pressable accessibilityRole="link" onPress={() => router.push('/hifz')}>
+        <Display size={22}>{q.hifz.title}</Display>
+      </Pressable>
       <GlassCard>
         <View style={[styles.between, { alignItems: 'center' }]}>
           <Display size={18}>{q.hifz.plan}</Display>
@@ -114,7 +116,7 @@ export default function QuranHubScreen() {
             </View>
           </View>
         ))}
-        <Cta label={q.hifz.cta} style={{ marginTop: 8 }} />
+        <Cta label={q.hifz.cta} style={{ marginTop: 8 }} onPress={() => router.push('/hifz/session')} />
       </GlassCard>
       <View style={styles.row}>
         {q.hifz.tools.map((t) => (
