@@ -1,5 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { fadeIn, haptic, isRTL, motion } from '@/components/motion';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { DetailHeader } from '@/components/DetailHeader';
 import { Icon } from '@/components/Icon';
@@ -165,14 +167,30 @@ function Drawer({ title, count, children }: { title: string; count?: string; chi
           <Display size={22}>{title}</Display>
           {count ? <CountBadge value={count} /> : null}
         </View>
-        <Pressable accessibilityRole="button" accessibilityLabel={open ? 'طيّ' : 'توسيع'} onPress={() => setOpen((v) => !v)} style={styles.ring}>
-          <View style={{ transform: [{ rotate: open ? '0deg' : '90deg' }] }}>
-            <Icon name="chevronDown" size={17} color={colors.ink} />
-          </View>
+        <Pressable accessibilityRole="button" accessibilityLabel={open ? 'طيّ' : 'توسيع'} onPress={() => {
+            haptic.select();
+            setOpen((v) => !v);
+          }} style={styles.ring}>
+          <Chevron open={open} />
         </Pressable>
       </View>
-      {open ? children : null}
+      {open ? <Animated.View entering={fadeIn} style={{ gap: 12 }}>{children}</Animated.View> : null}
     </GlassCard>
+  );
+}
+
+/** The drawer chevron turns smoothly between open and closed. */
+function Chevron({ open }: { open: boolean }) {
+  const r = useSharedValue(open ? 0 : 1);
+  useEffect(() => {
+    r.set(withSpring(open ? 0 : 1, motion.settleSpring));
+  }, [open, r]);
+  const dir = isRTL() ? 1 : -1; // closed points toward the reading direction's start
+  const anim = useAnimatedStyle(() => ({ transform: [{ rotate: `${dir * 90 * r.value}deg` }] }));
+  return (
+    <Animated.View style={anim}>
+      <Icon name="chevronDown" size={17} color={colors.ink} />
+    </Animated.View>
   );
 }
 

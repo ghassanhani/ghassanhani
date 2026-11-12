@@ -1,8 +1,10 @@
-import type { ComponentRef, ReactNode, Ref } from 'react';
+import { Children, type ComponentRef, type ReactNode, type Ref, isValidElement } from 'react';
+import Animated from 'react-native-reanimated';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { space } from '@/theme/tokens';
 import { Backdrop, type BackdropName } from './Backdrop';
+import { enterAt } from './motion';
 
 export const TAB_BAR_SPACE = 24 + 64 + 24; // bottom inset + bar + breathing room
 
@@ -29,6 +31,7 @@ export function Screen({
   onContentSizeChange?: (w: number, h: number) => void;
 }) {
   const insets = useSafeAreaInsets();
+  // Stagger only the first appearance of the screen; later additions (a new answer) appear at once.
   const body = (
     <View style={styles.root}>
       <Backdrop name={backdrop} />
@@ -59,7 +62,15 @@ export function Screen({
           contentStyle,
         ]}
       >
-        {children}
+        {/* Each card rises in shortly after the one before it (only when it first appears). */}
+        {Children.toArray(children).map((child, i) => {
+          const key = isValidElement(child) && child.key != null ? child.key : i;
+          return (
+            <Animated.View key={key} entering={enterAt(i)}>
+              {child}
+            </Animated.View>
+          );
+        })}
       </ScrollView>
       {footer ? (
         <View

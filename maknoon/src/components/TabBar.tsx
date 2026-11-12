@@ -1,9 +1,11 @@
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { BlurView } from 'expo-blur';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/theme/tokens';
 import { Icon, type IconName } from './Icon';
+import { fadeIn, glide, haptic, PressScale } from './motion';
 import { Squircle } from './Squircle';
 import { Body } from './Typography';
 
@@ -33,30 +35,30 @@ export function TabBar({ state, navigateToTab }: BottomTabBarProps) {
             if (!meta) return null;
             const focused = state.index === index;
             const onPress = () => {
-              if (!focused) navigateToTab(route.key);
+              if (focused) return;
+              haptic.select();
+              navigateToTab(route.key);
             };
+            // The active pill grows with its label; neighbours glide aside instead of jumping.
             return (
-              <Pressable
-                key={route.key}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: focused }}
-                accessibilityLabel={meta.label}
-                onPress={onPress}
-                style={styles.item}
-              >
-                {focused ? (
-                  <Squircle radius={24} fill={colors.primary} glow="button" style={styles.active}>
-                    <Icon name={meta.icon} size={24} color={colors.goldWarm} />
-                    <Body size={14} weight="bold" color={colors.white} lineHeight={20}>
-                      {meta.label}
-                    </Body>
-                  </Squircle>
-                ) : (
-                  <View style={styles.icon}>
-                    <Icon name={meta.icon} size={24} color={colors.primary} />
-                  </View>
-                )}
-              </Pressable>
+              <Animated.View key={route.key} layout={glide}>
+                <PressScale accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={meta.label} onPress={onPress} style={styles.item} scaleTo={0.9}>
+                  {focused ? (
+                    <Animated.View entering={fadeIn}>
+                      <Squircle radius={24} fill={colors.primary} glow="button" style={styles.active}>
+                        <Icon name={meta.icon} size={24} color={colors.goldWarm} />
+                        <Body size={14} weight="bold" color={colors.white} lineHeight={20}>
+                          {meta.label}
+                        </Body>
+                      </Squircle>
+                    </Animated.View>
+                  ) : (
+                    <View style={styles.icon}>
+                      <Icon name={meta.icon} size={24} color={colors.primary} />
+                    </View>
+                  )}
+                </PressScale>
+              </Animated.View>
             );
           })}
         </View>

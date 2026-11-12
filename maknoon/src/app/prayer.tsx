@@ -11,6 +11,7 @@ import { ar } from '@/content/quran';
 import { prayerScreen as P } from '@/content/worship';
 import { usePrefs } from '@/store/prefs';
 import { F } from '@/theme/fonts';
+import { Breathe, haptic } from '@/components/motion';
 import { colors } from '@/theme/tokens';
 
 export default function PrayerScreen() {
@@ -70,7 +71,13 @@ export default function PrayerScreen() {
           const note = isNext ? `القادمة · ${fmtDuration(t.date.getTime() - now.getTime())}` : t.key === 'sunrise' ? P.sunriseNote : done ? 'تمّت' : '';
           return (
             <InnerCard key={t.key} fill={isNext ? '#0C1140' : undefined} style={[styles.row, { gap: 12, minHeight: 60, paddingVertical: 8 }]}>
-              <View style={[styles.dot, done && !isNext && { backgroundColor: colors.sky, borderWidth: 0 }, isNext && styles.dotNext]} />
+              {isNext ? (
+                <Breathe scale={1.25}>
+                  <View style={[styles.dot, styles.dotNext]} />
+                </Breathe>
+              ) : (
+                <View style={[styles.dot, done && { backgroundColor: colors.sky, borderWidth: 0 }]} />
+              )}
               <View style={{ flex: 1 }}>
                 <Display size={18} color={isNext ? colors.white : colors.ink}>
                   {t.name}
@@ -84,7 +91,10 @@ export default function PrayerScreen() {
                 accessibilityRole="switch"
                 accessibilityState={{ checked: on }}
                 accessibilityLabel={`${on ? 'إيقاف' : 'تشغيل'} تنبيه ${t.name}`}
-                onPress={() => setAlerts((a) => ({ ...a, [t.key]: !a[t.key] }))}
+                onPress={() => {
+                  haptic.select();
+                  setAlerts((a) => ({ ...a, [t.key]: !a[t.key] }));
+                }}
                 style={[styles.bell, on && { backgroundColor: isNext ? 'rgba(255,255,255,0.14)' : 'rgba(3,90,95,0.08)' }]}
               >
                 <Icon name="bell" size={18} color={isNext ? (on ? colors.white : '#8C8FB8') : on ? colors.primary : '#A3A4AF'} />

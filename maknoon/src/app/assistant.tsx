@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { type ComponentRef, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, type ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, type ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import type { Node } from '@/assistant/corpus';
 import { ask, type Answer } from '@/assistant/engine';
 import { Icon } from '@/components/Icon';
@@ -13,6 +13,7 @@ import { assistant as A } from '@/content/account';
 import { ar, getAyah } from '@/content/quran';
 import { F } from '@/theme/fonts';
 import { APP_NAME } from '@/config';
+import { TypingDots } from '@/components/motion';
 import { colors } from '@/theme/tokens';
 
 type Turn = { q: string; answer: Answer | null };
@@ -101,7 +102,7 @@ export default function AssistantScreen() {
               {t.q}
             </Body>
           </Squircle>
-          {t.answer ? <AnswerCard answer={t.answer} /> : <ActivityIndicator color={colors.primary} />}
+          {t.answer ? <AnswerCard answer={t.answer} /> : <TypingDots color={colors.primary} />}
         </View>
       ))}
     </Screen>

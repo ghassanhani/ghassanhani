@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { ReduceMotion, SlideInDown, SlideOutDown } from 'react-native-reanimated';
 import { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +16,7 @@ import { stripTashkeel } from '@/content/text';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
 import { quranIndex } from '@/content/worship';
+import { Breathe, haptic, PressScale, Ripple, fadeIn, fadeOut } from '@/components/motion';
 import { type TasmeeNote, useTasmee } from '@/recitation/useTasmee';
 import { usePrefs } from '@/store/prefs';
 
@@ -153,7 +155,7 @@ function MushafPage({ page }: { page: number }) {
           <View style={styles.tasmeeRow}>
             <Orb colors={['#B5514F', '#6E2424']} icon="clean" label="إخفاء الكل والبدء من جديد" onPress={tasmee.reset} />
             {tasmee.listening ? (
-              <Orb colors={['#3C8C96', '#1F5C66']} icon="wave" label="إيقاف الاستماع" onPress={tasmee.stop} size={84} />
+              <Orb colors={['#3C8C96', '#1F5C66']} icon="wave" label="إيقاف الاستماع" onPress={tasmee.stop} size={84} live />
             ) : (
               <Orb colors={['#4B6FB3', '#243F78']} icon="mic" label="ابدأ التسميع" onPress={tasmee.start} />
             )}
@@ -211,7 +213,7 @@ const TITLE_ART: Record<number, number> = {
 function SurahBanner({ surah, onPress }: { surah: number; onPress: () => void }) {
   const name = quranIndex.surahs[surah - 1]?.name ?? '';
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={`سورة ${name} · تغيير السورة`} onPress={onPress} style={styles.banner}>
+    <PressScale accessibilityRole="button" accessibilityLabel={`سورة ${name} · تغيير السورة`} onPress={onPress} innerStyle={styles.banner} scaleTo={0.98} feedback="select">
       <Image source={require('../../assets/brand/surah-banner.png')} style={styles.bannerArt} contentFit="fill" />
       <View style={styles.bannerRow}>
         {TITLE_ART[surah] ? (
@@ -225,7 +227,7 @@ function SurahBanner({ surah, onPress }: { surah: number; onPress: () => void })
           <Icon name="chevronDown" size={14} color={colors.white} />
         </View>
       </View>
-    </Pressable>
+    </PressScale>
   );
 }
 
@@ -236,9 +238,11 @@ function SurahPicker({ visible, current, onClose, onPick }: { visible: boolean; 
   const needle = stripTashkeel(q.trim());
   const list = needle ? quranIndex.surahs.filter((x) => stripTashkeel(x.name).includes(needle) || String(x.n) === needle || ar(x.n) === needle) : quranIndex.surahs;
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable accessibilityLabel="إغلاق" onPress={onClose} style={styles.scrim} />
-      <View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+      <Animated.View entering={fadeIn} exiting={fadeOut} style={styles.scrim}>
+        <Pressable accessibilityLabel="إغلاق" onPress={onClose} style={{ flex: 1 }} />
+      </Animated.View>
+      <Animated.View entering={sheetIn} exiting={sheetOut} style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
         <View style={styles.sheetHead}>
           <Display size={20}>اختر السورة</Display>
           <RoundButton icon="close" label="إغلاق" size={36} iconSize={16} onPress={onClose} />
@@ -261,7 +265,10 @@ function SurahPicker({ visible, current, onClose, onPick }: { visible: boolean; 
           getItemLayout={(_, i) => ({ length: 56, offset: 56 * i, index: i })}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item: x }) => (
-            <Pressable accessibilityRole="button" accessibilityState={{ selected: x.n === current }} onPress={() => onPick(x.page)} style={[styles.sheetRow, x.n === current && { backgroundColor: 'rgba(3,90,95,0.08)' }]}>
+            <Pressable accessibilityRole="button" accessibilityState={{ selected: x.n === current }} onPress={() => {
+              haptic.select();
+              onPick(x.page);
+            }} style={[styles.sheetRow, x.n === current && { backgroundColor: 'rgba(3,90,95,0.08)' }]}>
               <View style={styles.sheetNo}>
                 <Body size={13} weight="bold" color={colors.primary} lineHeight={18}>
                   {ar(x.n)}
@@ -276,10 +283,14 @@ function SurahPicker({ visible, current, onClose, onPick }: { visible: boolean; 
           )}
           ListEmptyComponent={<Caption style={{ padding: 16, textAlign: 'center' }}>لا نتائج</Caption>}
         />
-      </View>
+      </Animated.View>
     </Modal>
   );
 }
+
+// The sheet rises on a soft spring and drops away quickly.
+const sheetIn = SlideInDown.springify().damping(24).stiffness(220).reduceMotion(ReduceMotion.System);
+const sheetOut = SlideOutDown.duration(200).reduceMotion(ReduceMotion.System);
 
 const NOTES: Record<Exclude<TasmeeNote, null>, string> = {
   'web-preview': 'معاينة آلية · نسخة الويب لا تستمع، والتسميع يعمل في تطبيق iOS وAndroid',
@@ -289,13 +300,19 @@ const NOTES: Record<Exclude<TasmeeNote, null>, string> = {
 };
 
 /** Round glossy button of the recitation check. */
-function Orb({ colors: c, icon, label, onPress, size = 68 }: { colors: [string, string]; icon: 'clean' | 'mic' | 'help' | 'wave'; label: string; onPress: () => void; size?: number }) {
+function Orb({ colors: c, icon, label, onPress, size = 68, live = false }: { colors: [string, string]; icon: 'clean' | 'mic' | 'help' | 'wave'; label: string; onPress: () => void; size?: number; live?: boolean }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress}>
-      <LinearGradient colors={c} start={{ x: 0.3, y: 0 }} end={{ x: 0.7, y: 1 }} style={[styles.orb, { width: size, height: size, borderRadius: size / 2 }]}>
-        <Icon name={icon} size={size * 0.44} color="#FFFFFF" />
-      </LinearGradient>
-    </Pressable>
+    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+      {/* While listening, soft rings spread from the button: the app is hearing you. */}
+      <Ripple size={size} color={c[0]} active={live} />
+      <PressScale accessibilityRole="button" accessibilityLabel={label} onPress={onPress} scaleTo={0.9} feedback={icon === 'mic' || icon === 'wave' ? 'soft' : 'select'}>
+        <Breathe active={live} scale={1.04}>
+          <LinearGradient colors={c} start={{ x: 0.3, y: 0 }} end={{ x: 0.7, y: 1 }} style={[styles.orb, { width: size, height: size, borderRadius: size / 2 }]}>
+            <Icon name={icon} size={size * 0.44} color="#FFFFFF" />
+          </LinearGradient>
+        </Breathe>
+      </PressScale>
+    </View>
   );
 }
 

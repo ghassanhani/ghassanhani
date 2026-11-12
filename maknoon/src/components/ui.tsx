@@ -1,5 +1,7 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { Pressable, type PressableProps, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import Animated, { interpolateColor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
+import { haptic, isRTL, motion, PressScale } from './motion';
 import { F } from '@/theme/fonts';
 import { colors, heroes, type HeroName, radius, space, tints, type TintName } from '@/theme/tokens';
 import { Icon, type IconName } from './Icon';
@@ -55,11 +57,11 @@ export function IconBubble({ name, size = 40, iconSize = 20, color = colors.prim
 /** 53pt round glass button (header actions / back). */
 export function RoundButton({ icon, label, onPress, size = 53, iconSize = 24 }: { icon: IconName; label: string; onPress?: () => void; size?: number; iconSize?: number }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={6}>
+    <PressScale accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={6} scaleTo={0.92}>
       <Squircle radius={size / 2} fill={colors.glass} glow="glass" style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
         <Icon name={icon} size={iconSize} color={colors.ink} />
       </Squircle>
-    </Pressable>
+    </PressScale>
   );
 }
 
@@ -103,13 +105,13 @@ export function CountBadge({ value }: { value: string }) {
 /** Primary teal CTA (radius 36, inner light). */
 export function Cta({ label, onPress, height = 50, style, compact }: { label: string; onPress?: () => void; height?: number; style?: StyleProp<ViewStyle>; compact?: boolean }) {
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={style}>
+    <PressScale accessibilityRole="button" onPress={onPress} style={style} feedback="tap">
       <Squircle radius={36} fill={colors.primary} glow="button" style={{ height, paddingHorizontal: compact ? 18 : 24, alignItems: 'center', justifyContent: 'center' }}>
         <Display size={14} color={colors.white} lineHeight={20} style={{ fontFamily: F.cta }}>
           {label}
         </Display>
       </Squircle>
-    </Pressable>
+    </PressScale>
   );
 }
 
@@ -117,7 +119,7 @@ export function Cta({ label, onPress, height = 50, style, compact }: { label: st
 export function PillButton({ label, icon, onPress, variant = 'solid' }: PressableProps & { label: string; icon?: IconName; variant?: 'solid' | 'glass' }) {
   const solid = variant === 'solid';
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={{ flex: 1 }}>
+    <PressScale accessibilityRole="button" onPress={onPress} style={{ flex: 1 }}>
       <Squircle
         radius={24}
         fill={solid ? colors.white : 'rgba(255,255,255,0.25)'}
@@ -130,7 +132,7 @@ export function PillButton({ label, icon, onPress, variant = 'solid' }: Pressabl
           {label}
         </Display>
       </Squircle>
-    </Pressable>
+    </PressScale>
   );
 }
 
@@ -177,28 +179,55 @@ const styles = StyleSheet.create({
   sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   segTrack: { flexDirection: 'row', gap: 6, padding: 4, borderRadius: 30, backgroundColor: 'rgba(129,130,144,0.12)' },
   segBtn: { minHeight: 42, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
+  // placed by translateX from the physical left edge (start/end would not flip on web)
+  segPill: { position: 'absolute', top: 4, bottom: 4, left: 0, backgroundColor: colors.white, boxShadow: '0 2px 6px rgba(39,40,51,0.08)', borderRadius: 22 },
   switch: { width: 50, height: 30, borderRadius: 15, padding: 3, justifyContent: 'center' },
-  switchOn: { backgroundColor: colors.primary, boxShadow: 'inset 0 3px 4px rgba(255,255,255,0.35)' },
-  switchOff: { backgroundColor: 'rgba(129,130,144,0.3)', boxShadow: 'inset 3px 3px 4px -1px rgba(0,0,0,0.25)' },
+  switchOnShadow: { boxShadow: 'inset 0 3px 4px rgba(255,255,255,0.35)' },
+  switchOffShadow: { boxShadow: 'inset 3px 3px 4px -1px rgba(0,0,0,0.25)' },
   knob: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.white, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' },
   stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   stepBtn: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: colors.ring, alignItems: 'center', justifyContent: 'center' },
   soft: { minHeight: 46, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
 });
 
-/** Two-or-more option segmented control (white pill on a grey track). */
+/** Two-or-more option segmented control: a white pill glides to the chosen option. */
 export function Segmented<T extends string | number>({ options, value, onChange }: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+  const [w, setW] = useState(0);
+  const index = Math.max(0, options.findIndex((o) => o.value === value));
+  const n = options.length;
+  const inner = Math.max(0, w - 8 - 6 * (n - 1)); // track padding 4+4, gaps of 6
+  const itemW = n ? inner / n : 0;
+  const x = useSharedValue(0);
+  const reduced = useReducedMotion();
+  const rtl = isRTL();
+  useEffect(() => {
+    // Physical x of the chosen option (the first option sits on the right in RTL).
+    const step = index * (itemW + 6);
+    const to = rtl ? w - 4 - itemW - step : 4 + step;
+    x.set(reduced || !w ? to : withSpring(to, motion.settleSpring));
+  }, [index, itemW, rtl, reduced, w, x]);
+  const pill = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
   return (
-    <View accessibilityRole="radiogroup" style={styles.segTrack}>
+    <View accessibilityRole="radiogroup" style={styles.segTrack} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
+      {w ? (
+        <Animated.View pointerEvents="none" style={[styles.segPill, { width: itemW }, pill]} />
+      ) : null}
       {options.map((o) => {
         const on = o.value === value;
         return (
-          <Pressable key={String(o.value)} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => onChange(o.value)} style={{ flex: 1 }}>
-            <Squircle radius={22} fill={on ? colors.white : undefined} style={[styles.segBtn, on && { boxShadow: '0 2px 6px rgba(39,40,51,0.08)' }]}>
-              <Body size={13} weight={on ? 'bold' : 'medium'} color={on ? colors.primary : '#4A4B57'} lineHeight={18}>
-                {o.label}
-              </Body>
-            </Squircle>
+          <Pressable
+            key={String(o.value)}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: on }}
+            onPress={() => {
+              if (!on) haptic.select();
+              onChange(o.value);
+            }}
+            style={[{ flex: 1 }, styles.segBtn]}
+          >
+            <Body size={13} weight={on ? 'bold' : 'medium'} color={on ? colors.primary : '#4A4B57'} lineHeight={18}>
+              {o.label}
+            </Body>
           </Pressable>
         );
       })}
@@ -206,13 +235,30 @@ export function Segmented<T extends string | number>({ options, value, onChange 
   );
 }
 
-/** iOS-style switch in the canvas colours. */
+/** iOS-style switch in the canvas colours. The knob glides and the track colour cross-fades. */
 export function Switch({ value, onChange, label }: { value: boolean; onChange: (v: boolean) => void; label: string }) {
+  const reduced = useReducedMotion();
+  const on = useSharedValue(value ? 1 : 0);
+  useEffect(() => {
+    on.set(reduced ? (value ? 1 : 0) : withSpring(value ? 1 : 0, motion.settleSpring));
+  }, [value, reduced, on]);
+  const dir = isRTL() ? -1 : 1; // "on" sits at the start side: right in RTL
+  const track = useAnimatedStyle(() => ({ backgroundColor: interpolateColor(on.value, [0, 1], ['rgba(129,130,144,0.3)', colors.primary]) }));
+  const knob = useAnimatedStyle(() => ({ transform: [{ translateX: dir * 20 * (1 - on.value) }, { scale: 1 + 0.06 * Math.sin(Math.PI * on.value) }] }));
   return (
-    <Pressable accessibilityRole="switch" accessibilityLabel={label} accessibilityState={{ checked: value }} onPress={() => onChange(!value)} hitSlop={8}>
-      <View style={[styles.switch, value ? styles.switchOn : styles.switchOff]}>
-        <View style={[styles.knob, { alignSelf: value ? 'flex-start' : 'flex-end' }]} />
-      </View>
+    <Pressable
+      accessibilityRole="switch"
+      accessibilityLabel={label}
+      accessibilityState={{ checked: value }}
+      onPress={() => {
+        haptic.select();
+        onChange(!value);
+      }}
+      hitSlop={8}
+    >
+      <Animated.View style={[styles.switch, value ? styles.switchOnShadow : styles.switchOffShadow, track]}>
+        <Animated.View style={[styles.knob, { alignSelf: 'flex-start' }, knob]} />
+      </Animated.View>
     </Pressable>
   );
 }
@@ -221,15 +267,15 @@ export function Switch({ value, onChange, label }: { value: boolean; onChange: (
 export function Stepper({ value, onInc, onDec, label }: { value: string; onInc: () => void; onDec: () => void; label: string }) {
   return (
     <View style={styles.stepper}>
-      <Pressable accessibilityRole="button" accessibilityLabel={`إنقاص ${label}`} onPress={onDec} style={styles.stepBtn}>
+      <PressScale accessibilityRole="button" accessibilityLabel={`إنقاص ${label}`} onPress={onDec} innerStyle={styles.stepBtn} scaleTo={0.88} feedback="select">
         <Icon name="minus" size={18} color={colors.ink} />
-      </Pressable>
+      </PressScale>
       <Display size={18} lineHeight={24}>
         {value}
       </Display>
-      <Pressable accessibilityRole="button" accessibilityLabel={`زيادة ${label}`} onPress={onInc} style={styles.stepBtn}>
+      <PressScale accessibilityRole="button" accessibilityLabel={`زيادة ${label}`} onPress={onInc} innerStyle={styles.stepBtn} scaleTo={0.88} feedback="select">
         <Icon name="plus" size={18} color={colors.ink} />
-      </Pressable>
+      </PressScale>
     </View>
   );
 }
@@ -237,13 +283,13 @@ export function Stepper({ value, onInc, onDec, label }: { value: string; onInc: 
 /** Soft outline button (rgba(247,241,241,.61) + white stroke). */
 export function SoftButton({ label, onPress, style }: { label: string; onPress?: () => void; style?: StyleProp<ViewStyle> }) {
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={style}>
+    <PressScale accessibilityRole="button" onPress={onPress} style={style}>
       <Squircle radius={30} fill="rgba(247,241,241,0.61)" stroke="#FFFFFF" glow="glass" style={styles.soft}>
         <Body size={14} weight="medium" color={colors.primary} lineHeight={20}>
           {label}
         </Body>
       </Squircle>
-    </Pressable>
+    </PressScale>
   );
 }
 
