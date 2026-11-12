@@ -42,13 +42,20 @@ export function ratqResource(slug: string): RatqResource {
 export const licenseLabel = (license: string) => license.replace(/^CC-/, 'CC ');
 
 /**
- * Maknoon is freemium (plan §12): NonCommercial or unlicensed sources cannot ship.
- * CC BY-ND is allowed but the text must be shown unmodified.
+ * Maknoon is distributed free: no ads, no subscriptions, no paid features.
+ * That makes NonCommercial (NC) sources usable. If a paid tier or ads are ever
+ * added, switch this to 'commercial' — every NC source must then be removed or
+ * separately licensed.
  */
-export function licenseGate(license: string): 'ok' | 'no-derivatives' | 'non-commercial' | 'unknown' {
+export const DISTRIBUTION: 'free' | 'commercial' = 'free';
+
+export type Gate = 'ok' | 'no-derivatives' | 'blocked-non-commercial' | 'unknown';
+
+/** ND = show the text exactly as published (no edits, no abridging). */
+export function licenseGate(license: string, distribution = DISTRIBUTION): Gate {
   const l = license.toUpperCase();
-  if (l.includes('-NC')) return 'non-commercial';
   if (l === 'UNSPECIFIED' || !l) return 'unknown';
+  if (l.includes('-NC') && distribution === 'commercial') return 'blocked-non-commercial';
   if (l.includes('-ND')) return 'no-derivatives';
   return 'ok';
 }

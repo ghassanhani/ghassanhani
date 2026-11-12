@@ -74,12 +74,15 @@ text with Amiri Quran. A page-faithful Madani layout needs the QCF V2 glyph font
 Ratq only lists resources. The files are downloaded from **Itqan CMS** (`cms.itqan.dev`, per-asset page in
 `source_url`), which may require an Itqan account.
 
-Licence gate for a freemium app: these Ratq entries are **CC BY-NC-ND, so non-commercial only**, and must not
-ship without separate written permission:
-- KFGQPC mushafs and Uthmanic fonts
+**Maknoon is a free app**: no ads, no subscriptions, no paid features (`DISTRIBUTION = 'free'` in
+`src/content/ratq.ts`). That makes Ratq's **CC BY-NC-ND** entries usable as well, with credit and unmodified text:
+- KFGQPC mushafs and Uthmanic fonts (Hafs, including the smart-device font)
 - التفسير الميسر and غريب القرآن
-- المختصر's surah objectives, Dar Alnafais word meanings and miqra's الجامع الوجيز
-- every recitation listed, including the "Mknoon" ones
+- المختصر's surah objectives
+- the recitations (Saudi Center, Tahbeer, Quran Qiraat, Mknoon)
+
+If a paid tier, ads or sponsored placements are ever added, set `DISTRIBUTION = 'commercial'`. The gate then
+flags every NC source, and each must be removed or licensed in writing.
 
 ## Content in this batch is design sample
 

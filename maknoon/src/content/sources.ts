@@ -28,10 +28,10 @@ export function tafsirSource(key: TafsirKey) {
   };
 }
 
-// Fail loudly in development if a registered source cannot ship in a paid app.
+// Fail loudly in development if a registered source cannot ship under the current distribution.
 if (__DEV__) {
   for (const key of Object.keys(TAFSIRS) as TafsirKey[]) {
     const { gate, title } = tafsirSource(key);
-    if (gate === 'non-commercial' || gate === 'unknown') console.warn(`[sources] ${title}: licence "${gate}" — not allowed in Maknoon`);
+    if (gate === 'blocked-non-commercial' || gate === 'unknown') console.warn(`[sources] ${title}: licence "${gate}" — not allowed in Maknoon`);
   }
 }
