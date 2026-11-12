@@ -47,7 +47,7 @@ export function getAyah(surah: number, ayah: number): Ayah | null {
 export function basmala(): Ayah | null {
   if (useTanzil) return tz.ayat['1:1'] ? { text: tz.ayat['1:1'], fontFamily: F.quran } : null;
   const t = kf.ayat['1:1'];
-  return t ? { text: t.replace(/[\s\u00a0]*[٠-٩]+$/, ''), fontFamily: F.quranHafs } : null;
+  return t ? { text: t.replace(/[\s\u00a0]+[^\u0621-\u064A]+$/, ''), fontFamily: F.quranHafs } : null;
 }
 
 /** Ayat on a Madinah mushaf page (KFGQPC page numbers), in order. */
