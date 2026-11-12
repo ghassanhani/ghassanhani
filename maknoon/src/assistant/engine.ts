@@ -1,5 +1,6 @@
 import { searchTafsirPack } from '@/content/packs';
 import { matchCount, searchQuran } from '@/search/engine';
+import { fuse, searchByMeaning } from '@/search/semantic';
 import { ayatNodes, curatedNodes, type Node } from './corpus';
 import { normalize, tokens } from './normalize';
 
@@ -39,7 +40,9 @@ export async function ask(question: string): Promise<Answer> {
   if (!toks.length) return { kind: 'empty', query: q };
 
   // Root-aware BM25 over all ayat (same engine as the Search tab).
-  const ayat = searchQuran(q, 5)
+  // Hybrid: root-aware BM25 fused with meaning-based ranking (when the Worker is reachable).
+  const semantic = await searchByMeaning(q, 20).catch(() => []);
+  const ayat = fuse(searchQuran(q, 20), semantic, 5)
     .map((h) => AYAH_BY_KEY.get(h.key))
     .filter((n): n is Node => !!n);
 

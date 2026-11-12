@@ -95,8 +95,8 @@ npm run typecheck
 ### Smart search (on-device, free)
 
 - `src/search/arabic.ts`: normalization (tashkeel, Quranic marks, hamza seats, alef/ya/ta-marbuta), clitic stemming and
-  light triliteral root extraction. It gets about 20/24 on a test set; weak-letter roots such as صلاة and أقيموا stay
-  approximate, and stems and exact words cover them.
+  light triliteral root extraction. It gets 25/28 on a test set (أتوب → توب, كبير → كبر, أقيموا → قيم); a few
+  weak-letter roots stay approximate, and stems and exact words cover them.
 - `npm run search:build` builds `assets/content/search-quran.json`: a BM25 index over roots and stems for all 6,236 ayat,
   plus the most frequent word forms per root.
 - `src/search/engine.ts` does the ranking.
@@ -110,10 +110,29 @@ npm run typecheck
   (`assets/content/search-mukhtasar.json`). Examples: «الربا» → البقرة ٢٧٥, «بر الوالدين» → مريم ١٤ / الإسراء ٢٥.
 - **Long tafsir entries** are paginated, never edited. Ibn Kathir on الفاتحة ١ is about 131k characters; it's revealed in
   growing pages (about 11 taps) and rendered as blocks of at most 3.5k characters.
-- Known limits:
-  - Weak-letter roots are approximate (أقيموا → «اقم» while يقيمون → «قيم»). Stems and exact words still find them.
-  - A root search can't tell meanings apart (رحمة "mercy" vs رَحِم "womb", both ر ح م).
-  - Both are what matching by *meaning* (embeddings) would fix next.
+- Known limits: a root search can't tell meanings apart (رحمة "mercy" vs رَحِم "womb", both ر ح م), and a few
+  weak-letter roots are still approximate. Meaning search (below) covers both.
+
+### Meaning search (Cloudflare Workers AI, free tier)
+
+- **What runs where.** Every ayah has a meaning vector (BGE-M3 over the ayah plus its al-Mukhtasar explanation,
+  int8, `assets/content/embeddings-ayat.bin`, 6.4 MB). The vectors ship inside the app. Only the search phrase goes to the
+  Maknoon Worker, which turns it into a vector. Matching happens on the device.
+- **Worker** (`server/assistant-worker`): `POST /embed` (one phrase, ≤300 chars) uses `@cf/baai/bge-m3`. Workers AI
+  doesn't keep the inputs, and the Worker has logging and observability off. `POST /embed-batch` is for building only and
+  needs a `BUILD_TOKEN` secret; the secret has been deleted, so it's off (403). The URL is `extra.searchWorkerUrl` in
+  `app.json`; set it to `null` to turn meaning search off.
+- **Hybrid ranking.** Word results (BM25) and meaning results are merged with reciprocal rank fusion (k = 60). Ayat found
+  both ways rise to the top. Ayat found only by meaning get a «بالمعنى» chip in the Search tab. Offline, out of free
+  quota or after 4 s, the app quietly uses word search alone.
+- Examples: «الأمانة في التجارة» → النساء ٢٩ (meaning only), «كيف أتوب من ذنب كبير» → غافر ٣.
+- **Rebuild vectors** (only if the Quran text or the bundled tafsir changes): set a temporary `BUILD_TOKEN` secret on the
+  Worker, run `MAKNOON_WORKER=https://… MAKNOON_BUILD_TOKEN=… npm run embeddings:build`, then delete the secret.
+- **Cost.** About 1,075 neurons per million tokens. A search phrase is a few tokens, so the free daily allowance covers a
+  very large number of searches.
+- **AI-written answers stay off** (`extra.assistantUrl: null`). In testing, the chat model added a fiqh claim that wasn't
+  in the sources it was given. The assistant shows sources only. The `POST /` route stays in the Worker for later, behind
+  the app's verifier.
 
 ## Design system
 

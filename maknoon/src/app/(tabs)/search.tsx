@@ -12,6 +12,7 @@ import { searchTafsirPack } from '@/content/packs';
 import { ar, getAyah } from '@/content/quran';
 import { quranIndex } from '@/content/worship';
 import { matchCount, rootInfo, searchQuran, terms } from '@/search/engine';
+import { fuse, searchByMeaning, semanticEnabled, type SemanticHit } from '@/search/semantic';
 import { F } from '@/theme/fonts';
 import { colors, space } from '@/theme/tokens';
 
@@ -36,7 +37,18 @@ export default function SearchScreen() {
   const q = useDeferredValue(query.trim());
 
   const root = useMemo(() => (q ? rootInfo(q) : null), [q]);
-  const ayat = useMemo(() => (q ? searchQuran(q, 30) : []), [q]);
+  const lexical = useMemo(() => (q ? searchQuran(q, 30) : []), [q]);
+  // Meaning-based results (Cloudflare Worker embeds the phrase; matching is on-device), fused by rank.
+  const [semantic, setSemantic] = useState<{ q: string; hits: SemanticHit[] }>({ q: '', hits: [] });
+  useEffect(() => {
+    let alive = true;
+    if (!q || !semanticEnabled || rootInfo(q)?.letters === q) return;
+    searchByMeaning(q, 30).then((hits) => alive && setSemantic({ q, hits }));
+    return () => {
+      alive = false;
+    };
+  }, [q]);
+  const ayat = useMemo(() => fuse(lexical, semantic.q === q ? semantic.hits : [], 30), [lexical, semantic, q]);
   const others = useMemo(() => {
     if (!q) return [];
     const need = Math.max(1, Math.ceil(terms(q).length * 0.6));
@@ -60,7 +72,7 @@ export default function SearchScreen() {
   const shownOthers = others.filter((n) => filter === 'all' || KIND_FILTER[n.kind] === filter);
   const showTafsir = filter === 'all' || filter === 'tafsir';
   const ayatShown = ayat.slice(0, more ? 30 : filter === 'quran' ? 10 : 4);
-  const nothing = q && !ayat.length && !others.length && !tafsir.length;
+  const nothing = q && !ayat.length && !others.length && !tafsir.length && (!semanticEnabled || semantic.q === q);
 
   return (
     <Screen backdrop="mist">
@@ -136,7 +148,10 @@ export default function SearchScreen() {
             <Pressable key={h.key} accessibilityRole="link" onPress={() => router.push(`/ayah/${h.key}` as never)}>
               <GlassCard style={{ gap: 4 }}>
                 <View style={styles.between}>
-                  <Display size={20}>{s.ayah.label}</Display>
+                  <View style={[styles.row, { gap: 8 }]}>
+                    <Display size={20}>{s.ayah.label}</Display>
+                    {h.via === 'meaning' ? <Chip label="بالمعنى" tone="suggested" /> : null}
+                  </View>
                   <Caption>{`${quranIndex.surahs[h.surah - 1].name} · ${ar(h.ayah)}`}</Caption>
                 </View>
                 <AyahText size={21} lineHeight={40} style={a ? { fontFamily: a.fontFamily } : null}>

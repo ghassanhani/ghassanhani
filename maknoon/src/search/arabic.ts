@@ -28,7 +28,8 @@ const SUFFIXES = ['تموها', 'كموها', 'هما', 'كما', 'تما', 'ت�
 export function stem(w: string): string {
   let s = w;
   for (const p of PREFIXES) {
-    if (s.startsWith(p) && s.length - p.length >= 3) {
+    // one-letter prefixes (و ف ب ك ل س) only when ≥4 letters remain: كبير ≠ ك+بير, وعد ≠ و+عد
+    if (s.startsWith(p) && s.length - p.length >= (p.length === 1 ? 4 : 3)) {
       s = s.slice(p.length);
       break;
     }
@@ -56,11 +57,11 @@ const PATTERNS: [RegExp, (m: RegExpMatchArray) => string][] = [
   [/^ت(...)$/, (m) => m[1]], // تفعل / تفعيل(after ي removal)
   [/^ي(...)$/, (m) => m[1]], // يفعل (imperfect)
   [/^ن(...)$/, (m) => m[1]], // نفعل
+  [/^ا(...)$/, (m) => m[1]], // أفعل / أفعُل (أتوب → توب) before the long-vowel patterns
   [/^(.)ا(..)$/, (m) => m[1] + m[2]], // فاعل
   [/^(..)ي(.)$/, (m) => m[1] + m[2]], // فعيل
   [/^(..)و(.)$/, (m) => m[1] + m[2]], // فعول
   [/^(..)ا(.)$/, (m) => m[1] + m[2]], // فعال
-  [/^ا(...)$/, (m) => m[1]], // افعل
   [/^(...)ن$/, (m) => m[1]], // فعلن (الرحمن → رحمن)
 ];
 

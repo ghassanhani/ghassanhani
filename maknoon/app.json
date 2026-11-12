@@ -36,14 +36,16 @@
         }
       ],
       "expo-image",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-asset"
     ],
     "scheme": "maknoon",
     "extra": {
       "supportsRTL": true,
       "forcesRTL": true,
       "packsBaseUrl": null,
-      "assistantUrl": null
+      "assistantUrl": null,
+      "searchWorkerUrl": "https://maknoon-assistant.ghassanhani0.workers.dev"
     },
     "experiments": {
       "typedRoutes": false

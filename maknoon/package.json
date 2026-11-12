@@ -12,6 +12,7 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "adhan": "^4.4.6",
     "expo": "~58.0.25",
+    "expo-asset": "~58.0.21",
     "expo-blur": "~58.0.6",
     "expo-constants": "~58.0.16",
     "expo-crypto": "~58.0.8",
@@ -51,7 +52,8 @@
     "itqan:pull": "NODE_USE_ENV_PROXY=1 node scripts/itqan-pull.mjs",
     "content:build": "node scripts/build-content.mjs",
     "packs:build": "node --no-warnings scripts/build-packs.mjs",
-    "search:build": "node --no-warnings --experimental-strip-types scripts/build-search.mts"
+    "search:build": "node --no-warnings --experimental-strip-types scripts/build-search.mts",
+    "embeddings:build": "NODE_USE_ENV_PROXY=1 node --no-warnings scripts/build-embeddings.mjs"
   },
   "private": true
 }

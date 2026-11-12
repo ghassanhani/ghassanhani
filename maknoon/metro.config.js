@@ -3,6 +3,6 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 // Bundled SQLite content packs (assets/packs/*.db) are shipped as assets.
-config.resolver.assetExts.push('db');
+config.resolver.assetExts.push('db', 'bin');
 
 module.exports = config;
