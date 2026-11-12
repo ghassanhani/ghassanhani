@@ -111,6 +111,7 @@ export default function SearchScreen() {
       </Pressable>
 
       {/* Assistant — retrieval-only, never a fatwa */}
+      <Pressable accessibilityRole="link" onPress={() => router.push('/assistant')}>
       <HeroCard hero="forest" style={{ gap: 8 }}>
         <Display size={22} color={colors.white}>
           {s.assistant.title}
@@ -120,6 +121,8 @@ export default function SearchScreen() {
         </Body>
         <Squircle radius={24} fill={colors.white} style={styles.ask}>
           <TextInput
+            editable={false}
+            pointerEvents="none"
             placeholder={s.assistant.placeholder}
             placeholderTextColor={colors.muted}
             style={[styles.input, { fontFamily: F.sans, fontSize: 15 }]}
@@ -127,6 +130,7 @@ export default function SearchScreen() {
           />
         </Squircle>
       </HeroCard>
+      </Pressable>
     </Screen>
   );
 }

@@ -36,7 +36,11 @@ npm run typecheck
 | `/topic` | موضوع الصبر: ayat, sunnah, scholars, private reflection | Topic |
 | `/grammar` | قاعدة فعل الأمر: two opinions, Quran examples, lexicon, matn | Grammar |
 | `/path` | مسار التعلّم: 12 stations, current one expanded with its links | Path |
-| `/me` (tab) | Tool list for now; Me/Settings/Plus artboards come later | (none yet) |
+| `/me` (tab) | أنا: sync status, counts, collections, study, worship tools, Plus, settings | Me |
+| `/assistant` | المساعد: sourced answer + personal-ruling refusal (sample; no model connected) | Assistant |
+| `/onboarding` | الإعداد الأول: language, madhhab highlight, goals, location mode | Onboarding |
+| `/settings` | الإعدادات: reading, prayer, notifications, content, privacy, sources & licences | Settings |
+| `/plus` | المكنون بلس: free promise + sadaqah-jariyah pack sponsorship (subscription off in the free app) | Plus |
 
 ### Notes on batch 2
 
@@ -61,6 +65,20 @@ npm run typecheck
   counts and path progress are **design samples** and must be replaced by reviewed data. The Quran and hadith snippets
   shown are the design's own strings.
 - Modules are reachable from the Library shelves, Home (learn and topic cards), and the Hadith isnad (ابن عمر → narrator).
+
+### Notes on batch 4
+
+- **Plus**: the canvas designs a paid subscription. Because the app is free (`DISTRIBUTION = 'free'`) and some
+  sources are NonCommercial, the subscription block (perks, price, «اشترك») is rendered only in a `'commercial'`
+  build. The free app shows the always-free line and the pack sponsorship (donations need a registered non-profit).
+- **Assistant** shows the canvas's two sample exchanges. No model is connected and the input is disabled. When one is,
+  it must follow plan §8: retrieval-only, quotes rendered from the database, and fatwa questions refused as shown.
+- **Settings › المصادر والتراخيص** is generated from what the app ships (`credits()` in `src/content/sources.ts`), not
+  from the design's draft list.
+- Settings and Onboarding choices are held in memory for now; persistence comes with the storage layer.
+  Onboarding is reachable from «أنا» and isn't yet forced on first launch.
+- The app icon from the canvas is in `assets/brand/app-icon.png` (716 px, corners baked in). The store icon needs a
+  1024 px square master from the designer.
 
 ## Design system
 

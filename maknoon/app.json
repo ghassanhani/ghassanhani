@@ -34,7 +34,8 @@
           "supportsRTL": true,
           "forcesRTL": true
         }
-      ]
+      ],
+      "expo-image"
     ],
     "scheme": "maknoon",
     "extra": {
