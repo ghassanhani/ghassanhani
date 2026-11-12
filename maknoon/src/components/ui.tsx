@@ -34,9 +34,10 @@ export function HeroCard({ hero, style, children }: Box & { hero: HeroName }) {
 }
 
 /** Solid white inner card (radius 20) used for list rows inside glass cards. */
-export function InnerCard({ style, children, selected }: Box & { selected?: boolean }) {
+/** `fill` colours the squircle itself; a backgroundColor in `style` would paint a square box behind it. */
+export function InnerCard({ style, children, selected, fill = colors.white }: Box & { selected?: boolean; fill?: string }) {
   return (
-    <Squircle radius={radius.inner} fill={colors.white} stroke={selected ? colors.primary : undefined} strokeWidth={2} style={[{ paddingVertical: 14, paddingHorizontal: 16 }, style]}>
+    <Squircle radius={radius.inner} fill={fill} stroke={selected ? colors.primary : undefined} strokeWidth={2} style={[{ paddingVertical: 14, paddingHorizontal: 16 }, style]}>
       {children}
     </Squircle>
   );

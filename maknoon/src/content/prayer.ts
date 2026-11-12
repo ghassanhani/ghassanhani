@@ -34,7 +34,8 @@ export function fmtDates(d: Date, tz: string) {
   } catch {
     h = '';
   }
-  return h ? `${g} · ${h}` : g;
+  // Some engines (iOS) ignore numberingSystem for the Gregorian day: make every digit Arabic-Indic.
+  return ar(h ? `${g} · ${h}` : g);
 }
 
 /** Re-computes every 30 s so the countdown and "next prayer" stay current. */
@@ -44,5 +45,5 @@ export function usePrayerDay(city: City, asr: AsrRule, method: MethodKey = city.
     const id = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(id);
   }, []);
-  return { now, ...dayFor({ lat: city.lat, lng: city.lng, method, asr }, now) };
+  return { now, ...dayFor({ lat: city.lat, lng: city.lng, method, asr, tz: city.tz }, now) };
 }

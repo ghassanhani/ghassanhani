@@ -64,12 +64,12 @@ export default function PrayerScreen() {
       <GlassCard style={{ gap: 8 }}>
         <Display size={22}>{P.today}</Display>
         {times.map((t) => {
-          const isNext = t.key === next.key && next.date.toDateString() === t.date.toDateString();
+          const isNext = t.key === next.key && t.date.getTime() === next.date.getTime();
           const done = t.date.getTime() <= now.getTime();
           const on = alerts[t.key];
           const note = isNext ? `القادمة · ${fmtDuration(t.date.getTime() - now.getTime())}` : t.key === 'sunrise' ? P.sunriseNote : done ? 'تمّت' : '';
           return (
-            <InnerCard key={t.key} style={[styles.row, { gap: 12, minHeight: 60, paddingVertical: 8 }, isNext && { backgroundColor: '#0C1140' }]}>
+            <InnerCard key={t.key} fill={isNext ? '#0C1140' : undefined} style={[styles.row, { gap: 12, minHeight: 60, paddingVertical: 8 }]}>
               <View style={[styles.dot, done && !isNext && { backgroundColor: colors.sky, borderWidth: 0 }, isNext && styles.dotNext]} />
               <View style={{ flex: 1 }}>
                 <Display size={18} color={isNext ? colors.white : colors.ink}>

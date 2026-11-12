@@ -57,6 +57,16 @@ test('after Isha the next prayer is tomorrow’s Fajr', () => {
   assert.ok(day.next.date.getTime() > isha.getTime());
 });
 
+test("'today' is the city's own day, not the phone's", () => {
+  // 22:30 UTC on 1 June is already 2 June in Makkah: the list must be Makkah's 2 June.
+  const c = CITIES.find((x) => x.key === 'makkah')!;
+  const now = new Date(Date.UTC(2026, 5, 1, 22, 30));
+  const day = dayFor({ lat: c.lat, lng: c.lng, method: c.method, asr: 'j', tz: c.tz }, now);
+  assert.ok(day.times[0].date.getTime() > now.getTime(), 'Fajr of the listed day is still ahead');
+  assert.equal(day.next.key, 'fajr');
+  assert.ok(day.next.date.getTime() - now.getTime() < 6 * 3600 * 1000);
+});
+
 test('every city gets six valid times, summer and winter (high latitudes included)', () => {
   for (const c of CITIES)
     for (const d of [new Date(2026, 5, 21), new Date(2026, 11, 21)]) {

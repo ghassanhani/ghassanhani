@@ -74,7 +74,15 @@ export const PRAYERS = [
 ] as const;
 export type PrayerKey = (typeof PRAYERS)[number]['key'];
 
-export type Settings = { lat: number; lng: number; method: MethodKey; asr: AsrRule; highLat?: HighLat };
+/** `tz`: the place's IANA time zone. "Today" is the place's calendar day, not the phone's. */
+export type Settings = { lat: number; lng: number; method: MethodKey; asr: AsrRule; highLat?: HighLat; tz?: string };
+
+/** Noon of the calendar day it is at `tz` at instant `now` (+`plus` days), as Adhan expects. */
+export function placeDay(now: Date, tz?: string, plus = 0): Date {
+  if (!tz) return new Date(now.getFullYear(), now.getMonth(), now.getDate() + plus, 12);
+  const [y, m, d] = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now).split('-').map(Number);
+  return new Date(y, m - 1, d + plus, 12);
+}
 
 /** Adhan parameters for a place. Far from the equator, Adhan's recommended rule keeps Fajr/Isha defined. */
 export function paramsFor(s: Settings): CalculationParameters {
@@ -92,11 +100,11 @@ export function timesFor(s: Settings, date: Date): Record<PrayerKey, Date> {
 
 /** Today's times, the next obligatory prayer (after Isha: tomorrow's Fajr) and the one before it. */
 export function dayFor(s: Settings, now: Date) {
-  const t = timesFor(s, now);
+  const t = timesFor(s, placeDay(now, s.tz));
   const times = PRAYERS.map((p) => ({ ...p, date: t[p.key] }));
   const obligatory = times.filter((x) => x.key !== 'sunrise');
   let next: { key: PrayerKey; name: string; date: Date } | undefined = obligatory.find((x) => x.date.getTime() > now.getTime());
-  if (!next) next = { key: 'fajr', name: 'الفجر', date: timesFor(s, new Date(now.getTime() + 86400000)).fajr };
+  if (!next) next = { key: 'fajr', name: 'الفجر', date: timesFor(s, placeDay(now, s.tz, 1)).fajr };
   const i = obligatory.findIndex((x) => x.key === next!.key) - 1;
   const prev = i >= 0 ? obligatory[i] : null;
   return { times, next, prev, qibla: qiblaFor(s.lat, s.lng) };
