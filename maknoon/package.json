@@ -39,7 +39,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "fetch:quran": "node scripts/fetch-quran.mjs",
-    "fonts:link": "node scripts/link-fonts.mjs"
+    "fonts:link": "node scripts/link-fonts.mjs",
+    "sync:ratq": "NODE_USE_ENV_PROXY=1 node scripts/sync-ratq.mjs"
   },
   "private": true
 }

@@ -11,6 +11,7 @@
  * row reuses "أخرجه في الصحيح · رقم ١٦"); do not ship them as facts.
  */
 import type { TintName } from '@/theme/tokens';
+import { tafsirSource } from './sources';
 
 export const home = {
   greeting: 'السلام عليكم',
@@ -118,11 +119,14 @@ export type LinkItem = {
   meta: string;
 };
 
+// Source title + «مركز تفسير عبر رتق · CC BY-ND» come from the Ratq catalogue (src/content/sources.ts);
+// the edition («دار ابن الجوزي») and the [placeholder] body are the design's.
+const ibnKathir = tafsirSource('ibnKathir');
 const tafsirSample = (status: LinkItem['status']): LinkItem => ({
-  source: 'تفسير ابن كثير',
+  source: ibnKathir.title,
   status,
   body: '[نص تفسير ابن كثير للآية كما نُشر، دون تعديل]',
-  meta: 'يشرح · دار ابن الجوزي · مركز تفسير عبر رتق · CC BY-ND',
+  meta: `يشرح · دار ابن الجوزي · ${ibnKathir.attribution}`,
 });
 
 export const ayahToday = {
