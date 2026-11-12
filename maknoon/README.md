@@ -176,7 +176,7 @@ So:
 1. Download Thmanyah Serif Display and Thmanyah Sans from **font.thmanyah.com** and put the `.otf`/`.ttf` files in
    `assets/fonts/thmanyah/` (git-ignored).
 2. Run `npm run fonts:link`. This writes `src/theme/thmanyah.local.native.ts`; don't commit it with entries.
-3. iOS and Android builds now use Thmanyah. EAS uploads follow `.easignore`, which keeps the local fonts, so cloud builds
+3. iOS and Android builds now use Thmanyah. EAS uploads follow `.easignore` at the repository root, which keeps the local fonts, so cloud builds
    bundle them too. **The web build always uses the fallbacks.**
 
 ## Content from Itqan
