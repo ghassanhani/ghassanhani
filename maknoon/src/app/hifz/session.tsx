@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
@@ -108,7 +109,7 @@ export default function HifzSessionScreen() {
           <Display size={17}>{S.tasmee.title}</Display>
           <Caption>{S.tasmee.meta}</Caption>
         </View>
-        <Cta label={S.tasmee.cta} height={40} compact />
+        <Cta label={S.tasmee.cta} height={40} compact onPress={() => router.push('/hifz/tasmee')} />
       </GlassCard>
 
       <GlassCard tint="peach" style={{ gap: 10 }}>

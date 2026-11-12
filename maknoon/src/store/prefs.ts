@@ -30,6 +30,7 @@ export type Prefs = {
   hifzLock: 'shown' | 'paused' | 'dismissed';
   notes: Record<string, string>;
   installedPacks: string[];
+  recitationModel: boolean; // the optional speech-model pack is downloaded and verified
 };
 
 // Defaults = the canvas's initial states.
@@ -55,6 +56,7 @@ export const DEFAULT_PREFS: Prefs = {
   hifzLock: 'shown',
   notes: {},
   installedPacks: [],
+  recitationModel: false,
 };
 
 const KEY = 'maknoon.prefs.v1';

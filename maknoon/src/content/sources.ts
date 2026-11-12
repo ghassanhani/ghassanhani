@@ -51,6 +51,8 @@ export function credits(): { name: string; terms: string }[] {
     { name: 'مواقيت الصلاة · Adhan', terms: 'MIT' },
     { name: 'بيانات السور · quran-meta', terms: 'MIT' },
     { name: 'الأيقونات · Hugeicons', terms: 'MIT' },
+    { name: 'التسميع · whisper.rn · whisper.cpp', terms: 'MIT' },
+    { name: 'نموذج التسميع · Tarteel whisper-base-ar-quran', terms: 'Apache-2.0 · محوَّل للهاتف دون إعادة تدريب' },
     { name: 'الخطوط · Amiri · Amiri Quran · IBM Plex Sans Arabic', terms: 'SIL OFL' },
     ...(usingThmanyah ? [{ name: 'خط ثمانية', terms: 'بترخيص ثمانية · مضمّن في التطبيق' }] : []),
     { name: 'مصادر الحديث والتفسير', terms: '[بحسب الإذن المكتوب]' },

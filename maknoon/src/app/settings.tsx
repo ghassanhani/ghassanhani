@@ -5,7 +5,7 @@ import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { AyahText, Body, Caption, Display } from '@/components/Typography';
-import { CountBadge, GlassCard, InnerCard, Segmented, Stepper, Switch } from '@/components/ui';
+import { CountBadge, GlassCard, InnerCard, Segmented, SoftButton, Stepper, Switch } from '@/components/ui';
 import { settings as S } from '@/content/account';
 import { downloadPack, isInstalled, packs, packsDownloadable, packsSupported, removePack } from '@/content/packs';
 import { credits } from '@/content/sources';
@@ -13,6 +13,7 @@ import { MADHHAB_NAMES, usePrefs } from '@/store/prefs';
 import { APP_NAME } from '@/config';
 import { METHODS, cityByKey } from '@/content/prayer';
 import { ar, basmala } from '@/content/quran';
+import { downloadModel, modelStatus, recitationModel, removeModel } from '@/recitation/model';
 import { semanticEnabled } from '@/search/semantic';
 import { colors } from '@/theme/tokens';
 
@@ -32,6 +33,19 @@ export default function SettingsScreen() {
   const city = cityByKey(prefs.city);
   const methodName = METHODS.find((m) => m.key === (prefs.prayerMethod ?? city.method))?.name ?? '';
   const preview = basmala(); // canonical text from the source file, never typed
+  const recStatus = modelStatus();
+  const [recBusy, setRecBusy] = useState(false);
+  const [recError, setRecError] = useState(false);
+  const getModel = async () => {
+    setRecBusy(true);
+    setRecError(false);
+    try {
+      await downloadModel();
+    } catch {
+      setRecError(true);
+    }
+    setRecBusy(false);
+  };
   const meaning = prefs.meaningSearch;
   const setMeaning = (v: boolean) => setPrefs({ meaningSearch: v });
   const analytics = prefs.analytics;
@@ -86,6 +100,33 @@ export default function SettingsScreen() {
         <View style={styles.sep} />
         <ToggleRow title={S.content.suggested.title} sub={S.content.suggested.sub} value={suggested} onChange={setSuggested} />
       </GlassCard>
+
+      {recStatus !== 'unsupported' ? (
+        <>
+          <Display size={21.5}>التسميع · تجريبي</Display>
+          <GlassCard style={{ gap: 8 }}>
+            <View style={[styles.row, { justifyContent: 'space-between', gap: 12 }]}>
+              <View style={{ flex: 1 }}>
+                <Display size={16}>{recitationModel.title}</Display>
+                <Caption>
+                  {recStatus === 'ready'
+                    ? 'مثبّت · يعمل دون اتصال'
+                    : recStatus === 'missing'
+                      ? `${recitationModel.bytes ? `${ar((recitationModel.bytes / 1e6).toFixed(0))} م.ب · ` : ''}تنزيل اختياري`
+                      : 'لم يُنشر بعد'}
+                </Caption>
+              </View>
+              {recStatus === 'missing' ? (
+                recBusy ? <ActivityIndicator color={colors.primary} /> : <SoftButton label="تنزيل" onPress={getModel} />
+              ) : recStatus === 'ready' ? (
+                <SoftButton label="حذف" onPress={() => void removeModel()} />
+              ) : null}
+            </View>
+            {recError ? <Caption color={colors.pendingInk}>تعذّر التنزيل أو لم يطابق الملف بصمته. لم يُحفظ شيء.</Caption> : null}
+            <Caption>نموذج Tarteel لتمييز التلاوة (Apache-2.0)، محوَّل ليعمل على الهاتف. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل.</Caption>
+          </GlassCard>
+        </>
+      ) : null}
 
       <Display size={21.5}>حزم التفسير</Display>
       <GlassCard style={{ paddingVertical: 8 }}>

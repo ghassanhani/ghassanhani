@@ -8,7 +8,10 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "app.maknoon"
+      "bundleIdentifier": "app.maknoon",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "يستمع المكنون إلى تلاوتك للتسميع فقط. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +21,10 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "app.maknoon"
+      "package": "app.maknoon",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",

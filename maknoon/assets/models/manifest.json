@@ -1,0 +1,13 @@
+{
+ "recitation": {
+  "id": "tarteel-whisper-base-ar-quran",
+  "title": "نموذج التسميع",
+  "file": "ggml-tarteel-base-ar-quran-q5_1.bin",
+  "bytes": null,
+  "sha256": null,
+  "license": "Apache-2.0",
+  "source": "tarteel-ai/whisper-base-ar-quran (Hugging Face), converted to GGML for whisper.cpp",
+  "modified": "Converted from the published weights to the GGML format and quantized (q5_1); the weights were not retrained.",
+  "version": 1
+ }
+}
