@@ -53,8 +53,7 @@ export default function SearchScreen() {
     if (!q) return [];
     const need = Math.max(1, Math.ceil(terms(q).length * 0.6));
     const scored = curatedNodes.map((n) => ({ n, m: matchCount(n.norm, q) })).sort((a, b) => b.m - a.m);
-    const strict = scored.filter((x) => x.m >= need);
-    return (strict.length ? strict : scored.filter((x) => x.m >= 1)).map((x) => x.n);
+    return scored.filter((x) => x.m >= need).map((x) => x.n); // no relaxed fallback (see assistant/engine.ts)
   }, [q]);
   const [tafsir, setTafsir] = useState<Node[]>([]);
   useEffect(() => {

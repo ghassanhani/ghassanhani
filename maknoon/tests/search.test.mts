@@ -1,7 +1,7 @@
 // SPEC M2: tashkeel-invariant search + the search test set's top-5 hit rate.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { fuse, rootInfoIn, searchIndex } from '../src/search/core.ts';
+import { fuse, matchCount, rootInfoIn, searchIndex, terms } from '../src/search/core.ts';
 import { quranIndex, readJson, top5, type TestSet } from './helpers.mts';
 
 const { idx, phrases } = quranIndex();
@@ -47,6 +47,12 @@ test('search test set: top-5 hit rate (lexical, offline)', () => {
   assert.ok(rate >= BASELINE, `top-5 hit rate fell below the recorded baseline ${BASELINE}`);
 });
 const BASELINE = 0.5; // raise as the engine improves; never lower without the founder
+
+test('question words and short fragments do not count as topic matches', () => {
+  assert.deepEqual(terms('كم ميراث الابن'), ['ميراث', 'الابن']);
+  assert.equal(matchCount('باب دعاوكم ايمانكم', 'كم ميراث'), 0); // كم inside a longer word is not a match
+  assert.equal(matchCount('فصل الميراث', 'كم ميراث'), 1);
+});
 
 test('fusion keeps items found by both rankings on top', () => {
   const a = [{ key: 'x' }, { key: 'y' }];

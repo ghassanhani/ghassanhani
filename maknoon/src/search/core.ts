@@ -7,7 +7,7 @@ import { fold, keysOf, root, rootOfStem, spacedRoot, variants } from './arabic.t
  */
 // Particles / question words that carry no topic (normalized spellings).
 const STOP = new Set(
-  'ما ماذا من هل كيف لماذا متى اين اي في علي عن الي ان او ثم قد لا لم لن هو هي هم انا انت نحن هذا هذه ذلك التي الذي الذين كان يكون مع عند بعد قبل كل بين حتي اذا لي لنا عليه فيه به له الاحاديث احاديث حديث الايات ايات ايه القران ورد يجوز يجب حكم فضل معني'.split(' '),
+  'ما ماذا من هل كيف كم لماذا متى اين ماهو ماهي لمن اي في علي عن الي ان او ثم قد لا لم لن هو هي هم انا انت نحن هذا هذه ذلك التي الذي الذين كان يكون مع عند بعد قبل كل بين حتي اذا لي لنا عليه فيه به له الاحاديث احاديث حديث الايات ايات ايه القران ورد يجوز يجب حكم فضل معني'.split(' '),
 );
 
 /** Topic terms of a query: folded words without stop-words (the article is ignored for the check). */
@@ -21,7 +21,8 @@ const K1 = 1.2;
 const B = 0.75;
 
 export type Index = { keys: string[]; len: number[]; avg: number; roots: Record<string, number[]>; stems: Record<string, number[]>; forms: Record<string, string[]> };
-export type Hit = { key: string; surah: number; ayah: number; score: number };
+/** `partial`: no document had most of the query's words, so these hits each match only some of them. */
+export type Hit = { key: string; surah: number; ayah: number; score: number; partial?: boolean };
 
 function bm25(idx: Index, postings: number[] | undefined, scores: Float32Array, weight: number, seen?: Uint8Array) {
   if (!postings) return;
@@ -75,7 +76,7 @@ export function searchIndex(idx: Index, query: string, limit: number, phraseText
     return out;
   };
   let hits = collect(Math.max(1, Math.ceil(ts.length * 0.6)));
-  if (!hits.length && ts.length > 1) hits = collect(1);
+  if (!hits.length && ts.length > 1) hits = collect(1).map((h) => ({ ...h, partial: true }));
   return hits.sort((x, y) => y.score - x.score || x.surah - y.surah || x.ayah - y.ayah).slice(0, limit);
 }
 
@@ -88,7 +89,8 @@ export function matchCount(normText: string, query: string): number {
   const ws = new Set(words.flatMap((k) => k.stems));
   return ts.filter((t) => {
     const k = keysOf(t);
-    return k.roots.some((r) => wr.has(r)) || k.stems.some((st) => ws.has(st)) || normText.includes(t);
+    // Whole-word matches only for short terms: a 2–3 letter term inside a longer word is noise (كم in دعاوكم).
+    return k.roots.some((r) => wr.has(r)) || k.stems.some((st) => ws.has(st)) || (t.length >= 4 && normText.includes(t));
   }).length;
 }
 
@@ -111,13 +113,15 @@ export function fuse<T extends { key: string }>(lexical: T[], semantic: T[], lim
   const score = new Map<string, number>();
   const item = new Map<string, T>();
   const from = new Map<string, Set<string>>();
-  const add = (list: T[], tag: string) =>
+  const add = (list: T[], tag: string, weight = 1) =>
     list.forEach((h, r) => {
-      score.set(h.key, (score.get(h.key) ?? 0) + 1 / (60 + r + 1));
+      score.set(h.key, (score.get(h.key) ?? 0) + weight / (60 + r + 1));
       if (!item.has(h.key)) item.set(h.key, h);
       (from.get(h.key) ?? from.set(h.key, new Set()).get(h.key)!).add(tag);
     });
-  add(lexical, 'words');
+  // When word search could only match part of the question, trust it half as much as meaning search.
+  const lexWeight = (lexical[0] as { partial?: boolean } | undefined)?.partial && semantic.length ? 0.5 : 1;
+  add(lexical, 'words', lexWeight);
   add(semantic, 'meaning');
   return [...score.entries()]
     .sort((a, b) => b[1] - a[1])

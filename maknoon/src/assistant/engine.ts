@@ -31,8 +31,9 @@ export async function ask(question: string): Promise<Answer> {
   const toks = tokens(q);
   const need = Math.max(1, Math.ceil(toks.length * 0.6)); // most topic words must appear
   const scored = curatedNodes.map((n) => ({ n, h: matchCount(n.norm, q) })).sort((a, b) => b.h - a.h);
-  let curated = scored.filter((x) => x.h >= need);
-  if (!curated.length) curated = scored.filter((x) => x.h >= 1); // relaxed, like the Quran search
+  // Curated hadith, adhkar and modules must match most of the question's topic words.
+  // No relaxed fallback here: one shared word made unrelated sources lead the answer.
+  const curated = scored.filter((x) => x.h >= need);
 
   if (PERSONAL.test(nq)) {
     return { kind: 'ruling', query: q, fiqh: curated.filter((x) => x.n.kind === 'fiqh').map((x) => x.n).slice(0, 2) };

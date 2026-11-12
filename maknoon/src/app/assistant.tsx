@@ -183,7 +183,8 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   hairline: { height: 1, backgroundColor: colors.hairline },
   suggest: { paddingVertical: 10, paddingHorizontal: 14 },
-  bubble: { alignSelf: 'flex-end', maxWidth: '85%', paddingVertical: 12, paddingHorizontal: 16 },
+  bubble: { alignSelf: 'flex-start', // the user's question sits on the start (right) side in RTL
+    maxWidth: '85%', paddingVertical: 12, paddingHorizontal: 16 },
   input: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 60, paddingStart: 18, paddingEnd: 8 },
   field: { flex: 1, minWidth: 0, fontSize: 15, color: colors.ink, textAlign: 'right', outlineWidth: 0 },
   send: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
