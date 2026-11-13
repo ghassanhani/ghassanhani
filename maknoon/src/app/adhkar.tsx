@@ -154,7 +154,7 @@ function DhikrCard({ d, count, onTap }: { d: Dhikr; count: number; onTap: () => 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  seg: { flex: 1, height: 10, borderRadius: 5 },
+  seg: { flex: 1, height: 10, borderRadius: 5 , borderCurve: 'continuous'},
   rail: { marginHorizontal: -space.gutter, flexGrow: 0 },
   railContent: { paddingHorizontal: space.gutter, gap: 9, paddingVertical: 2 },
   chip: { height: 42, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },

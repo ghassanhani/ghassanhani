@@ -221,5 +221,5 @@ const styles = StyleSheet.create({
   bell: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   hairline: { height: 1, backgroundColor: colors.hairline },
   options: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  option: { minHeight: 36, paddingHorizontal: 14, borderRadius: 18, backgroundColor: 'rgba(3,90,95,0.08)', alignItems: 'center', justifyContent: 'center' },
+  option: { minHeight: 36, paddingHorizontal: 14, borderRadius: 18, borderCurve: 'continuous', backgroundColor: 'rgba(3,90,95,0.08)', alignItems: 'center', justifyContent: 'center' },
 });

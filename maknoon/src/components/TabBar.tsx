@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   wrap: { position: 'absolute', start: 24, end: 25 },
   bar: {
     height: 64,
-    borderRadius: 32,
+    borderRadius: 32, borderCurve: 'continuous',
     overflow: 'hidden',
     boxShadow: 'inset 0 4px 4px rgba(255,255,255,0.25), 0 8px 24px rgba(39,40,51,0.08)',
   },

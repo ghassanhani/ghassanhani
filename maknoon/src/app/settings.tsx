@@ -306,5 +306,5 @@ function LinkItem({ title, sub, route, first }: { title: string; sub: string; ro
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   sep: { height: 1, backgroundColor: colors.hairline },
-  packBtn: { height: 36, paddingHorizontal: 16, borderRadius: 18, borderWidth: 1, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  packBtn: { height: 36, paddingHorizontal: 16, borderRadius: 18, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
 });

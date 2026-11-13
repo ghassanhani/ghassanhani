@@ -208,5 +208,5 @@ const styles = StyleSheet.create({
   tag: { minWidth: 44, height: 26, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
   juzGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   juz: { width: '15.2%', height: 30, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  legend: { width: 12, height: 12, borderRadius: 4, borderWidth: 1, borderColor: colors.ring },
+  legend: { width: 12, height: 12, borderRadius: 4, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.ring },
 });

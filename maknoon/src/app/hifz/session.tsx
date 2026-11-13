@@ -150,7 +150,7 @@ function Counter({ label, sub, n, of, color, onPress }: { label: string; sub: st
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
-  link: { minWidth: 36, height: 28, paddingHorizontal: 8, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(129,130,144,0.15)' },
+  link: { minWidth: 36, height: 28, paddingHorizontal: 8, borderRadius: 14, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(129,130,144,0.15)' },
   linkDone: { backgroundColor: colors.sky },
   linkNow: { backgroundColor: colors.primary },
   stepNo: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },

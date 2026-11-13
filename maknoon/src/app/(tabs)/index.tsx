@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   halfSlot: { flex: 1, flexBasis: 0 },
   half: { height: 189, padding: 16 },
   thick: { height: 30, marginTop: 'auto' },
-  thickTrack: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, borderRadius: 15, backgroundColor: '#818290', opacity: 0.3, boxShadow: 'inset 4px 4px 4px rgba(0,0,0,0.25)' },
+  thickTrack: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, borderRadius: 15, borderCurve: 'continuous', backgroundColor: '#818290', opacity: 0.3, boxShadow: 'inset 4px 4px 4px rgba(0,0,0,0.25)' },
   thickFill: { position: 'absolute', top: 0, bottom: 0 },
   smallChip: { height: 25, paddingHorizontal: 8, justifyContent: 'center' },
   rail: { marginHorizontal: -space.gutter, flexGrow: 0 },

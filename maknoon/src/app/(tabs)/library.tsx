@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   cell: { width: '48.3%' },
   shelf: { height: 165, padding: 20, gap: 4 },
   track: { height: 17, borderRadius: 9, backgroundColor: 'rgba(129,130,144,0.3)', overflow: 'hidden', flexDirection: 'row', boxShadow: 'inset 4px 4px 4px -1px rgba(0,0,0,0.12)' },
-  fill: { borderRadius: 9, backgroundColor: 'rgba(51,95,89,0.5)', boxShadow: '0 0 6px rgba(51,95,89,0.5)' },
+  fill: { borderRadius: 9, borderCurve: 'continuous', backgroundColor: 'rgba(51,95,89,0.5)', boxShadow: '0 0 6px rgba(51,95,89,0.5)' },
   between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   arrow: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
 });

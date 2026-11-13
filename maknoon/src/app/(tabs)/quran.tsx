@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   railContent: { paddingHorizontal: space.gutter, gap: 9 },
   mini: { width: 112, height: 116, padding: 14 },
   dotRing: { width: 18, height: 18, borderRadius: 9, borderWidth: 4, borderColor: colors.sky, backgroundColor: colors.white },
-  toolCard: { flex: 1, paddingVertical: 14, paddingHorizontal: 14, borderRadius: 24 },
+  toolCard: { flex: 1, paddingVertical: 14, paddingHorizontal: 14, borderRadius: 24 , borderCurve: 'continuous'},
   hairline: { height: 1, backgroundColor: colors.hairline },
   mineCard: { height: 116, padding: 14 },
 });

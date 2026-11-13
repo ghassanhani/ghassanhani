@@ -103,6 +103,6 @@ export default function AyahActions() {
 const styles = StyleSheet.create({
   sheet: { backgroundColor: '#F7F4F1', paddingTop: 22 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 20, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(20,24,40,0.12)' },
-  badge: { paddingHorizontal: 8, height: 26, borderRadius: 8, borderWidth: 1.5, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  badge: { paddingHorizontal: 8, height: 26, borderRadius: 8, borderCurve: 'continuous', borderWidth: 1.5, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   row: { height: 54, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 22, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(20,24,40,0.08)' },
 });

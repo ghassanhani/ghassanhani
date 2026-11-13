@@ -123,6 +123,6 @@ const styles = StyleSheet.create({
   dot: { width: 16, height: 16, borderRadius: 8, marginTop: 20, borderWidth: 3, borderColor: colors.sky, backgroundColor: colors.white },
   dotOpen: { backgroundColor: colors.primary, borderWidth: 0, boxShadow: '0 0 0 5px rgba(3,90,95,0.15)' },
   line: { flex: 1, width: 2, backgroundColor: 'rgba(3,90,95,0.2)', marginTop: 4 },
-  count: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 12, backgroundColor: 'rgba(3,90,95,0.08)' },
+  count: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 12, borderCurve: 'continuous', backgroundColor: 'rgba(3,90,95,0.08)' },
   pill: { paddingVertical: 6, paddingHorizontal: 12 },
 });

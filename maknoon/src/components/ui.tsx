@@ -162,9 +162,9 @@ export function ProgressBar({ value, height = 12, fill = colors.sky, track = '#8
   const v = Math.max(0, Math.min(1, value));
   return (
     <View style={{ height }} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(v * 100) }}>
-      <View style={[styles.segFill, { borderRadius: height / 2, backgroundColor: track, opacity: trackOpacity, boxShadow: 'inset 4px 4px 4px rgba(0,0,0,0.25)' }]} />
+      <View style={[styles.segFill, { borderRadius: height / 2, borderCurve: 'continuous', backgroundColor: track, opacity: trackOpacity, boxShadow: 'inset 4px 4px 4px rgba(0,0,0,0.25)' }]} />
       {v > 0 ? (
-        <View style={[styles.barFill, atStart(0), { width: `${v * 100}%`, borderRadius: height / 2, backgroundColor: fill }]} />
+        <View style={[styles.barFill, atStart(0), { width: `${v * 100}%`, borderRadius: height / 2, borderCurve: 'continuous', backgroundColor: fill }]} />
       ) : null}
     </View>
   );
@@ -185,19 +185,19 @@ const styles = StyleSheet.create({
   pill: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   segRow: { flexDirection: 'row', gap: 4 },
   seg: { height: 12, borderRadius: 30, overflow: 'hidden' },
-  segFill: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, borderRadius: 30 },
+  segFill: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, borderRadius: 30 , borderCurve: 'continuous'},
   // done: #3AAADA with the canvas inner light (0 4 blur 2 white .95, 0 -4 blur 2 white .15)
   segOn: { backgroundColor: '#3AAADA', boxShadow: 'inset 0 4px 4px rgba(255,255,255,0.95), inset 0 -4px 4px rgba(255,255,255,0.15)' },
   segOnSoft: { boxShadow: 'inset 0 -4px 4px rgba(255,255,255,0.35)' },
   barFill: { position: 'absolute', top: 0, bottom: 0, boxShadow: 'inset 0 4px 4px rgba(255,255,255,0.95), inset 0 -4px 4px rgba(255,255,255,0.15)' },
   // to go: #818290 at 30% with a soft inner shadow
   segOff: { backgroundColor: '#818290', opacity: 0.3, boxShadow: 'inset 4px 4px 4px rgba(0,0,0,0.25)' },
-  segPart: { position: 'absolute', top: 0, bottom: 0, width: '66.7%', backgroundColor: '#A57D33', borderRadius: 30, boxShadow: 'inset 0 2px 3px rgba(255,255,255,0.95), inset 0 -4px 4px rgba(255,255,255,0.15)' },
+  segPart: { position: 'absolute', top: 0, bottom: 0, width: '66.7%', backgroundColor: '#A57D33', borderRadius: 30, borderCurve: 'continuous', boxShadow: 'inset 0 2px 3px rgba(255,255,255,0.95), inset 0 -4px 4px rgba(255,255,255,0.15)' },
   sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  segTrack: { flexDirection: 'row', gap: 6, padding: 4, borderRadius: 30, backgroundColor: 'rgba(129,130,144,0.12)' },
+  segTrack: { flexDirection: 'row', gap: 6, padding: 4, borderRadius: 30, borderCurve: 'continuous', backgroundColor: 'rgba(129,130,144,0.12)' },
   segBtn: { minHeight: 42, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
   segPill: { position: 'absolute', top: 4, bottom: 4, backgroundColor: colors.white, boxShadow: '0 2px 6px rgba(39,40,51,0.08)', borderRadius: 22 },
-  switch: { width: 50, height: 30, borderRadius: 15, padding: 3, justifyContent: 'center' },
+  switch: { width: 50, height: 30, borderRadius: 15, borderCurve: 'continuous', padding: 3, justifyContent: 'center' },
   switchOnShadow: { boxShadow: 'inset 0 3px 4px rgba(255,255,255,0.35)' },
   switchOffShadow: { boxShadow: 'inset 3px 3px 4px -1px rgba(0,0,0,0.25)' },
   knob: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.white, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' },

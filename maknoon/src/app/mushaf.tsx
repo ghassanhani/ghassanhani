@@ -689,7 +689,7 @@ function Orb({ colors: c, icon, label, onPress, size = 68, live = false }: { col
       <Ripple size={size} color={c[0]} active={live} />
       <PressScale accessibilityRole="button" accessibilityLabel={label} onPress={onPress} scaleTo={0.9} feedback={icon === 'mic' || icon === 'wave' || icon === 'stop' ? 'soft' : 'select'}>
         <Breathe active={live} scale={1.04}>
-          <LinearGradient colors={c} start={{ x: 0.3, y: 0 }} end={{ x: 0.7, y: 1 }} style={[styles.orb, { width: size, height: size, borderRadius: size / 2 }]}>
+          <LinearGradient colors={c} start={{ x: 0.3, y: 0 }} end={{ x: 0.7, y: 1 }} style={[styles.orb, { width: size, height: size, borderRadius: size / 2 , borderCurve: 'continuous'}]}>
             <Icon name={icon} size={size * 0.44} color="#FFFFFF" />
           </LinearGradient>
         </Breathe>

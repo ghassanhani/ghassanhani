@@ -142,7 +142,7 @@ function PriceField({ label, value, onChange }: { label: string; value: string; 
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
-  statusOff: { alignSelf: 'flex-start', minHeight: 26, paddingHorizontal: 10, borderRadius: 13, justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.14)' },
+  statusOff: { alignSelf: 'flex-start', minHeight: 26, paddingHorizontal: 10, borderRadius: 13, borderCurve: 'continuous', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.14)' },
   stat: { flex: 1, paddingVertical: 12, paddingHorizontal: 14, gap: 4 },
   price: { fontSize: 22, color: colors.ink, paddingVertical: 0, minWidth: 0, textAlign: 'right' },
   amount: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 42, paddingHorizontal: 12 },

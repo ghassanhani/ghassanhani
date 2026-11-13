@@ -117,7 +117,7 @@ function Chips({ options, isOn, onPick, multi }: { options: readonly Opt[]; isOn
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   head: { alignItems: 'center', gap: 14, paddingTop: 22, paddingBottom: 6 },
-  icon: { width: 84, height: 84, borderRadius: 24, boxShadow: '0 10px 30px rgba(3,90,95,0.25)' },
+  icon: { width: 84, height: 84, borderRadius: 24, borderCurve: 'continuous', boxShadow: '0 10px 30px rgba(3,90,95,0.25)' },
   chip: { height: 42, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
   radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.white },
   radioOn: { borderWidth: 7, borderColor: colors.sky },

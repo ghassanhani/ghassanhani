@@ -158,7 +158,7 @@ export function Ripple({ size, color, active }: { size: number; color: string; a
     t.set(withRepeat(withTiming(1, { duration: 1800, easing: Easing.out(Easing.quad) }), -1));
   }, [active, reduced, t]);
   const anim = useAnimatedStyle(() => ({ opacity: active ? 0.45 * (1 - t.value) : 0, transform: [{ scale: 1 + 0.45 * t.value }] }));
-  return <Animated.View pointerEvents="none" style={[{ position: 'absolute', width: size, height: size, borderRadius: size / 2, borderWidth: 2, borderColor: color }, anim]} />;
+  return <Animated.View pointerEvents="none" style={[{ position: 'absolute', width: size, height: size, borderRadius: size / 2, borderCurve: 'continuous', borderWidth: 2, borderColor: color }, anim]} />;
 }
 
 /** Three dots that rise in turn while an answer is being looked up. */
