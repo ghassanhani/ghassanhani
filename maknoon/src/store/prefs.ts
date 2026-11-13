@@ -107,7 +107,7 @@ export function getPrefs() {
   return state;
 }
 
-function subscribe(l: () => void) {
+export function subscribe(l: () => void) {
   listeners.add(l);
   return () => listeners.delete(l);
 }

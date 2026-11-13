@@ -8,7 +8,7 @@
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer, type AudioStatus } from 'expo-audio';
 import { useSyncExternalStore } from 'react';
 import { quranIndex } from '@/content/worship';
-import { getPrefs } from '@/store/prefs';
+import { getPrefs, subscribe as onPrefs } from '@/store/prefs';
 import { ayahClip } from './ayahClip';
 
 export type Recitation = {
@@ -80,7 +80,7 @@ function ensure() {
       loaded();
       loaded = null;
     }
-    if (follow && st.isLoaded) {
+    if (follow?.r.t && st.isLoaded) {
       const k = ayahAt(follow.r, follow.surah, st.currentTime * 1000);
       if (k !== state.ayah) set({ ayah: k });
     }
@@ -93,7 +93,7 @@ function ensure() {
       if (follow && follow.surah < 114) {
         const next = follow.surah + 1;
         follow = { surah: next, r: follow.r };
-        set({ ayah: `${next}:1` });
+        set({ ayah: follow.r.t ? `${next}:1` : null });
         load(follow.r.urls[next - 1]).then((p) => p.play());
       } else {
         follow = null;
@@ -137,16 +137,19 @@ const timedReciter = () => {
   return chosen.t ? chosen : recitationById(DEFAULT_RECITER);
 };
 
-/** Continuous listening from an ayah (the Mushaf page), following the recitation ayah by ayah. */
+/**
+ * Continuous listening from an ayah (the Mushaf page) with the chosen recitation. A timed one starts
+ * at that ayah and is followed ayah by ayah; one without ayah timings starts at the beginning of the
+ * surah (where an ayah starts in it is never guessed).
+ */
 export async function playFrom(surah: number, ayah: number) {
-  const r = timedReciter();
-  const i = FIRST[surah] + ayah - 1;
+  const r = recitationById(getPrefs().reciter);
   stopAt = null;
   follow = { surah, r };
-  set({ playing: 'page', loading: true, reciter: r, ayah: `${surah}:${ayah}` });
+  set({ playing: 'page', loading: true, reciter: r, ayah: r.t ? `${surah}:${ayah}` : null });
   try {
     const p = await load(r.urls[surah - 1]);
-    await p.seekTo(r.t![2 * i] / 1000);
+    await p.seekTo(r.t ? r.t[2 * (FIRST[surah] + ayah - 1)] / 1000 : 0);
     p.play();
   } finally {
     set({ loading: false });
@@ -209,3 +212,23 @@ export const toggleSurah = (surah: number) => (state.playing === `surah:${surah}
 
 /** «تلاوة: … · الناشر · CC BY-NC-ND عبر رتق» */
 export const recitationCredit = (r: Recitation) => `تلاوة: ${r.name}${r.publisher ? ` · ${r.publisher}` : ''} · ${r.license.replace(/-/g, ' ').replace('CC BY NC ND', 'CC BY-NC-ND')} عبر رتق`;
+
+// A new reciter chosen while listening: carry on with the new voice from where the listening is.
+let lastReciter = getPrefs().reciter;
+onPrefs(() => {
+  const id = getPrefs().reciter;
+  if (id === lastReciter) return;
+  lastReciter = id;
+  const now = state.playing;
+  if (!now) return;
+  const restart = () => {
+    if (now === 'page') {
+      const [s, a] = (state.ayah ?? `${follow?.surah ?? 1}:1`).split(':').map(Number);
+      return playFrom(s, a);
+    }
+    if (now.startsWith('surah:')) return playSurah(Number(now.slice(6)));
+    const [s, a] = now.split(':').map(Number);
+    return playAyah(s, a);
+  };
+  restart().catch(() => stop());
+});
