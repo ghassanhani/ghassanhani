@@ -2,14 +2,14 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-import Animated, { Easing, runOnJS, useDerivedValue, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, runOnJS, useAnimatedKeyboard, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
 import { ThiqalIcon } from '@/components/ThiqalIcon';
 import { PageCurl } from '@/components/PageCurl';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type ShotTarget, pageShot, shotsSupported, takePageShot } from '@/content/pageShots';
-import { Image as RNImage, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { Image as RNImage, Keyboard, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { Pressable } from '@/components/Tap';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Backdrop } from '@/components/Backdrop';
@@ -20,6 +20,8 @@ import { mushaf as m } from '@/content/design';
 import { ar, ayahPlaceholder, ayatOnPage, basmala, getAyah } from '@/content/quran';
 import { SURAH_TITLES } from '@/content/surahTitles';
 import { ayahKey, pageOfAyah, type Qcf4Line, qcf4Available, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
+import { MadinahAyah } from '@/components/MadinahAyah';
+import { searchQuran } from '@/search/engine';
 import { recitationCredit, stop as stopAudio, togglePage, usePlayer } from '@/recitation/player';
 import { AyahMarker } from '@/components/AyahMarker';
 import { F } from '@/theme/fonts';
@@ -156,6 +158,20 @@ function MushafPage({ page }: { page: number }) {
   // the surah list opens as the system sheet (native slide, drag down to close)
   const pickSurah = () => router.push({ pathname: '/surah-picker', params: { current: String(onPage[0]?.surah ?? 1) } });
   const goTo = (p: number) => router.setParams({ page: String(Math.min(LAST_PAGE, Math.max(1, p))) });
+  // Search in the Mushaf: results above the field; a result opens its ayah's page.
+  const [query, setQuery] = useState('');
+  const [found, setFound] = useState<{ key: string; surah: number; ayah: number }[] | null>(null);
+  const runSearch = () => setFound(query.trim() ? searchQuran(query, 8) : null);
+  const openFound = (key: string) => {
+    const p = pageOfAyah(key);
+    setFound(null);
+    setQuery('');
+    Keyboard.dismiss();
+    if (p) goTo(p);
+  };
+  // the bottom controls ride above the keyboard
+  const kb = useAnimatedKeyboard();
+  const lift = useAnimatedStyle(() => ({ transform: [{ translateY: -Math.max(0, kb.height.value - insets.bottom - 8) }] }));
 
   // Listening from this page: the recitation follows the mushaf, turning the page when it moves on.
   const audio = usePlayer();
@@ -504,7 +520,23 @@ function MushafPage({ page }: { page: number }) {
           </Animated.View>
 
           {/* Bottom, as drawn: zoom, then search */}
-          <View style={[styles.controls, { bottom: insets.bottom + 24 }]} pointerEvents="box-none">
+          <Animated.View style={[styles.controls, { bottom: insets.bottom + 24 }, lift]} pointerEvents="box-none">
+            {found ? (
+              <Squircle radius={24} fill="rgba(255,255,255,0.96)" glow="glass" style={styles.results}>
+                {found.length ? (
+                  <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 260 }}>
+                    {found.map((h, i) => (
+                      <Pressable key={h.key} accessibilityRole="link" onPress={() => openFound(h.key)} style={[styles.result, i > 0 && styles.resultSep]}>
+                        <Caption color={colors.primary}>{`${quranIndex.surahs[h.surah - 1]?.name ?? ''} · الآية ${ar(h.ayah)} · ص ${ar(pageOfAyah(h.key) ?? 0)}`}</Caption>
+                        <MadinahAyah surah={h.surah} ayah={h.ayah} size={17} numberOfLines={2} />
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                ) : (
+                  <Caption style={{ padding: 14, textAlign: 'center' }}>لا نتائج لهذه الكلمات</Caption>
+                )}
+              </Squircle>
+            ) : null}
             <View style={styles.zoomRow}>
               <ZoomButton icon="minus" label="تصغير" onPress={() => setZoom((z) => Math.max(70, z - 10))} />
               <Squircle radius={24} fill={SOLID} style={styles.zoomValue}>
@@ -521,13 +553,25 @@ function MushafPage({ page }: { page: number }) {
             <Squircle radius={30} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.search}>
               <ThiqalIcon name="search" size={22} color={colors.primary} />
               <TextInput
+                value={query}
+                onChangeText={(t) => {
+                  setQuery(t);
+                  if (!t.trim()) setFound(null);
+                }}
+                onSubmitEditing={runSearch}
+                returnKeyType="search"
                 placeholder={m.searchPlaceholder}
                 placeholderTextColor={colors.primary}
                 style={[styles.searchInput, { fontFamily: F.display }]}
                 accessibilityLabel={m.searchPlaceholder}
               />
+              {query ? (
+                <Pressable accessibilityRole="button" accessibilityLabel="ابحث" hitSlop={8} onPress={runSearch}>
+                  <Icon name="arrowLeft" size={20} color={colors.primary} />
+                </Pressable>
+              ) : null}
             </Squircle>
-          </View>
+          </Animated.View>
         </>
       ) : null}
     </View>
@@ -841,6 +885,9 @@ const styles = StyleSheet.create({
   zoomRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   zoomBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   zoomValue: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 22 },
+  results: { alignSelf: 'stretch', paddingVertical: 4 },
+  result: { paddingHorizontal: 16, paddingVertical: 10, gap: 2 },
+  resultSep: { borderTopWidth: 1, borderTopColor: colors.hairline },
   search: { alignSelf: 'stretch', height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 20 },
   searchInput: { flex: 1, minWidth: 0, fontSize: 15, color: colors.primary, textAlign: 'center' },
 });
