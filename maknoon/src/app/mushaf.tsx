@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { ReduceMotion, SlideInDown, SlideOutDown } from 'react-native-reanimated';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Backdrop } from '@/components/Backdrop';
@@ -13,7 +13,8 @@ import { RoundButton } from '@/components/ui';
 import { mushaf as m } from '@/content/design';
 import { ar, ayahPlaceholder, ayatLabel, ayatOnPage, getAyah } from '@/content/quran';
 import { stripTashkeel } from '@/content/text';
-import { ayahKey, qcf4Available, qcf4Em, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
+import { ayahKey, pageOfAyah, qcf4Available, qcf4Em, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
+import { recitationCredit, togglePage, usePlayer } from '@/recitation/player';
 import { AyahMarker } from '@/components/AyahMarker';
 import { PAGE_FRAME_XML } from '@/components/ayahMarker';
 import { SvgXml } from 'react-native-svg';
@@ -80,13 +81,26 @@ function MushafPage({ page }: { page: number }) {
   }
   const goTo = (p: number) => router.setParams({ page: String(Math.min(LAST_PAGE, Math.max(1, p))) });
 
+  // Listening from this page: the recitation follows the mushaf, turning the page when it moves on.
+  const audio = usePlayer();
+  const listening = audio.playing === 'page';
+  const firstKey = keys[0] ?? '1:1';
+  const nowPage = listening && audio.ayah ? (qcf ? pageOfAyah(audio.ayah) : null) : null;
+  useEffect(() => {
+    if (nowPage && nowPage !== page) router.setParams({ page: String(nowPage) });
+  }, [nowPage, page]);
+  const listen = () => {
+    const [su, ay] = firstKey.split(':').map(Number);
+    togglePage(su, ay);
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <Backdrop name="sand" />
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 24, paddingBottom: insets.bottom + 150 }}>
         <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={() => setControls((v) => !v)}>
           {qcf ? (
-            qcfReady ? <QcfPageView page={page} tasmee={tasmee} onPickSurah={() => setPicking(true)} /> : <View style={{ minHeight: 600 }} />
+            qcfReady ? <QcfPageView page={page} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={() => setPicking(true)} /> : <View style={{ minHeight: 600 }} />
           ) : null}
           {qcf ? null : blocks.map((b, i) => (
             <View key={b.surah} style={i > 0 ? { marginTop: 18 } : null}>
@@ -157,6 +171,17 @@ function MushafPage({ page }: { page: number }) {
         }}
       />
 
+      {!controls && listening && !tasmee.note ? (
+        <View style={[styles.tasmee, { top: insets.top + 6 }]} pointerEvents="box-none">
+          <PressScale accessibilityRole="button" accessibilityLabel="إيقاف التلاوة" onPress={listen} feedback="tap">
+            <Squircle radius={22} fill="rgba(255,255,255,0.85)" glow="glass" style={styles.nowPlaying}>
+              <Icon name="pause" size={18} color={colors.primary} />
+              <Caption color={colors.primary}>{audio.reciter ? audio.reciter.name : ''}</Caption>
+            </Squircle>
+          </PressScale>
+        </View>
+      ) : null}
+
       {!controls && tasmee.note ? (
         <View style={[styles.tasmee, { top: insets.top + 6 }]} pointerEvents="box-none">
             <Squircle radius={16} fill="rgba(255,255,255,0.85)" glow="glass" style={styles.note}>
@@ -207,6 +232,15 @@ function MushafPage({ page }: { page: number }) {
               </Squircle>
               <RoundButton icon="chevronLeft" label="الصفحة التالية" onPress={() => goTo(page + 1)} size={48} iconSize={22} />
             </View>
+            <PressScale accessibilityRole="button" accessibilityLabel={listening ? 'إيقاف التلاوة' : 'استمع من هذه الصفحة'} onPress={listen} feedback="tap">
+              <Squircle radius={24} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.listen}>
+                <Icon name={listening ? 'pause' : 'play'} size={20} color={colors.primary} />
+                <Body size={15} weight="bold" color={colors.primary} lineHeight={20}>
+                  {listening ? 'إيقاف التلاوة' : 'استمع من هذه الصفحة'}
+                </Body>
+              </Squircle>
+            </PressScale>
+            {listening && audio.reciter ? <Caption style={{ textAlign: 'center' }}>{recitationCredit(audio.reciter)}</Caption> : null}
             <Squircle radius={30} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.search}>
               <Icon name="search" size={22} color={colors.primary} />
               <TextInput
@@ -229,7 +263,7 @@ function MushafPage({ page }: { page: number }) {
  * the widest line of the whole mushaf fits the width, so every page has the same size, as in print.
  * In the recitation check a hidden word keeps its place (transparent), exactly like the text mode.
  */
-function QcfPageView({ page, tasmee, onPickSurah }: { page: number; tasmee: ReturnType<typeof useTasmee>; onPickSurah: () => void }) {
+function QcfPageView({ page, tasmee, current, onPickSurah }: { page: number; tasmee: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void }) {
   const { width } = useWindowDimensions();
   const pg = qcf4Page(page);
   const w = Math.min(width, 520) - 48;
@@ -281,6 +315,8 @@ function QcfPageView({ page, tasmee, onPickSurah }: { page: number; tasmee: Retu
               // The ayah end: the design's teal medallion with the ayah number, in place of the font's mark
               if (wi === -1 && ai) return <AyahMarker key={gi} n={Number(ayahKey(ai).split(':')[1])} scale={size / 21} />;
               let style = null;
+              // the ayah being recited reads in teal
+              if (current && ai && ayahKey(ai) === current) style = styles.wListen;
               if (tasmee.active && ai && wi >= 0) {
                 const key = ayahKey(ai);
                 const { state, current } = tasmee.wordState(key, wi, wordCount(key));
@@ -446,6 +482,9 @@ const styles = StyleSheet.create({
   orb: { alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.65)', boxShadow: '0 6px 14px rgba(0,0,0,0.22)' },
   // Word states of the recitation check. Hidden words keep their width so the line layout does not move.
   wHidden: { color: 'transparent' },
+  wListen: { color: colors.primary },
+  nowPlaying: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16 },
+  listen: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   wCurrent: { color: '#1F7A33', backgroundColor: '#CDE9C3' },
   wCheck: { color: '#A8862B' },
   controls: { position: 'absolute', start: 20, end: 20, gap: 14, alignItems: 'center' },

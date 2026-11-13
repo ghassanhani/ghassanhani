@@ -40,6 +40,18 @@ const KEYS: string[] = [];
 for (const s of quranIndex.surahs) for (let a = 1; a <= s.ayat; a++) KEYS.push(`${s.n}:${a}`);
 export const ayahKey = (n: number) => KEYS[n - 1];
 
+// "s:a" → the Madinah page where that ayah begins
+let PAGE_OF: Map<string, number> | null = null;
+export function pageOfAyah(key: string) {
+  if (!PAGE_OF) {
+    PAGE_OF = new Map();
+    data.pages.forEach((pg, i) => {
+      for (const l of pg.l) if ('a' in l) for (const n of l.a) if (n && !PAGE_OF!.has(KEYS[n - 1])) PAGE_OF!.set(KEYS[n - 1], i + 1);
+    });
+  }
+  return PAGE_OF.get(key) ?? null;
+}
+
 /** Loads the fonts a page needs (its page font, plus the basmala font when it has one). */
 export function useQcf4Fonts(page: number) {
   const pg = qcf4Page(page);

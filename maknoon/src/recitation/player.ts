@@ -38,8 +38,9 @@ const FIRST: number[] = [];
   }
 }
 
-type State = { playing: string | null; loading: boolean; reciter: Recitation | null };
-let state: State = { playing: null, loading: false, reciter: null };
+/** `playing`: "s:a" (one ayah), "surah:s", or "page" (continuous from a page); `ayah`: the ayah being recited now, when timings allow */
+type State = { playing: string | null; loading: boolean; reciter: Recitation | null; ayah: string | null };
+let state: State = { playing: null, loading: false, reciter: null, ayah: null };
 const subs = new Set<() => void>();
 const set = (s: Partial<State>) => {
   state = { ...state, ...s };
@@ -57,6 +58,17 @@ export const usePlayer = () =>
 let player: AudioPlayer | null = null;
 let stopAt: number | null = null;
 let loaded: (() => void) | null = null;
+// continuous listening: the surah in the player and the recitation whose timings follow it
+let follow: { surah: number; r: Recitation } | null = null;
+
+/** The ayah being recited at `ms` in surah `surah` (timed recitations only). */
+function ayahAt(r: Recitation, surah: number, ms: number) {
+  const first = FIRST[surah];
+  const n = quranIndex.surahs[surah - 1].ayat;
+  let k = 0;
+  for (let a = 0; a < n; a++) if (r.t![2 * (first + a)] <= ms) k = a;
+  return `${surah}:${k + 1}`;
+}
 
 function ensure() {
   if (player) return player;
@@ -67,11 +79,26 @@ function ensure() {
       loaded();
       loaded = null;
     }
+    if (follow && st.isLoaded) {
+      const k = ayahAt(follow.r, follow.surah, st.currentTime * 1000);
+      if (k !== state.ayah) set({ ayah: k });
+    }
     if (stopAt !== null && st.currentTime >= stopAt) {
       stopAt = null;
       player?.pause();
-      set({ playing: null });
-    } else if (st.didJustFinish) set({ playing: null });
+      set({ playing: null, ayah: null });
+    } else if (st.didJustFinish) {
+      // continuous listening goes on into the next surah
+      if (follow && follow.surah < 114) {
+        const next = follow.surah + 1;
+        follow = { surah: next, r: follow.r };
+        set({ ayah: `${next}:1` });
+        load(follow.r.urls[next - 1]).then((p) => p.play());
+      } else {
+        follow = null;
+        set({ playing: null, ayah: null });
+      }
+    }
   });
   return player;
 }
@@ -89,18 +116,42 @@ async function load(url: string) {
 
 export function stop() {
   stopAt = null;
+  follow = null;
   player?.pause();
-  set({ playing: null, loading: false });
+  set({ playing: null, loading: false, ayah: null });
 }
+
+/** Timed recitation to use: the chosen one, or the default timed one when the chosen has no ayah timings. */
+const timedReciter = () => {
+  const chosen = recitationById(getPrefs().reciter);
+  return chosen.t ? chosen : recitationById(DEFAULT_RECITER);
+};
+
+/** Continuous listening from an ayah (the Mushaf page), following the recitation ayah by ayah. */
+export async function playFrom(surah: number, ayah: number) {
+  const r = timedReciter();
+  const i = FIRST[surah] + ayah - 1;
+  stopAt = null;
+  follow = { surah, r };
+  set({ playing: 'page', loading: true, reciter: r, ayah: `${surah}:${ayah}` });
+  try {
+    const p = await load(r.urls[surah - 1]);
+    await p.seekTo(r.t![2 * i] / 1000);
+    p.play();
+  } finally {
+    set({ loading: false });
+  }
+}
+export const togglePage = (surah: number, ayah: number) => (state.playing === 'page' ? stop() : playFrom(surah, ayah).catch(() => stop()));
 
 /** Plays one ayah with the chosen recitation (or the default timed one when the chosen has no ayah timings). */
 export async function playAyah(surah: number, ayah: number) {
-  const chosen = recitationById(getPrefs().reciter);
-  const r = chosen.t ? chosen : recitationById(DEFAULT_RECITER);
+  const r = timedReciter();
   const i = FIRST[surah] + ayah - 1;
   const start = r.t![2 * i] / 1000;
   const end = r.t![2 * i + 1] / 1000;
-  set({ playing: `${surah}:${ayah}`, loading: true, reciter: r });
+  follow = null;
+  set({ playing: `${surah}:${ayah}`, loading: true, reciter: r, ayah: null });
   try {
     const p = await load(r.urls[surah - 1]);
     await p.seekTo(start);
@@ -114,7 +165,8 @@ export async function playAyah(surah: number, ayah: number) {
 /** Plays a whole surah with the chosen recitation (works for every recitation). */
 export async function playSurah(surah: number) {
   const r = recitationById(getPrefs().reciter);
-  set({ playing: `surah:${surah}`, loading: true, reciter: r });
+  follow = null;
+  set({ playing: `surah:${surah}`, loading: true, reciter: r, ayah: null });
   try {
     const p = await load(r.urls[surah - 1]);
     stopAt = null;
