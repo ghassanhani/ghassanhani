@@ -504,16 +504,18 @@ function MushafPage({ page }: { page: number }) {
           {/* Top: back (start) · page turner (centre) · listen (end) */}
           <Animated.View entering={fadeIn} exiting={fadeOut} style={[styles.topStrip, { paddingTop: insets.top + 8 }]}>
           <View style={styles.topBar}>
-            <GlassRound label="رجوع" onPress={() => (router.canGoBack() ? router.back() : router.replace('/quran'))}>
-              <ThiqalIcon name="fwd" size={22} color={colors.white} />
-            </GlassRound>
+            <PressScale accessibilityRole="button" accessibilityLabel="رجوع" onPress={() => (router.canGoBack() ? router.back() : router.replace('/quran'))} hitSlop={6} scaleTo={0.92}>
+              <Squircle radius={24} fill="rgba(255,255,255,0.75)" glow="glass" style={styles.zoomBtn}>
+                <ThiqalIcon name="fwd" size={22} color={colors.ink} />
+              </Squircle>
+            </PressScale>
             {/* The surah of this page; tap to choose another */}
             <Pressable accessibilityRole="button" accessibilityLabel={`سورة ${quranIndex.surahs[(onPage[0]?.surah ?? 1) - 1]?.name ?? ''} · تغيير السورة`} onPress={pickSurah}>
-              <Squircle radius={24} fill={SOLID} style={styles.pager}>
-                <Body size={15} weight="bold" lineHeight={22} color={colors.white} numberOfLines={1}>
+              <Squircle radius={24} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.pager}>
+                <Body size={15} weight="bold" lineHeight={22} numberOfLines={1}>
                   {`سُورَةُ ${quranIndex.surahs[(onPage[0]?.surah ?? 1) - 1]?.name ?? ''}`}
                 </Body>
-                <Icon name="chevronDown" size={18} color={colors.white} />
+                <Icon name="chevronDown" size={18} color={colors.ink} />
               </Squircle>
             </Pressable>
             <PressScale accessibilityRole="button" accessibilityLabel={listening ? 'إيقاف التلاوة' : 'استمع من هذه الصفحة'} onPress={listen} feedback="tap" scaleTo={0.92}>
