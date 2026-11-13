@@ -28,7 +28,7 @@ import { quranIndex } from '@/content/worship';
 import { Breathe, haptic, isRTL, PressScale, Ripple, fadeIn, fadeOut } from '@/components/motion';
 import { type TasmeeNote, useTasmee } from '@/recitation/useTasmee';
 import { getPrefs, setPrefs, usePrefs } from '@/store/prefs';
-import { juzName, readingAt } from '@/store/reading';
+import { juzNameVoweled, readingAt } from '@/store/reading';
 
 /**
  * Mushaf reading (page ٥٠, آل عمران ١–٩ in the design).
@@ -690,13 +690,14 @@ const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH, ink, onHold, 
 /** The running head of a page: «الجزء الثاني عشر» on the right, «سورة هود» on the left (it opens the surah list). */
 function PageHead({ page, surah, onPickSurah, dark }: { page: number; surah: number; onPickSurah: () => void; dark: boolean }) {
   const r = readingAt(page);
-  const name = (quranIndex.surahs[surah - 1]?.name ?? '').replace(/[\u064B-\u0652\u0670\u0640]/g, '');
+  // the surah's voweled name, as in the app's surah list
+  const name = quranIndex.surahs[surah - 1]?.name ?? '';
   const tint = dark ? '#D9A08E' : '#A8503A';
   return (
     <View style={[styles.head, { flexDirection: isRTL() ? 'row' : 'row-reverse' }]}>
-      <Text style={[styles.headText, { color: tint }]}>{juzName(r.juz)}</Text>
+      <Text style={[styles.headText, { color: tint }]}>{juzNameVoweled(r.juz)}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel={`سورة ${name} · تغيير السورة`} hitSlop={8} onPress={onPickSurah}>
-        <Text style={[styles.headText, { color: tint }]}>{`سورة ${name}`}</Text>
+        <Text style={[styles.headText, { color: tint }]}>{`سُورَةُ ${name}`}</Text>
       </Pressable>
     </View>
   );
@@ -793,8 +794,9 @@ function GlassRound({ label, onPress, children }: { label: string; onPress: () =
 
 const styles = StyleSheet.create({
   banner: { height: 61, alignItems: 'center', justifyContent: 'center' },
-  head: { justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, height: 30, marginBottom: 2 },
-  headText: { fontFamily: F.quran, fontSize: 16, lineHeight: 28 },
+  // edge to edge with the lines of the page below it
+  head: { justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 0, height: 34, marginBottom: 2 },
+  headText: { fontFamily: F.displayBold, fontSize: 15, lineHeight: 30 },
   // The exported artwork carries a 4pt soft edge at the sides, 6pt above and 9pt below the 354×61 banner.
   bannerArt: { position: 'absolute', left: -4, right: -4, top: -6, bottom: -9 },
   bannerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
