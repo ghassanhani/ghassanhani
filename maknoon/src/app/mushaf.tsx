@@ -21,6 +21,7 @@ import { ar, ayahPlaceholder, ayatOnPage, basmala, getAyah } from '@/content/qur
 import { SURAH_TITLES } from '@/content/surahTitles';
 import { ayahKey, pageOfAyah, type Qcf4Line, qcf4Available, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
 import { MadinahAyah } from '@/components/MadinahAyah';
+import { Timeline } from '@/components/Timeline';
 import { searchQuran } from '@/search/engine';
 import { recitationCredit, stop as stopAudio, togglePage, usePlayer } from '@/recitation/player';
 import { AyahMarker } from '@/components/AyahMarker';
@@ -513,9 +514,13 @@ function MushafPage({ page }: { page: number }) {
             </PressScale>
           </View>
           {listening && audio.reciter ? (
-            <Caption numberOfLines={1} style={{ textAlign: 'center', marginTop: 8 }}>
-              {recitationCredit(audio.reciter)}
-            </Caption>
+            <View style={{ marginTop: 8, marginHorizontal: 24, gap: 2 }}>
+              {/* where the recitation is in this surah; drag to move through it */}
+              <Timeline tone={dark ? 'light' : 'dark'} />
+              <Caption numberOfLines={1} style={{ textAlign: 'center' }}>
+                {recitationCredit(audio.reciter)}
+              </Caption>
+            </View>
           ) : null}
           </Animated.View>
 
