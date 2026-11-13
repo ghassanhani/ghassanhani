@@ -100,7 +100,7 @@ function MushafPage({ page }: { page: number }) {
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 24, paddingBottom: insets.bottom + 150 }}>
         <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={() => setControls((v) => !v)}>
           {qcf ? (
-            qcfReady ? <QcfPageView page={page} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={() => setPicking(true)} /> : <View style={{ minHeight: 600 }} />
+            qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={() => setPicking(true)} /> : <View style={{ minHeight: 600 }} />
           ) : null}
           {qcf ? null : blocks.map((b, i) => (
             <View key={b.surah} style={i > 0 ? { marginTop: 18 } : null}>
@@ -175,7 +175,7 @@ function MushafPage({ page }: { page: number }) {
         <View style={[styles.tasmee, { top: insets.top + 6 }]} pointerEvents="box-none">
           <PressScale accessibilityRole="button" accessibilityLabel="إيقاف التلاوة" onPress={listen} feedback="tap">
             <Squircle radius={22} fill="rgba(255,255,255,0.85)" glow="glass" style={styles.nowPlaying}>
-              <Icon name="pause" size={18} color={colors.primary} />
+              <PlayPause playing size={16} color={colors.primary} />
               <Caption color={colors.primary}>{audio.reciter ? audio.reciter.name : ''}</Caption>
             </Squircle>
           </PressScale>
@@ -213,9 +213,35 @@ function MushafPage({ page }: { page: number }) {
 
       {controls ? (
         <>
+          {/* Top: back (start) · page turner (centre) · listen (end) */}
+          <Animated.View entering={fadeIn} exiting={fadeOut} style={[styles.topStrip, { paddingTop: insets.top + 8 }]}>
+          <View style={styles.topBar}>
+            <RoundButton icon="chevronRight" label="رجوع" onPress={() => (router.canGoBack() ? router.back() : router.replace('/quran'))} size={48} iconSize={22} />
+            <Squircle radius={24} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.pager}>
+              <Pressable accessibilityRole="button" accessibilityLabel="الصفحة السابقة" hitSlop={8} onPress={() => goTo(page - 1)} style={styles.pagerBtn}>
+                <Icon name="chevronRight" size={20} color={colors.ink} />
+              </Pressable>
+              <Body size={15} weight="bold" lineHeight={20}>{`صفحة ${ar(page)}`}</Body>
+              <Pressable accessibilityRole="button" accessibilityLabel="الصفحة التالية" hitSlop={8} onPress={() => goTo(page + 1)} style={styles.pagerBtn}>
+                <Icon name="chevronLeft" size={20} color={colors.ink} />
+              </Pressable>
+            </Squircle>
+            <PressScale accessibilityRole="button" accessibilityLabel={listening ? 'إيقاف التلاوة' : 'استمع من هذه الصفحة'} onPress={listen} feedback="tap" scaleTo={0.92}>
+              <Squircle radius={24} fill={colors.primary} glow="frost" noise={51.2} style={styles.listenBtn}>
+                <PlayPause playing={listening} size={20} color={colors.white} />
+              </Squircle>
+            </PressScale>
+          </View>
+          {listening && audio.reciter ? (
+            <Caption numberOfLines={1} style={{ textAlign: 'center', marginTop: 8 }}>
+              {recitationCredit(audio.reciter)}
+            </Caption>
+          ) : null}
+          </Animated.View>
+
+          {/* Bottom, as drawn: zoom, then search */}
           <View style={[styles.controls, { bottom: insets.bottom + 24 }]} pointerEvents="box-none">
             <View style={styles.zoomRow}>
-              <RoundButton icon="chevronRight" label="رجوع" onPress={() => (router.canGoBack() ? router.back() : router.replace('/quran'))} size={48} iconSize={22} />
               <ZoomButton icon="minus" label="تصغير" onPress={() => setZoom((z) => Math.max(70, z - 10))} />
               <Squircle radius={24} fill="rgba(255,255,255,0.75)" glow="glass" style={styles.zoomValue}>
                 <Icon name="search" size={20} color={colors.ink} />
@@ -225,22 +251,6 @@ function MushafPage({ page }: { page: number }) {
               </Squircle>
               <ZoomButton icon="plus" label="تكبير" onPress={() => setZoom((z) => Math.min(160, z + 10))} />
             </View>
-            <View style={styles.zoomRow}>
-              <RoundButton icon="chevronRight" label="الصفحة السابقة" onPress={() => goTo(page - 1)} size={48} iconSize={22} />
-              <Squircle radius={24} fill="rgba(255,255,255,0.75)" glow="glass" style={styles.zoomValue}>
-                <Body size={16} weight="bold" lineHeight={22}>{`صفحة ${ar(page)}`}</Body>
-              </Squircle>
-              <RoundButton icon="chevronLeft" label="الصفحة التالية" onPress={() => goTo(page + 1)} size={48} iconSize={22} />
-            </View>
-            <PressScale accessibilityRole="button" accessibilityLabel={listening ? 'إيقاف التلاوة' : 'استمع من هذه الصفحة'} onPress={listen} feedback="tap">
-              <Squircle radius={24} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.listen}>
-                <Icon name={listening ? 'pause' : 'play'} size={20} color={colors.primary} />
-                <Body size={15} weight="bold" color={colors.primary} lineHeight={20}>
-                  {listening ? 'إيقاف التلاوة' : 'استمع من هذه الصفحة'}
-                </Body>
-              </Squircle>
-            </PressScale>
-            {listening && audio.reciter ? <Caption style={{ textAlign: 'center' }}>{recitationCredit(audio.reciter)}</Caption> : null}
             <Squircle radius={30} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.search}>
               <Icon name="search" size={22} color={colors.primary} />
               <TextInput
@@ -263,10 +273,11 @@ function MushafPage({ page }: { page: number }) {
  * the widest line of the whole mushaf fits the width, so every page has the same size, as in print.
  * In the recitation check a hidden word keeps its place (transparent), exactly like the text mode.
  */
-function QcfPageView({ page, tasmee, current, onPickSurah }: { page: number; tasmee: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void }) {
+function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: number; zoom: number; tasmee: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void }) {
   const { width } = useWindowDimensions();
   const pg = qcf4Page(page);
-  const w = Math.min(width, 520) - 48;
+  // Zoom scales the whole page; past 100% it scrolls sideways, lines never re-wrap (the page stays the printed page).
+  const w = ((Math.min(width, 520) - 48) * zoom) / 100;
   const size = w / qcf4Em.line;
   const lineH = size * 2.05;
   const centred = page <= 2; // the first two pages are set in a narrow block, centred
@@ -287,8 +298,8 @@ function QcfPageView({ page, tasmee, current, onPickSurah }: { page: number; tas
     }
     return 1;
   })();
-  return (
-    <View>
+  const body = (
+    <View style={{ width: w, alignSelf: 'center' }}>
       {/* The design keeps the banner at the top of every page (it opens the surah list) */}
       {firstIsHeader ? null : <SurahBanner surah={firstSurah} onPress={onPickSurah} />}
       {pg.l.map((l, li) => {
@@ -332,6 +343,13 @@ function QcfPageView({ page, tasmee, current, onPickSurah }: { page: number; tas
         );
       })}
     </View>
+  );
+  return zoom > 100 ? (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      {body}
+    </ScrollView>
+  ) : (
+    body
   );
 }
 
@@ -449,6 +467,18 @@ function Orb({ colors: c, icon, label, onPress, size = 68, live = false }: { col
   );
 }
 
+/** Play, or a solid pause (two rounded bars). */
+function PlayPause({ playing, size, color }: { playing: boolean; size: number; color: string }) {
+  if (!playing) return <Icon name="play" size={size} color={color} />;
+  const bar = { width: size * 0.22, height: size * 0.72, backgroundColor: color };
+  return (
+    <View style={{ width: size, height: size, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: size * 0.18 }}>
+      <View style={[styles.pauseBar, bar]} />
+      <View style={[styles.pauseBar, bar]} />
+    </View>
+  );
+}
+
 function ZoomButton({ icon, label, onPress }: { icon: 'plus' | 'minus'; label: string; onPress: () => void }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress}>
@@ -484,7 +514,13 @@ const styles = StyleSheet.create({
   wHidden: { color: 'transparent' },
   wListen: { color: colors.primary },
   nowPlaying: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16 },
-  listen: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  // frosted strip so the bar reads as its own layer above the page (and never sits on the surah banner)
+  topStrip: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: 'rgba(237,232,225,0.96)', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(39,40,51,0.08)' },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  pager: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6 },
+  pagerBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  listenBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+  pauseBar: { borderRadius: 2 },
   wCurrent: { color: '#1F7A33', backgroundColor: '#CDE9C3' },
   wCheck: { color: '#A8862B' },
   controls: { position: 'absolute', start: 20, end: 20, gap: 14, alignItems: 'center' },
