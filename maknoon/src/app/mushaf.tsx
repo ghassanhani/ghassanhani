@@ -15,6 +15,8 @@ import { ar, ayahPlaceholder, ayatLabel, ayatOnPage, getAyah } from '@/content/q
 import { stripTashkeel } from '@/content/text';
 import { ayahKey, qcf4Available, qcf4Em, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
 import { AyahMarker } from '@/components/AyahMarker';
+import { PAGE_FRAME_XML } from '@/components/ayahMarker';
+import { SvgXml } from 'react-native-svg';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
 import { quranIndex } from '@/content/worship';
@@ -126,16 +128,20 @@ function MushafPage({ page }: { page: number }) {
             </View>
           ))}
 
-          {/* Footer: page number at the start, hizb marker at the end; the recitation buttons sit between them */}
+          {/* Footer, as drawn: the page number in its ornamented frame at the centre, the hizb marker at the end */}
           <View style={styles.footer}>
-            <Squircle radius={12} fill="rgba(3,90,95,0.12)" stroke="rgba(3,90,95,0.35)" style={styles.pageNo}>
-              <Body size={14} weight="bold" color={colors.primary} lineHeight={18}>
+            <View style={{ flex: 1 }} />
+            <View style={styles.pageNo} accessibilityLabel={`صفحة ${ar(page)}`}>
+              <SvgXml xml={PAGE_FRAME_XML} width={52.49} height={32.157} style={StyleSheet.absoluteFill} />
+              <Display size={15} lineHeight={20} color="#2E2F39">
                 {ar(page)}
+              </Display>
+            </View>
+            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+              <Body size={14} weight="medium" color={colors.primary}>
+                {page === DEFAULT_PAGE ? m.marker : ''}
               </Body>
-            </Squircle>
-            <Body size={14} weight="medium" color={colors.primary}>
-              {page === DEFAULT_PAGE ? m.marker : ''}
-            </Body>
+            </View>
           </View>
         </Pressable>
       </ScrollView>
@@ -425,7 +431,7 @@ const styles = StyleSheet.create({
   bannerName: { fontFamily: F.display, fontSize: 24, lineHeight: 40, color: colors.white, textAlign: 'center' },
   bannerChevron: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.28)', alignItems: 'center', justifyContent: 'center' },
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 },
-  pageNo: { minWidth: 52, height: 30, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
+  pageNo: { width: 52.49, height: 32.157, alignItems: 'center', justifyContent: 'center' },
   scrim: { flex: 1, backgroundColor: 'rgba(20,24,40,0.35)' },
   sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '72%', backgroundColor: '#F7F4F1', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 14 },
   sheetHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 10 },
