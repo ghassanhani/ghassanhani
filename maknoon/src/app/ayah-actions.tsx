@@ -25,6 +25,7 @@ export default function AyahActions() {
   const audio = usePlayer();
   const playing = audio.playing === key;
   const marked = prefs.bookmarks.includes(key);
+  const lit = prefs.highlights.includes(key);
   const text = () => `${getAyah(s, a)?.text ?? ''}\n[${name}: ${ar(a)}]`;
   const open = (path: string) => {
     router.back();
@@ -47,6 +48,14 @@ export default function AyahActions() {
       label: marked ? 'أزل الإشارة المرجعية' : 'أضف إشارة مرجعية',
       run: () => {
         setPrefs((p) => ({ bookmarks: marked ? p.bookmarks.filter((k) => k !== key) : [...p.bookmarks, key] }));
+        router.back();
+      },
+    },
+    {
+      icon: 'highlighter',
+      label: lit ? 'أزل التظليل' : 'ظلّل الآية',
+      run: () => {
+        setPrefs((p) => ({ highlights: lit ? p.highlights.filter((k) => k !== key) : [...p.highlights, key] }));
         router.back();
       },
     },

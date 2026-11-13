@@ -107,7 +107,15 @@ function MushafPage({ page }: { page: number }) {
   // A long press on an ayah marks it and opens its actions (listen, translation, tafsir, bookmark,
   // copy, share) as a system sheet; the mark clears when the sheet closes.
   const [held, setHeld] = useState<string | null>(null);
+  // Highlighter: while it is on, tapping an ayah highlights it (or clears it); saved on the device.
+  const [marking, setMarking] = useState(false);
   const toggleControls = useCallback(() => setControls((v) => !v), []);
+  const onTapWord = useCallback((key?: string) => {
+    if (marking && key) {
+      haptic.select();
+      setPrefs((p) => ({ highlights: p.highlights.includes(key) ? p.highlights.filter((k) => k !== key) : [...p.highlights, key] }));
+    } else setControls((v) => !v);
+  }, [marking]);
   const onHold = useCallback((key: string) => {
     haptic.select();
     setHeld(key);
@@ -235,8 +243,9 @@ function MushafPage({ page }: { page: number }) {
       runOnJS(haptic.soft)();
     })
     .onUpdate((e) => {
-      // Arabic page turning: right → left for the next page (the leaf lifts from its right edge)
-      let v = -e.translationX / winW;
+      // As a printed mushaf: drawn left → right for the next page (the page lifts from its left edge
+      // and turns over to the right about the binding), right → left to bring the previous one back
+      let v = e.translationX / winW;
       if ((v > 0 && !canNext) || (v < 0 && !canPrev)) v *= 0.08; // first or last page: a little give, no turn
       flip.set(Math.max(-1, Math.min(1, v)));
       const k = Math.floor(Math.abs(v) / PAPER_TICK);
@@ -249,7 +258,7 @@ function MushafPage({ page }: { page: number }) {
       const v = flip.get();
       const d = v > 0 ? 1 : -1;
       const allowed = d === 1 ? canNext : canPrev;
-      const vx = -e.velocityX;
+      const vx = e.velocityX;
       const fling = Math.abs(vx) > 650 && Math.sign(vx) === d;
       if (allowed && (Math.abs(v) > 0.3 || fling) && Math.sign(vx || v) !== -d) {
         runOnJS(playTurn)();
@@ -294,7 +303,7 @@ function MushafPage({ page }: { page: number }) {
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: PAGE_MARGIN, paddingBottom: insets.bottom + 150 }}>
         <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={toggleControls}>
           {pageView ? (
-            qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={pickSurah} held={held} onHold={onHold} onTap={toggleControls} dark={dark} /> : <View style={{ minHeight: 600 }} />
+            qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={pickSurah} held={held} onHold={onHold} onTap={onTapWord} dark={dark} highlights={prefs.highlights} /> : <View style={{ minHeight: 600 }} />
           ) : null}
           {pageView ? null : blocks.map((b, i) => (
             <View key={b.surah} style={i > 0 ? { marginTop: 18 } : null}>
@@ -357,10 +366,10 @@ function MushafPage({ page }: { page: number }) {
       </Animated.View>
       </GestureDetector>
       {PAGE_FLIP && canNext ? (
-        <PageCurl paper={dark ? DARK.paper : undefined} fromRight progress={forward} visible={showForward} width={winW} height={winH} leaf={curImg ? shotView(curImg) : <PageSheet page={page} dark={dark} text={!pageView} />} under={nextImg ? shotView(nextImg) : <PageSheet page={page + 1} dark={dark} text={!pageView} />} />
+        <PageCurl paper={dark ? DARK.paper : undefined} progress={forward} visible={showForward} width={winW} height={winH} leaf={curImg ? shotView(curImg) : <PageSheet page={page} dark={dark} text={!pageView} />} under={nextImg ? shotView(nextImg) : <PageSheet page={page + 1} dark={dark} text={!pageView} />} />
       ) : null}
       {PAGE_FLIP && canPrev ? (
-        <PageCurl paper={dark ? DARK.paper : undefined} fromRight progress={backward} visible={showBackward} width={winW} height={winH} leaf={prevImg ? shotView(prevImg) : <PageSheet page={page - 1} dark={dark} text={!pageView} />} under={curImg ? shotView(curImg) : <PageSheet page={page} dark={dark} text={!pageView} />} />
+        <PageCurl paper={dark ? DARK.paper : undefined} progress={backward} visible={showBackward} width={winW} height={winH} leaf={prevImg ? shotView(prevImg) : <PageSheet page={page - 1} dark={dark} text={!pageView} />} under={curImg ? shotView(curImg) : <PageSheet page={page} dark={dark} text={!pageView} />} />
       ) : null}
 
 
@@ -415,7 +424,14 @@ function MushafPage({ page }: { page: number }) {
               <Orb colors={['#4B6FB3', '#243F78']} icon="mic" label="ابدأ التسميع" onPress={tasmee.start} size={76} />
             )}
             <View style={{ flex: 1, gap: 10 }}>
-              {tasmee.active ? (
+              {marking ? (
+                <View style={[styles.chip, { alignSelf: 'flex-start', backgroundColor: 'rgba(255,214,64,0.9)' }]}>
+                  <Body size={13} weight="bold" lineHeight={18}>
+                    اضغط على آية لتظليلها
+                  </Body>
+                </View>
+              ) : null}
+              {tasmee.listening || tasmee.elapsed > 0 ? (
                 <View style={styles.chips}>
                   {/* slips found so far · where you are · time listening */}
                   <View style={[styles.chip, { backgroundColor: tasmee.errors ? '#C0392B' : 'rgba(192,57,43,0.55)' }]} accessibilityLabel={`${ar(tasmee.errors)} مواضع للمراجعة`}>
@@ -441,8 +457,8 @@ function MushafPage({ page }: { page: number }) {
               ) : null}
               <View style={styles.tools}>
                 <Tool icon="bookOpen" label="اختر السورة" onPress={pickSurah} />
-                <Tool icon={tasmee.hideText ? 'eyeOff' : 'eye'} label={tasmee.hideText ? 'أظهر النص' : 'أخفِ النص'} on={tasmee.hideText} onPress={() => tasmee.setHideText((v) => !v)} />
-                <Tool icon="highlighter" label={tasmee.showMarks ? 'أخفِ تمييز الأخطاء' : 'ميّز الأخطاء'} on={tasmee.showMarks} onPress={() => tasmee.setShowMarks((v) => !v)} />
+                <Tool icon={tasmee.hideText ? 'eyeOff' : 'eye'} label={tasmee.hideText ? 'أظهر الآيات' : 'أخفِ الآيات'} on={tasmee.hideText} onPress={() => tasmee.setHideText((v) => !v)} />
+                <Tool icon="highlighter" label={marking ? 'إنهاء التظليل' : 'ظلّل آية'} on={marking} onPress={() => setMarking((v) => !v)} />
                 <Tool icon="layers" label={view === 'page' ? 'عرض النص المتصل' : 'عرض صفحة المصحف'} on={view === 'text'} onPress={() => setPrefs({ mushafView: view === 'page' ? 'text' : 'page' })} />
                 <Tool icon="help" label="أظهر الكلمة التالية" onPress={tasmee.hint} />
                 {tasmee.active && !tasmee.listening ? <Tool icon="clean" label="إخفاء الكل والبدء من جديد" onPress={tasmee.reset} /> : null}
@@ -544,7 +560,7 @@ const PageSheet = memo(function PageSheet({ page, dark = false, text = false }: 
  * the widest line of the whole mushaf fits the width, so every page has the same size, as in print.
  * In the recitation check a hidden word keeps its place (transparent), exactly like the text mode.
  */
-function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, onHold, onTap, dark = false }: { page: number; zoom: number; tasmee?: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void; held?: string | null; onHold?: (key: string) => void; onTap?: () => void; dark?: boolean }) {
+function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, onHold, onTap, dark = false, highlights }: { page: number; zoom: number; tasmee?: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void; held?: string | null; onHold?: (key: string) => void; onTap?: (key?: string) => void; dark?: boolean; highlights?: string[] }) {
   const ink = dark ? DARK.ink : QURAN_INK;
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -581,7 +597,7 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, on
       const ai = l.a[gi];
       const wi = l.i[gi];
       if (wi === -1 && ai) return 'm';
-      let c = ai && held && ayahKey(ai) === held ? 'k' : current && ai && ayahKey(ai) === current ? 'l' : 'n';
+      let c = ai && held && ayahKey(ai) === held ? 'k' : current && ai && ayahKey(ai) === current ? 'l' : ai && highlights?.includes(ayahKey(ai)) ? 'y' : 'n';
       if (tasmee?.active && ai && wi >= 0) {
         const key = ayahKey(ai);
         const { state, current: now } = tasmee.wordState(key, wi, wordCount(key));
@@ -640,7 +656,7 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, on
 }
 
 /** The glyphs of one mushaf line, drawn from their codes (see `codesOf`); redrawn only when those change. */
-const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH, ink, onHold, onTap }: { l: Extract<Qcf4Line, { g: string }>; codes: string; font: string; size: number; lineH: number; ink: string; onHold?: (key: string) => void; onTap?: () => void }) {
+const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH, ink, onHold, onTap }: { l: Extract<Qcf4Line, { g: string }>; codes: string; font: string; size: number; lineH: number; ink: string; onHold?: (key: string) => void; onTap?: (key?: string) => void }) {
   const base = { fontFamily: font, fontSize: size, lineHeight: lineH, color: ink };
   return (
     <>
@@ -655,10 +671,10 @@ const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH, ink, onHold, 
               <AyahMarker n={Number(ayahKey(l.a[gi]).split(':')[1])} scale={(size / 21) * 0.86} />
             </View>
           );
-        const style = c === 'k' ? styles.wHeld : c === 'l' ? styles.wListen : c === 'c' ? styles.wCurrent : c === 'h' ? styles.wHidden : c === 'x' ? styles.wCheck : null;
+        const style = c === 'y' ? styles.wMarked : c === 'k' ? styles.wHeld : c === 'l' ? styles.wListen : c === 'c' ? styles.wCurrent : c === 'h' ? styles.wHidden : c === 'x' ? styles.wCheck : null;
         const ai = l.a[gi];
         return (
-          <Text key={k} style={[base, style]} onPress={onHold && ai ? onTap : undefined} onLongPress={onHold && ai ? () => onHold(ayahKey(ai)) : undefined} suppressHighlighting>
+          <Text key={k} style={[base, style]} onPress={onHold && ai && onTap ? () => onTap(ayahKey(ai)) : undefined} onLongPress={onHold && ai ? () => onHold(ayahKey(ai)) : undefined} suppressHighlighting>
             {ch}
           </Text>
         );
@@ -781,6 +797,8 @@ const styles = StyleSheet.create({
   wListen: { color: colors.primary },
   // the ayah whose actions are open
   wHeld: { backgroundColor: 'rgba(3,90,95,0.14)' },
+  // a highlighted ayah: a soft highlighter yellow
+  wMarked: { backgroundColor: 'rgba(255,214,64,0.45)' },
   nowPlaying: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16 },
   // frosted strip so the bar reads as its own layer above the page (and never sits on the surah banner)
   offscreen: { position: 'absolute', top: 0, left: -20000 },

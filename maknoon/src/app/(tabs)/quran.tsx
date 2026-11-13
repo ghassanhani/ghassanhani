@@ -170,8 +170,8 @@ export default function QuranHubScreen() {
       <Display size={22}>{q.mine.title}</Display>
       <View style={styles.row}>
         {q.mine.items.map((m) => {
-          // real counts from the device; highlights and notes are not built yet, so they read ٠
-          const n = m.icon === 'bookmark' ? prefs.bookmarks.length : 0;
+          // real counts from the device; notes are not built yet, so they read ٠
+          const n = m.icon === 'bookmark' ? prefs.bookmarks.length : m.icon === 'brush' ? prefs.highlights.length : 0;
           return (
             <Pressable key={m.title} style={{ flex: 1 }} accessibilityRole="button" disabled={m.icon !== 'bookmark'} onPress={() => router.push('/bookmarks')}>
               <GlassCard style={styles.mineCard}>

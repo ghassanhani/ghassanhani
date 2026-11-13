@@ -34,6 +34,7 @@ export type Prefs = {
   reciter: number; // RATQ recitation id (assets/content/recitations.json)
   lastPage: number | null; // the mushaf page last open (reading position), on the device only
   bookmarks: string[]; // bookmarked ayat, "surah:ayah", newest last
+  highlights: string[]; // highlighted ayat, "surah:ayah"
   quranDark: boolean; // the mushaf in dark mode (the rest of the app stays light)
   mushafView: 'page' | 'text'; // the Madinah page line for line, or the flowing text
 };
@@ -65,6 +66,7 @@ export const DEFAULT_PREFS: Prefs = {
   reciter: 35, // إبراهيم الدوسري: complete ayah timings on RATQ
   lastPage: null,
   bookmarks: [],
+  highlights: [],
   quranDark: false,
   mushafView: 'page',
 };

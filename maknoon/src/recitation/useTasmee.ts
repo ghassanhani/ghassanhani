@@ -38,8 +38,9 @@ export function useTasmee(ayahKeys: string[]) {
 
   const [heard, setHeard] = useState(''); // everything heard so far on this page
   // Reader's choices in the check: keep unrecited words hidden (recite from memory), and mark slips.
-  const [hideText, setHideText] = useState(true);
-  const [showMarks, setShowMarks] = useState(true);
+  // «إخفاء الآيات»: unrecited words are hidden at once, before or during listening; starting to
+  // listen turns it on (recite from memory), and the reader can turn it off to read along.
+  const [hideText, setHideText] = useState(false);
   // Time spent listening on this page (seconds), shown beside the recording dot.
   const [elapsed, setElapsed] = useState(0);
   const [listening, setListening] = useState(false);
@@ -51,7 +52,7 @@ export function useTasmee(ayahKeys: string[]) {
 
   const result = useMemo(() => (heard ? check(expected, heard) : null), [expected, heard]);
   const last = result?.last ?? -1;
-  const active = listening || !!heard || hinted.length > 0;
+  const active = listening || !!heard || hinted.length > 0 || hideText;
   useEffect(() => {
     if (!listening) return;
     const t = setInterval(() => setElapsed((e) => e + 1), 1000);
@@ -120,6 +121,7 @@ export function useTasmee(ayahKeys: string[]) {
       const words = expected.flatMap((e) => e.text.split(/\s+/).filter(Boolean));
       let i = kept.current ? kept.current.split(' ').length : 0;
       setListening(true);
+      setHideText(true);
       preview.current = setInterval(() => {
         i++;
         kept.current = words.slice(0, i).join(' ');
@@ -135,6 +137,7 @@ export function useTasmee(ayahKeys: string[]) {
     if (status !== 'ready') return setNote(status === 'missing' ? 'model-missing' : 'model-unavailable');
     try {
       setNote(null);
+      setHideText(true);
       session.current = await startListening((t) => setHeard(`${kept.current} ${t}`.trim()));
       setListening(true);
     } catch {
@@ -175,6 +178,7 @@ export function useTasmee(ayahKeys: string[]) {
     setHinted([]);
     setListening(false);
     setNote(null);
+    setHideText(false);
   };
 
   /** State of one displayed word: `index` among the ayah's displayed words, `shown` = how many it displays. */
@@ -190,9 +194,8 @@ export function useTasmee(ayahKeys: string[]) {
     if (hinted.includes(flat) && !current) return { state: 'hinted', current: false };
     // with the text shown, words not yet recited read normally; with marks off, slips read normally
     if (st === 'pending' && !hideText) return { state: 'ok', current: false };
-    if ((st === 'missing' || st === 'changed') && !showMarks) return { state: 'ok', current };
     return { state: st, current };
   };
 
-  return { active, listening, note, alert, start, stop, hint, reset, wordState, done: !!result?.complete, errors: confirmed.length, position, elapsed, hideText, setHideText, showMarks, setShowMarks };
+  return { active, listening, note, alert, start, stop, hint, reset, wordState, done: !!result?.complete, errors: confirmed.length, position, elapsed, hideText, setHideText };
 }
