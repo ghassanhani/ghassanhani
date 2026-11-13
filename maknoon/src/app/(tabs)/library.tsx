@@ -13,7 +13,7 @@ import { colors } from '@/theme/tokens';
 // Each shelf opens its module's sample screen from the canvas.
 const SHELF_ROUTES: Record<string, string> = {
   الحديث: '/hadith',
-  التفسير: '/ayah/3:3',
+  التفسير: '/tafsir',
   'الفقه وأصوله': '/fiqh',
   'السيرة والتاريخ': '/seerah',
   'التزكية والأخلاق': '/topic',

@@ -153,7 +153,7 @@ export default function QuranHubScreen() {
         {q.understand.items.map((it, i) => (
           <Fragment key={it.title}>
             {i ? <View style={styles.hairline} /> : null}
-            <Pressable accessibilityRole="button" style={[styles.between, { alignItems: 'center', paddingVertical: 12 }]}>
+            <Pressable accessibilityRole="button" onPress={() => 'route' in it && router.push(it.route as never)} style={[styles.between, { alignItems: 'center', paddingVertical: 12 }]}>
               <View style={{ flex: 1 }}>
                 <Display size={17}>{it.title}</Display>
                 <Body size={12} color={colors.primary}>
