@@ -9,12 +9,12 @@ import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
 import { TafsirText } from '@/components/TafsirText';
 import { AyahText, Body, Caption, Display } from '@/components/Typography';
-import { CountBadge, GlassCard, HeroCard, InnerCard, ReviewedChip, SuggestedChip } from '@/components/ui';
+import { CountBadge, GlassCard, HeroCard, InnerCard, ReviewedChip, Segmented, SuggestedChip } from '@/components/ui';
 import { ayahToday, home } from '@/content/design';
 import { ar, ayahPlaceholder, getAyah, quranSource } from '@/content/quran';
 import { packsSupported } from '@/content/packs';
 import { useTafsir, type TafsirEntry } from '@/content/tafsir';
-import { translationOf } from '@/content/translation';
+import { LANGS, type Lang, translationOf } from '@/content/translation';
 import { recitationCredit, toggleAyah, usePlayer } from '@/recitation/player';
 import { quranIndex } from '@/content/worship';
 import { colors } from '@/theme/tokens';
@@ -29,7 +29,8 @@ export default function AyahScreen() {
   const all = useTafsir(s, a);
   const tafsir = (all ?? []).filter((t) => t.text);
   const missing = (all ?? []).filter((t) => !t.installed);
-  const tr = translationOf(s, a);
+  const [lang, setLang] = useState<Lang>('en');
+  const tr = translationOf(s, a, lang);
   const audio = usePlayer();
   const here = audio.playing === `${s}:${a}`;
 
@@ -84,8 +85,8 @@ export default function AyahScreen() {
 
       {tr ? (
         <Drawer title="ترجمة المعاني">
+          <Segmented options={LANGS.map((l) => ({ value: l.key, label: l.label }))} value={lang} onChange={setLang} />
           <InnerCard>
-            <Caption color={colors.primary}>{tr.label}</Caption>
             {/* French reads left to right */}
             <Body size={15} lineHeight={24} style={styles.ltr}>
               {tr.text}

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Translation importer (RATQ): the French translation of the meanings by Rachid Maach
-// (IslamHouse, via QuranEnc), RATQ cms-10, CC BY-ND. SPEC §4: cleared, verbatim with attribution.
+// Translation importer (RATQ), verbatim with attribution, CC BY-ND:
+//   French — Rachid Maach (IslamHouse, via QuranEnc), RATQ cms-10 (SPEC §4: cleared)
+//   English — Hilali & Khan (IslamHouse, via QuranEnc), RATQ cms-9 (founder decision 2026-11-13)
 //
 //   node pipeline/importers/ratq/translation.mjs      reads assets/itqan/french-translation/*.csv
 //
@@ -18,6 +19,7 @@ import { findFile } from '../../../scripts/lib.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 const LANGS = {
   fr: { slug: 'french-translation', ratq: 'cms-10', name: 'Rachid Maach (IslamHouse, QuranEnc)' },
+  en: { slug: 'english-translation', ratq: 'cms-9', name: 'Hilali & Khan (IslamHouse, QuranEnc)' },
 };
 
 /** RFC 4180 rows as arrays of cells (quotes removed, "" → "). */

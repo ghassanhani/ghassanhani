@@ -111,7 +111,7 @@ Status **cleared** means ingest freely. Anything else: ask the founder first.
 | Quran text (Hafs) | Tanzil, Uthmani text | cleared | Keep verbatim; show the Tanzil credit and link |
 | Tafsir: الطبري، السعدي، ابن كثير، البغوي، المختصر | RATQ (ratq.itqan.dev), from مركز تفسير | cleared (founder works with the RATQ team) | Labelled CC-BY-ND: show as published with attribution; already split by ayah with coded footnotes. Ask the founder how footnotes should be displayed |
 | French translation of meanings | RATQ (Rachid Maach) | cleared | Verbatim with attribution. Imported 2026-11-13 (`pipeline/importers/ratq/translation.mjs`) |
-| English translation of meanings | RATQ cms-9 (Hilali-Khan, IslamHouse) | ask | Available on RATQ, CC BY-ND; not imported until the founder decides |
+| English translation of meanings | RATQ cms-9 (Hilali-Khan, IslamHouse) | **used by founder decision 2026-11-13** | CC BY-ND, verbatim with attribution (`pipeline/importers/ratq/translation.mjs`) |
 | Prayer times | `adhan-js` | cleared | MIT |
 | Recitation-check model | `tarteel-ai/whisper-base-ar-quran` | confirm licence on model card | |
 | Hadith text and gradings | undecided | **blocked** | Candidates: future RATQ resources, a permission from Sunnah.com or Dorar, or the public-domain `fawazahmed0/hadith-api` (provenance questions). Build the schema and importer interface now; ingest when the founder names the source |

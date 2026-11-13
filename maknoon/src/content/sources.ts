@@ -49,6 +49,7 @@ export function credits(): { name: string; terms: string }[] {
   return [
     { name: quranSource.name === 'Tanzil Uthmani' ? 'نص القرآن · Tanzil' : 'نص القرآن وخطه · مجمع الملك فهد عبر إتقان', terms: quranSource.name === 'Tanzil Uthmani' ? 'CC BY 3.0 · دون تعديل' : 'CC BY-NC-ND · دون تعديل' },
     { name: 'التفاسير الخمسة · مركز تفسير عبر رتق', terms: `${tafsir.attribution.split(' · ').pop()} · كما نُشرت` },
+    { name: 'الترجمة الإنجليزية للمعاني · الهلالي وخان (دار الإسلام عبر موسوعة القرآن الكريم) عبر رتق', terms: 'CC BY-ND · كما نُشرت' },
     { name: 'الترجمة الفرنسية للمعاني · رشيد معاش (دار الإسلام عبر موسوعة القرآن الكريم) عبر رتق', terms: 'CC BY-ND · كما نُشرت' },
     { name: 'التلاوات · المركز السعودي للتلاوات القرآنية وجمعية مكنون وغيرهما عبر رتق', terms: 'CC BY-NC-ND · تُشغَّل كما نُشرت' },
     { name: 'مواقيت الصلاة · Adhan', terms: 'MIT' },

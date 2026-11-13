@@ -16,3 +16,10 @@ test('translation-fr: carries its source, licence and the publisher notice', () 
   assert.equal(tr._license, 'CC-BY-ND');
   assert.match(tr._notice, /DON'T REMOVE/);
 });
+
+const en = JSON.parse(readFileSync(new URL('../assets/content/translation-en.json', import.meta.url), 'utf8'));
+test('translation-en: every ayah, same keys and order as the Quran text, from RATQ cms-9', () => {
+  assert.deepEqual(Object.keys(en.ayat), Object.keys(hafs));
+  assert.match(en._source, /cms-9/);
+  assert.equal(en._license, 'CC-BY-ND');
+});

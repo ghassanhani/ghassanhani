@@ -27,3 +27,7 @@ assets:
   # French translation of the meanings — Rachid Maach, IslamHouse via RATQ (cms-10), CC BY-ND (SPEC §4: cleared)
   french-translation:
     version: "^1.0.0"
+
+  # English translation of the meanings — Hilali & Khan, IslamHouse via RATQ (cms-9), CC BY-ND (founder decision 2026-11-13)
+  english-translation:
+    version: "^1.0.0"
