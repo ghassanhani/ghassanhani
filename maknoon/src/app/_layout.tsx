@@ -79,7 +79,7 @@ export default function RootLayout() {
           name="surah-picker"
           options={{
             presentation: 'formSheet',
-            sheetAllowedDetents: [0.72, 0.92],
+            sheetAllowedDetents: 'fitToContents',
             sheetGrabberVisible: true,
             sheetCornerRadius: 28,
             contentStyle: { backgroundColor: '#F7F4F1' },

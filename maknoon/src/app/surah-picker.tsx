@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import { Pressable } from '@/components/Tap';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/components/Icon';
@@ -25,64 +25,60 @@ export default function SurahPicker() {
   const [q, setQ] = useState('');
   const needle = stripTashkeel(q.trim());
   const list = needle ? quranIndex.surahs.filter((x) => stripTashkeel(x.name).includes(needle) || String(x.n) === needle || ar(x.n) === needle) : quranIndex.surahs;
+  const row = (x: (typeof list)[number]) => (
+    <Pressable
+      key={x.n}
+      accessibilityRole="button"
+      accessibilityState={{ selected: x.n === current }}
+      onPress={() => {
+        haptic.select();
+        router.dismissTo({ pathname: '/mushaf', params: { page: String(x.page) } });
+      }}
+      style={[styles.row, x.n === current && { backgroundColor: 'rgba(3,90,95,0.08)' }]}
+    >
+      <View style={styles.no}>
+        <Body size={13} weight="bold" color={colors.primary} lineHeight={18}>
+          {ar(x.n)}
+        </Body>
+      </View>
+      <View style={{ flex: 1 }}>
+        <Display size={17}>{x.name}</Display>
+        <Caption>{`${x.type} · ${ayatLabel(x.ayat)}`}</Caption>
+      </View>
+      <Caption>{`ص ${ar(x.page)}`}</Caption>
+    </Pressable>
+  );
   return (
-    // An explicit height: inside the iOS form sheet a flex-1 root can be laid out with no height
-    // (the list then drew over its header, then not at all). The sheet's tallest detent is 0.92.
-    <View style={[styles.sheet, { height: Math.round(height * 0.92) }]}>
-      <FlatList
-        data={list}
-        keyExtractor={(x) => String(x.n)}
-        initialScrollIndex={needle ? undefined : Math.max(0, current - 3)}
-        getItemLayout={(_, i) => ({ length: 56, offset: HEAD + 56 * i, index: i })}
-        initialNumToRender={14}
+    // A fixed height and a plain scroll view of all 114 rows: inside the iOS form sheet a
+    // virtualised list (FlatList) with two sheet heights was laid out empty. The sheet fits this
+    // height (one detent, as the ayah sheet that works).
+    <View style={[styles.sheet, { height: Math.round(height * 0.86) }]}>
+      <View style={styles.top}>
+        <View style={styles.head}>
+          <Display size={20}>اختر السورة</Display>
+        </View>
+        <View style={styles.search}>
+          <Icon name="search" size={18} color={colors.primary} />
+          <TextInput
+            value={q}
+            onChangeText={setQ}
+            placeholder="اسم السورة أو رقمها"
+            placeholderTextColor={colors.muted}
+            accessibilityLabel="ابحث عن سورة"
+            style={[styles.input, { fontFamily: F.sans }]}
+          />
+        </View>
+      </View>
+      <ScrollView
+        style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled"
-        // the title and search are the list's own pinned header: inside the system sheet a separate
-        // header and list could be laid out on top of each other
-        ListHeaderComponent={
-          <View style={styles.top}>
-            <View style={styles.head}>
-              <Display size={20}>اختر السورة</Display>
-            </View>
-            <View style={styles.search}>
-              <Icon name="search" size={18} color={colors.primary} />
-              <TextInput
-                value={q}
-                onChangeText={setQ}
-                placeholder="اسم السورة أو رقمها"
-                placeholderTextColor={colors.muted}
-                accessibilityLabel="ابحث عن سورة"
-                style={[styles.input, { fontFamily: F.sans }]}
-              />
-            </View>
-          </View>
-        }
-        stickyHeaderIndices={[0]}
-        // room at the end, so the last surah is reachable with the sheet at its lower height (0.72)
-        contentContainerStyle={{ paddingBottom: insets.bottom + 12 + Math.round(height * 0.2) }}
-        renderItem={({ item: x }) => (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ selected: x.n === current }}
-            onPress={() => {
-              haptic.select();
-              router.dismissTo({ pathname: '/mushaf', params: { page: String(x.page) } });
-            }}
-            style={[styles.row, x.n === current && { backgroundColor: 'rgba(3,90,95,0.08)' }]}
-          >
-            <View style={styles.no}>
-              <Body size={13} weight="bold" color={colors.primary} lineHeight={18}>
-                {ar(x.n)}
-              </Body>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Display size={17}>{x.name}</Display>
-              <Caption>{`${x.type} · ${ayatLabel(x.ayat)}`}</Caption>
-            </View>
-            <Caption>{`ص ${ar(x.page)}`}</Caption>
-          </Pressable>
-        )}
-        ListEmptyComponent={<Caption style={{ padding: 16, textAlign: 'center' }}>لا نتائج</Caption>}
-      />
+        // opens with the current surah near the top
+        contentOffset={{ x: 0, y: needle ? 0 : Math.max(0, current - 3) * 56 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+      >
+        {list.map(row)}
+        {!list.length ? <Caption style={{ padding: 16, textAlign: 'center' }}>لا نتائج</Caption> : null}
+      </ScrollView>
     </View>
   );
 }
