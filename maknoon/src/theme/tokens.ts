@@ -58,6 +58,10 @@ export type Blob = {
   /** radii, as fractions of the card box */
   rx: number;
   ry: number;
+  /** real Gaussian blur (Figma layer blur) instead of the radial-gradient stand-in */
+  blur?: number;
+  /** Figma progressive blur: blurred along `dir` until `from`, sharp (blur 2) after `to` (fractions of the gradient line) */
+  fade?: { dir: [number, number]; from: number; to: number };
 };
 
 export const tints = {
@@ -85,10 +89,11 @@ export const tints = {
 export const heroes = {
   night: {
     fill: '#0C1140',
+    // Exact ellipses of the canvas card (354 × 249): blur 50, progressive edge at -159°
     blobs: [
-      { color: '#7D7FC5', opacity: 0.95, cx: 0.2, cy: 1.0, rx: 0.65, ry: 0.5 },
-      { color: '#7DB3C5', opacity: 0.85, cx: 1.02, cy: 0.5, rx: 0.5, ry: 0.85 },
-      { color: '#C57D7E', opacity: 0.55, cx: 0.55, cy: 1.2, rx: 0.75, ry: 0.5 },
+      { color: '#7D7FC5', cx: 0.364, cy: 0.906, rx: 0.364, ry: 0.291, blur: 50, fade: { dir: [-0.358, 0.934], from: 0.39, to: 0.66 } },
+      { color: '#7DB3C5', cx: 0.973, cy: 0.855, rx: 0.281, ry: 0.711, blur: 50, fade: { dir: [0.934, 0.358], from: 0.367, to: 0.693 } },
+      { color: '#C57D7E', cx: 0.725, cy: 1.783, rx: 0.366, ry: 0.928, blur: 50, fade: { dir: [0.934, 0.358], from: 0.348, to: 0.721 } },
     ] as Blob[],
   },
   teal: {

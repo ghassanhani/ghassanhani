@@ -29,7 +29,7 @@ export function GlassCard({ style, children, tint, soft }: Box & { tint?: TintNa
 export function HeroCard({ hero, style, children }: Box & { hero: HeroName }) {
   const h = heroes[hero];
   return (
-    <Squircle radius={radius.card} fill={h.fill} blobs={h.blobs} glow="button" style={[{ padding: space.cardPad }, style]}>
+    <Squircle radius={radius.card} fill={h.fill} blobs={h.blobs} glow="frost" noise={128} style={[{ padding: space.cardPad }, style]}>
       {children}
     </Squircle>
   );

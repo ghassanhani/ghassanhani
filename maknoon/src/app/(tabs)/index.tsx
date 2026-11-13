@@ -65,7 +65,9 @@ export default function HomeScreen() {
               </Body>
             </View>
             <View style={{ alignItems: 'flex-end', gap: 14 }}>
-              <IconBubble name="compass" iconSize={20} color={colors.white} fill="rgba(255,255,255,0.12)" glow={false} />
+              <Squircle radius={20} stroke="rgba(255,255,255,0.34)" strokeWidth={2} style={styles.ring}>
+                <Icon name="compass" size={20} color={colors.white} />
+              </Squircle>
               <Display size={44} color={colors.white} lineHeight={60}>
                 {fmtTime(pd.next.date, city.tz)}
               </Display>
@@ -78,8 +80,9 @@ export default function HomeScreen() {
                 <Squircle
                   key={p.key}
                   radius={12}
-                  fill={active ? 'rgba(12,17,64,0.55)' : 'rgba(255,255,255,0.08)'}
-                  stroke="rgba(255,255,255,0.18)"
+                  // canvas: outline-only chips (white 28%, 1pt); the next prayer is a 25% black overlay without outline
+                  fill={active ? 'rgba(0,0,0,0.25)' : undefined}
+                  stroke={active ? undefined : 'rgba(255,255,255,0.28)'}
                   style={styles.prayerChip}
                 >
                   <Body size={11} weight="medium" color={colors.white} lineHeight={15}>
@@ -246,5 +249,6 @@ const styles = StyleSheet.create({
   rail: { marginHorizontal: -space.gutter, flexGrow: 0 },
   railContent: { paddingHorizontal: space.gutter, gap: 9 },
   mini: { width: 112, height: 116, padding: 14 },
+  ring: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   arrowBubble: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
 });

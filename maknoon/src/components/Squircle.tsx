@@ -3,6 +3,7 @@ import { type ReactNode, useId, useMemo, useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, View, type ViewProps, type ViewStyle, type StyleProp } from 'react-native';
 import Svg, {
   ClipPath,
+  Mask,
   Defs,
   Ellipse,
   FeGaussianBlur,
@@ -34,6 +35,8 @@ export type SquircleProps = ViewProps & {
   blobs?: Blob[];
   /** inner glow recipe: glass cards, CTA buttons, or none */
   glow?: GlowStrength;
+  /** grain tile size in pt (the canvas uses 38.4 on glass cards, 128 on hero cards) */
+  noise?: number;
   /** stroke drawn on the squircle edge (inside the shape) */
   stroke?: string;
   strokeWidth?: number;
@@ -49,7 +52,7 @@ export type SquircleProps = ViewProps & {
  * fill → tint blobs → inner glow (white inset light, as in the canvas CSS:
  * `inset 0 4px 14px 3px #fff/.65, inset 0 4px 4px #fff/.95, inset 0 -4px 4px #fff/.65`).
  */
-export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke, strokeWidth = 1, style, children, onLayout, ...rest }: SquircleProps) {
+export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise = 38, stroke, strokeWidth = 1, style, children, onLayout, ...rest }: SquircleProps) {
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
 
@@ -90,24 +93,36 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke,
                 <Stop offset="1" stopColor={gradient[1]} />
               </LinearGradient>
             ) : null}
-            {blobs?.map((b, i) => (
+            {blobs?.map((b, i) =>
+              b.blur ? (
+                <G key={i}>
+                  <Filter id={`bf${uid}${i}`} filterUnits="userSpaceOnUse" x={-400} y={-400} width={size.w + 800} height={size.h + 800}>
+                    <FeGaussianBlur stdDeviation={b.blur} />
+                  </Filter>
+                  <Filter id={`bs${uid}${i}`} filterUnits="userSpaceOnUse" x={-400} y={-400} width={size.w + 800} height={size.h + 800}>
+                    <FeGaussianBlur stdDeviation={2} />
+                  </Filter>
+                  {b.fade ? <FadeMask id={`${uid}${i}`} b={b} w={size.w} h={size.h} /> : null}
+                </G>
+              ) : (
               <RadialGradient key={i} id={`b${uid}${i}`} cx="50%" cy="50%" rx="50%" ry="50%">
                 <Stop offset="0" stopColor={b.color} stopOpacity={b.opacity ?? 1} />
                 {/* a long, even falloff stands in for Figma's 50px blur */}
                 <Stop offset="0.45" stopColor={b.color} stopOpacity={(b.opacity ?? 1) * 0.45} />
                 <Stop offset="1" stopColor={b.color} stopOpacity={0} />
               </RadialGradient>
-            ))}
+              ),
+            )}
             {g ? (
               <>
-                <Filter id={`g${uid}`} x="-20%" y="-20%" width="140%" height="140%">
+                <Filter id={`g${uid}`} filterUnits="userSpaceOnUse" x={-200} y={-200} width={size.w + 400} height={size.h + 400}>
                   <FeGaussianBlur stdDeviation={small ? 5 : 7} />
                 </Filter>
-                <Filter id={`h${uid}`} x="-10%" y="-10%" width="120%" height="120%">
+                <Filter id={`h${uid}`} filterUnits="userSpaceOnUse" x={-200} y={-200} width={size.w + 400} height={size.h + 400}>
                   <FeGaussianBlur stdDeviation={2} />
                 </Filter>
-                <Filter id={`w${uid}`} x="-30%" y="-30%" width="160%" height="160%">
-                  <FeGaussianBlur stdDeviation={30} />
+                <Filter id={`w${uid}`} filterUnits="userSpaceOnUse" x={-200} y={-200} width={size.w + 400} height={size.h + 400}>
+                  <FeGaussianBlur stdDeviation={43.5} />
                 </Filter>
               </>
             ) : null}
@@ -119,14 +134,23 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke,
               </RadialGradient>
             ) : null}
             {glow === 'frost' || (g && small) ? (
-              <Pattern id={`n${uid}`} patternUnits="userSpaceOnUse" width={38} height={38}>
-                <SvgImage href={NOISE} width={38} height={38} preserveAspectRatio="none" />
+              <Pattern id={`n${uid}`} patternUnits="userSpaceOnUse" width={noise} height={noise}>
+                <SvgImage href={NOISE} width={noise} height={noise} preserveAspectRatio="none" />
               </Pattern>
             ) : null}
           </Defs>
           <G clipPath={`url(#c${uid})`}>
             {fill || gradient ? <Path d={d} fill={gradient ? `url(#f${uid})` : g && small && fill ? `url(#e${uid})` : fill} /> : null}
-            {blobs?.map((b, i) => (
+            {blobs?.map((b, i) => {
+              const e = { cx: b.cx * size.w, cy: b.cy * size.h, rx: b.rx * size.w, ry: b.ry * size.h, fill: b.color, opacity: b.opacity ?? 1 };
+              if (b.blur)
+                return (
+                  <G key={i}>
+                    <Ellipse {...e} filter={`url(#bf${uid}${i})`} mask={b.fade ? `url(#mb${uid}${i})` : undefined} />
+                    {b.fade ? <Ellipse {...e} filter={`url(#bs${uid}${i})`} mask={`url(#ms${uid}${i})`} /> : null}
+                  </G>
+                );
+              return (
               <Ellipse
                 key={i}
                 cx={b.cx * size.w}
@@ -135,20 +159,23 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke,
                 ry={b.ry * size.h}
                 fill={`url(#b${uid}${i})`}
               />
-            ))}
-            {g ? (
+              );
+            })}
+            {g && !small ? (
               <>
-                {/* very wide, faint light that brightens the surface from every edge inward (inset 0 4 87 6 #fff/.2):
-                    it is what makes the canvas glass look smooth and icy instead of bevelled */}
-                {glow === 'frost' ? (
-                  <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={0.2} strokeWidth={120} filter={`url(#w${uid})`} transform="translate(0 4)" />
-                ) : null}
-                {/* wide soft inner light, offset 4 down */}
-                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={small ? 0.18 : g.wide} strokeWidth={small ? 12 : 20} filter={`url(#g${uid})`} transform="translate(0 4)" />
-                {/* crisp top highlight */}
-                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={small ? 0.5 : g.top} strokeWidth={6} filter={`url(#h${uid})`} transform="translate(0 4)" />
-                {/* bottom lip */}
-                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={small ? 0.3 : g.bottom} strokeWidth={6} filter={`url(#h${uid})`} transform="translate(0 -4)" />
+                {/* The canvas inner shadows, reproduced exactly: each one is the area outside the shape
+                    (grown inward by `erode`), shifted, blurred and filled white. Ordered as in the canvas. */}
+                {glow === 'frost' ? <Inset d={d} w={size.w} h={size.h} erode={6} dy={4} opacity={0.2} filter={`url(#w${uid})`} /> : null}
+                <Inset d={d} w={size.w} h={size.h} erode={3} dy={4} opacity={g.wide} filter={`url(#g${uid})`} />
+                <Inset d={d} w={size.w} h={size.h} erode={0} dy={4} opacity={g.top} filter={`url(#h${uid})`} />
+                <Inset d={d} w={size.w} h={size.h} erode={0} dy={-4} opacity={g.bottom} filter={`url(#h${uid})`} />
+              </>
+            ) : null}
+            {g && small ? (
+              <>
+                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={0.18} strokeWidth={12} filter={`url(#g${uid})`} transform="translate(0 4)" />
+                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={0.5} strokeWidth={6} filter={`url(#h${uid})`} transform="translate(0 4)" />
+                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={0.3} strokeWidth={6} filter={`url(#h${uid})`} transform="translate(0 -4)" />
               </>
             ) : null}
             {/* icon bubbles in the canvas: the colour is softly veiled and grained, never a dark disc */}
@@ -165,6 +192,52 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke,
       ) : null}
       {children}
     </View>
+  );
+}
+
+/** An inset shadow: white outside the shape plus an `erode`-wide band inside its edge, offset and blurred. */
+function Inset({ d, w, h, erode, dy, opacity, filter }: { d: string; w: number; h: number; erode: number; dy: number; opacity: number; filter: string }) {
+  const P = 200;
+  const outside = `M${-P} ${-P}H${w + P}V${h + P}H${-P}Z ${d}`;
+  return (
+    <G opacity={opacity} filter={filter}>
+      <G transform={`translate(0 ${dy})`}>
+        <Path d={outside} fill="#FFFFFF" fillRule="evenodd" />
+        {erode ? <Path d={d} fill="none" stroke="#FFFFFF" strokeWidth={erode * 2} /> : null}
+      </G>
+    </G>
+  );
+}
+
+/** The two masks of a Figma progressive blur: blurred copy fades out along the line, sharp copy fades in. */
+function FadeMask({ id, b, w, h }: { id: string; b: Blob; w: number; h: number }) {
+  const f = b.fade!;
+  const cx = b.cx * w;
+  const cy = b.cy * h;
+  // CSS gradient line over the ellipse box padded by 150 on each side
+  const W = 2 * b.rx * w + 300;
+  const H = 2 * b.ry * h + 300;
+  const [dx, dy] = f.dir;
+  const L = Math.abs(W * dx) + Math.abs(H * dy);
+  const line = { x1: cx - (dx * L) / 2, y1: cy - (dy * L) / 2, x2: cx + (dx * L) / 2, y2: cy + (dy * L) / 2 };
+  const box = { x: cx - W / 2, y: cy - H / 2, width: W, height: H };
+  return (
+    <>
+      <LinearGradient id={`gb${id}`} gradientUnits="userSpaceOnUse" {...line}>
+        <Stop offset={f.from} stopColor="#fff" stopOpacity={1} />
+        <Stop offset={f.to} stopColor="#fff" stopOpacity={0} />
+      </LinearGradient>
+      <LinearGradient id={`gs${id}`} gradientUnits="userSpaceOnUse" {...line}>
+        <Stop offset={f.from} stopColor="#fff" stopOpacity={0} />
+        <Stop offset={f.to} stopColor="#fff" stopOpacity={1} />
+      </LinearGradient>
+      <Mask id={`mb${id}`} maskUnits="userSpaceOnUse" {...box}>
+        <Rect {...box} fill={`url(#gb${id})`} />
+      </Mask>
+      <Mask id={`ms${id}`} maskUnits="userSpaceOnUse" {...box}>
+        <Rect {...box} fill={`url(#gs${id})`} />
+      </Mask>
+    </>
   );
 }
 
