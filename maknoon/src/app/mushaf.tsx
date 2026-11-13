@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { Easing, runOnJS, useDerivedValue, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
@@ -6,7 +6,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
 import { ThiqalIcon } from '@/components/ThiqalIcon';
 import { PageCurl } from '@/components/PageCurl';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type ShotTarget, pageShot, shotsSupported, takePageShot } from '@/content/pageShots';
 import { Image as RNImage, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -86,6 +86,16 @@ function MushafPage({ page }: { page: number }) {
   const [controls, setControls] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [prefs] = usePrefs();
+  // A long press on an ayah marks it and opens its actions (listen, translation, tafsir, bookmark,
+  // copy, share) as a system sheet; the mark clears when the sheet closes.
+  const [held, setHeld] = useState<string | null>(null);
+  const toggleControls = useCallback(() => setControls((v) => !v), []);
+  const onHold = useCallback((key: string) => {
+    haptic.select();
+    setHeld(key);
+    router.push({ pathname: '/ayah-actions', params: { key } });
+  }, []);
+  useFocusEffect(useCallback(() => setHeld(null), []));
   // The reading position: the page on screen is remembered (on the device only).
   useEffect(() => {
     if (getPrefs().lastPage !== page) setPrefs({ lastPage: page });
@@ -244,9 +254,9 @@ function MushafPage({ page }: { page: number }) {
       <Animated.View ref={pageRef} collapsable={false} style={StyleSheet.absoluteFill}>
       <Backdrop name="sand" />
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 24, paddingBottom: insets.bottom + 150 }}>
-        <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={() => setControls((v) => !v)}>
+        <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={toggleControls}>
           {qcf ? (
-            qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={pickSurah} /> : <View style={{ minHeight: 600 }} />
+            qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={pickSurah} held={held} onHold={onHold} onTap={toggleControls} /> : <View style={{ minHeight: 600 }} />
           ) : null}
           {qcf ? null : blocks.map((b, i) => (
             <View key={b.surah} style={i > 0 ? { marginTop: 18 } : null}>
@@ -460,7 +470,7 @@ const PageSheet = memo(function PageSheet({ page }: { page: number }) {
  * the widest line of the whole mushaf fits the width, so every page has the same size, as in print.
  * In the recitation check a hidden word keeps its place (transparent), exactly like the text mode.
  */
-function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: number; zoom: number; tasmee?: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void }) {
+function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, onHold, onTap }: { page: number; zoom: number; tasmee?: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void; held?: string | null; onHold?: (key: string) => void; onTap?: () => void }) {
   const { width } = useWindowDimensions();
   const pg = qcf4Page(page);
   // At 100% the page is the printed page, line for line. Zoomed in, the same words in the same order
@@ -491,7 +501,7 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: numbe
       const ai = l.a[gi];
       const wi = l.i[gi];
       if (wi === -1 && ai) return 'm';
-      let c = current && ai && ayahKey(ai) === current ? 'l' : 'n';
+      let c = ai && held && ayahKey(ai) === held ? 'k' : current && ai && ayahKey(ai) === current ? 'l' : 'n';
       if (tasmee?.active && ai && wi >= 0) {
         const key = ayahKey(ai);
         const { state, current: now } = tasmee.wordState(key, wi, wordCount(key));
@@ -499,7 +509,7 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: numbe
       }
       return c;
     }).join('');
-  const glyphs = (l: Extract<Qcf4Line, { g: string }>, li: number) => <Glyphs key={`g${li}`} l={l} codes={codesOf(l)} font={pg.f} size={size} lineH={lineH} />;
+  const glyphs = (l: Extract<Qcf4Line, { g: string }>, li: number) => <Glyphs key={`g${li}`} l={l} codes={codesOf(l)} font={pg.f} size={size} lineH={lineH} onHold={onHold} onTap={onTap} />;
   // Rows of the page: headers and basmala as they are; word lines either kept line for line,
   // or (zoomed) joined into one flowing paragraph per run of lines.
   const rows: React.ReactNode[] = [];
@@ -550,7 +560,7 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: numbe
 }
 
 /** The glyphs of one mushaf line, drawn from their codes (see `codesOf`); redrawn only when those change. */
-const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH }: { l: Extract<Qcf4Line, { g: string }>; codes: string; font: string; size: number; lineH: number }) {
+const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH, onHold, onTap }: { l: Extract<Qcf4Line, { g: string }>; codes: string; font: string; size: number; lineH: number; onHold?: (key: string) => void; onTap?: () => void }) {
   const base = { fontFamily: font, fontSize: size, lineHeight: lineH, color: colors.ink };
   return (
     <>
@@ -559,9 +569,10 @@ const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH }: { l: Extrac
         const k = `${gi}-${ch}`;
         // The ayah end: the design's teal medallion with the ayah number, in place of the font's mark
         if (c === 'm') return <AyahMarker key={k} n={Number(ayahKey(l.a[gi]).split(':')[1])} scale={size / 21} />;
-        const style = c === 'l' ? styles.wListen : c === 'c' ? styles.wCurrent : c === 'h' ? styles.wHidden : c === 'x' ? styles.wCheck : null;
+        const style = c === 'k' ? styles.wHeld : c === 'l' ? styles.wListen : c === 'c' ? styles.wCurrent : c === 'h' ? styles.wHidden : c === 'x' ? styles.wCheck : null;
+        const ai = l.a[gi];
         return (
-          <Text key={k} style={[base, style]}>
+          <Text key={k} style={[base, style]} onPress={onHold && ai ? onTap : undefined} onLongPress={onHold && ai ? () => onHold(ayahKey(ai)) : undefined} suppressHighlighting>
             {ch}
           </Text>
         );
@@ -657,6 +668,8 @@ const styles = StyleSheet.create({
   // Word states of the recitation check. Hidden words keep their width so the line layout does not move.
   wHidden: { color: 'transparent' },
   wListen: { color: colors.primary },
+  // the ayah whose actions are open
+  wHeld: { backgroundColor: 'rgba(3,90,95,0.14)' },
   nowPlaying: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16 },
   // frosted strip so the bar reads as its own layer above the page (and never sits on the surah banner)
   offscreen: { position: 'absolute', top: 0, left: -20000 },

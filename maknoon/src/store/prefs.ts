@@ -33,6 +33,7 @@ export type Prefs = {
   recitationModel: boolean; // the optional speech-model pack is downloaded and verified
   reciter: number; // RATQ recitation id (assets/content/recitations.json)
   lastPage: number | null; // the mushaf page last open (reading position), on the device only
+  bookmarks: string[]; // bookmarked ayat, "surah:ayah", newest last
 };
 
 // Defaults = the canvas's initial states.
@@ -61,6 +62,7 @@ export const DEFAULT_PREFS: Prefs = {
   recitationModel: false,
   reciter: 35, // إبراهيم الدوسري: complete ayah timings on RATQ
   lastPage: null,
+  bookmarks: [],
 };
 
 const KEY = 'maknoon.prefs.v1';

@@ -62,6 +62,10 @@ export default function RootLayout() {
         <Stack.Screen name="ayah/[id]" />
         {/* the platform's own bottom sheet: native slide, grabber, drag down to close */}
         <Stack.Screen
+          name="ayah-actions"
+          options={{ presentation: 'formSheet', sheetAllowedDetents: 'fitToContents', sheetGrabberVisible: true, sheetCornerRadius: 28, contentStyle: { backgroundColor: '#F7F4F1' } }}
+        />
+        <Stack.Screen
           name="surah-picker"
           options={{
             presentation: 'formSheet',

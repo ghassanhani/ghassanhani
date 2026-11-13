@@ -169,17 +169,23 @@ export default function QuranHubScreen() {
       {/* My Quran */}
       <Display size={22}>{q.mine.title}</Display>
       <View style={styles.row}>
-        {q.mine.items.map((m) => (
-          <GlassCard key={m.title} style={styles.mineCard}>
-            <IconBubble name={m.icon as IconName} size={31} iconSize={16} color={colors.ink} />
-            <View style={{ marginTop: 'auto' }}>
-              <Display size={16}>{m.title}</Display>
-              <Body size={13} color={colors.primary}>
-                {m.count}
-              </Body>
-            </View>
-          </GlassCard>
-        ))}
+        {q.mine.items.map((m) => {
+          // real counts from the device; highlights and notes are not built yet, so they read ٠
+          const n = m.icon === 'bookmark' ? prefs.bookmarks.length : 0;
+          return (
+            <Pressable key={m.title} style={{ flex: 1 }} accessibilityRole="button" disabled={m.icon !== 'bookmark'} onPress={() => router.push('/bookmarks')}>
+              <GlassCard style={styles.mineCard}>
+                <IconBubble name={m.icon as IconName} size={31} iconSize={16} color={colors.ink} />
+                <View style={{ marginTop: 'auto' }}>
+                  <Display size={16}>{m.title}</Display>
+                  <Body size={13} color={colors.primary}>
+                    {ar(n)}
+                  </Body>
+                </View>
+              </GlassCard>
+            </Pressable>
+          );
+        })}
       </View>
     </Screen>
   );
@@ -253,5 +259,5 @@ const styles = StyleSheet.create({
   dotRing: { width: 18, height: 18, borderRadius: 9, borderWidth: 4, borderColor: colors.sky, backgroundColor: colors.white },
   toolCard: { flex: 1, paddingVertical: 14, paddingHorizontal: 14, borderRadius: 24 },
   hairline: { height: 1, backgroundColor: colors.hairline },
-  mineCard: { flex: 1, height: 116, padding: 14 },
+  mineCard: { height: 116, padding: 14 },
 });
