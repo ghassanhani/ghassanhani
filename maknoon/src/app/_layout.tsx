@@ -26,7 +26,7 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 const LAUNCH = Date.now();
-const SPLASH_MS = 5000; // the founder's choice: the splash stays about 5 seconds
+const SPLASH_MS = 3000; // the founder's choice: the splash stays about 3 seconds
 // The system splash (iOS can only centre a logo on a colour) shows the design's logo at the same
 // size and place on the design's teal; it then fades into the full design splash drawn by the app.
 SplashScreen.setOptions({ fade: true, duration: 350 });
