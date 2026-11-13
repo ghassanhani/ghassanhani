@@ -24,28 +24,36 @@ export default function SurahPicker() {
   const needle = stripTashkeel(q.trim());
   const list = needle ? quranIndex.surahs.filter((x) => stripTashkeel(x.name).includes(needle) || String(x.n) === needle || ar(x.n) === needle) : quranIndex.surahs;
   return (
-    <View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
-      <View style={styles.head}>
-        <Display size={20}>اختر السورة</Display>
-      </View>
-      <View style={styles.search}>
-        <Icon name="search" size={18} color={colors.primary} />
-        <TextInput
-          value={q}
-          onChangeText={setQ}
-          placeholder="اسم السورة أو رقمها"
-          placeholderTextColor={colors.muted}
-          accessibilityLabel="ابحث عن سورة"
-          style={[styles.input, { fontFamily: F.sans }]}
-        />
-      </View>
+    <View style={styles.sheet}>
       <FlatList
         data={list}
         keyExtractor={(x) => String(x.n)}
         initialScrollIndex={needle ? undefined : Math.max(0, current - 3)}
-        getItemLayout={(_, i) => ({ length: 56, offset: 56 * i, index: i })}
+        getItemLayout={(_, i) => ({ length: 56, offset: HEAD + 56 * i, index: i })}
         initialNumToRender={14}
         keyboardShouldPersistTaps="handled"
+        // the title and search are the list's own pinned header: inside the system sheet a separate
+        // header and list could be laid out on top of each other
+        ListHeaderComponent={
+          <View style={styles.top}>
+            <View style={styles.head}>
+              <Display size={20}>اختر السورة</Display>
+            </View>
+            <View style={styles.search}>
+              <Icon name="search" size={18} color={colors.primary} />
+              <TextInput
+                value={q}
+                onChangeText={setQ}
+                placeholder="اسم السورة أو رقمها"
+                placeholderTextColor={colors.muted}
+                accessibilityLabel="ابحث عن سورة"
+                style={[styles.input, { fontFamily: F.sans }]}
+              />
+            </View>
+          </View>
+        }
+        stickyHeaderIndices={[0]}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 12 }}
         renderItem={({ item: x }) => (
           <Pressable
             accessibilityRole="button"
@@ -74,8 +82,11 @@ export default function SurahPicker() {
   );
 }
 
+const HEAD = 22 + 44 + 52; // pinned header: top room + title row + search
+
 const styles = StyleSheet.create({
-  sheet: { flex: 1, backgroundColor: '#F7F4F1', paddingTop: 22 },
+  sheet: { flex: 1, backgroundColor: '#F7F4F1' },
+  top: { height: HEAD, paddingTop: 22, backgroundColor: '#F7F4F1' },
   head: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 10 },
   search: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, marginHorizontal: 20, marginBottom: 8, paddingHorizontal: 14, borderRadius: 22, borderCurve: 'continuous', backgroundColor: '#FFFFFF' },
   input: { flex: 1, minWidth: 0, fontSize: 15, color: colors.ink, textAlign: 'right', paddingVertical: 0 },
