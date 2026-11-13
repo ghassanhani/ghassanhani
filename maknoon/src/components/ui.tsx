@@ -107,7 +107,8 @@ export function CountBadge({ value }: { value: string }) {
 export function Cta({ label, onPress, height = 50, style, compact }: { label: string; onPress?: () => void; height?: number; style?: StyleProp<ViewStyle>; compact?: boolean }) {
   return (
     <PressScale accessibilityRole="button" onPress={onPress} style={style} feedback="tap">
-      <Squircle radius={36} fill={colors.primary} glow="button" style={{ height, paddingHorizontal: compact ? 18 : 24, alignItems: 'center', justifyContent: 'center' }}>
+      {/* canvas: the full glass light on teal (inner .65 / wide .2 / top .95 / bottom .65) with 51.2pt grain */}
+      <Squircle radius={36} fill={colors.primary} glow="frost" noise={51.2} style={{ height, paddingHorizontal: compact ? 18 : 24, alignItems: 'center', justifyContent: 'center' }}>
         <Display size={14} color={colors.white} lineHeight={20} style={{ fontFamily: F.cta }}>
           {label}
         </Display>

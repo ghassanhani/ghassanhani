@@ -55,7 +55,7 @@ export default function QuranHubScreen() {
               {q.khatma.wird}
             </Body>
           </View>
-          <Cta label={q.khatma.cta} height={40} compact onPress={() => router.push('/mushaf')} />
+          <Cta label={q.khatma.cta} height={42} compact style={{ minWidth: 101 }} onPress={() => router.push('/mushaf')} />
         </InnerCard>
       </GlassCard>
 
