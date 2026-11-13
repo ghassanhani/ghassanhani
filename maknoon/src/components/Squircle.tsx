@@ -1,19 +1,16 @@
-import { getSvgPath } from 'figma-squircle';
 import { type ReactNode, useId, useMemo, useState } from 'react';
 import { Image, type LayoutChangeEvent, StyleSheet, View, type ViewProps, type ViewStyle, type StyleProp } from 'react-native';
 import Svg, {
-  ClipPath,
   Mask,
   Defs,
   Ellipse,
   G,
   LinearGradient,
-  Path,
   RadialGradient,
   Rect,
   Stop,
 } from 'react-native-svg';
-import { type Blob, CORNER_SMOOTHING } from '@/theme/tokens';
+import { type Blob } from '@/theme/tokens';
 
 /** frost = glass + the wide faint light + grain: large glass cards only (icon bubbles stay glass). */
 export type GlowStrength = 'none' | 'glass' | 'frost' | 'button';
@@ -25,6 +22,8 @@ const NOISE: Record<number, number> = {
   51: require('../../assets/brand/glass-noise-51.png'),
   128: require('../../assets/brand/glass-noise-128.png'),
 };
+/** Native continuous corner radius per design radius (see `R` in Squircle). */
+export const SMOOTH_K = 1.27;
 const noiseTile = (n: number) => NOISE[n >= 100 ? 128 : n >= 45 ? 51 : 38];
 
 export type SquircleProps = ViewProps & {
@@ -64,11 +63,15 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
     onLayout?.(e);
   };
 
-  const d = useMemo(() => {
-    if (!size || size.w < 1 || size.h < 1) return null;
-    const r = Math.min(radius, Math.min(size.w, size.h) / 2);
-    const isPill = r >= Math.min(size.w, size.h) / 2 - 0.5;
-    return getSvgPath({ width: size.w, height: size.h, cornerRadius: r, cornerSmoothing: isPill ? 0 : CORNER_SMOOTHING });
+  // The shape itself is native: Apple's continuous ("squircle") corner, sized so its curve runs as
+  // far along the edges as the design's Figma corner (smoothing 94% starts the bend 1.94 r from the
+  // corner; the continuous curve starts 1.53 R from it, so R = 1.27 r). Fill, glow, grain and the
+  // coloured lights are all clipped to this one shape, so every layer shares the same smooth corner.
+  const R = useMemo(() => {
+    const k = radius * SMOOTH_K;
+    if (!size) return k;
+    const half = Math.min(size.w, size.h) / 2;
+    return radius >= half - 0.5 ? half : Math.min(half, k);
   }, [size, radius]);
 
   // On small round shapes (icon bubbles) the canvas glow is a thin rim; the card-sized band would wash the colour out.
@@ -79,16 +82,18 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
     <View
       {...rest}
       onLayout={handleLayout}
-      // Until measured, approximate with a continuous-curve radius so the first frame is not square.
-      style={[{ borderRadius: d ? 0 : radius, borderCurve: 'continuous', zIndex: 0 }, !d && fill ? { backgroundColor: fill } : null, style]}
+      style={[
+        { borderRadius: R, borderCurve: 'continuous', overflow: 'hidden', zIndex: 0 },
+        fill && !gradient && !(g && small) ? { backgroundColor: fill } : null,
+        stroke ? { borderWidth: strokeWidth, borderColor: stroke } : null,
+        style,
+      ]}
     >
-      {d && size ? (
+      {size ? (
         <View style={styles.bg} pointerEvents="none">
+        {gradient || blobs?.length || (g && small && fill) ? (
         <Svg width={size.w} height={size.h}>
           <Defs>
-            <ClipPath id={`c${uid}`}>
-              <Path d={d} />
-            </ClipPath>
             {gradient ? (
               <LinearGradient id={`f${uid}`} x1="0" y1="0" x2="1" y2="0">
                 <Stop offset="0" stopColor={gradient[0]} />
@@ -119,8 +124,8 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
               </RadialGradient>
             ) : null}
           </Defs>
-          <G clipPath={`url(#c${uid})`}>
-            {fill || gradient ? <Path d={d} fill={gradient ? `url(#f${uid})` : g && small && fill ? `url(#e${uid})` : fill} /> : null}
+          <G>
+            {gradient || (g && small && fill) ? <Rect x={0} y={0} width={size.w} height={size.h} fill={gradient ? `url(#f${uid})` : `url(#e${uid})`} /> : null}
             {blobs?.map((b, i) => {
               const e = { cx: b.cx * size.w, cy: b.cy * size.h, rx: b.rx * size.w, ry: b.ry * size.h, fill: b.color, opacity: b.opacity ?? 1 };
               if (b.blur) {
@@ -146,19 +151,15 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
             {/* icon bubbles in the canvas: the colour is softly veiled and grained, never a dark disc */}
             {g && small ? <Rect x={0} y={0} width={size.w} height={size.h} fill="#FFFFFF" opacity={0.08} /> : null}
           </G>
-          {stroke ? (
-            <G clipPath={`url(#c${uid})`}>
-              <Path d={d} fill="none" stroke={stroke} strokeWidth={strokeWidth * 2} />
-            </G>
-          ) : null}
         </Svg>
+        ) : null}
         {g ? (
           // The canvas inner shadows, as the canvas writes them (CSS inset box-shadows): drawn natively,
           // a true smooth Gaussian on the GPU, with no bands and no cost per frame.
-          <View style={[StyleSheet.absoluteFill, { borderRadius: Math.min(radius, Math.min(size.w, size.h) / 2), borderCurve: 'continuous', boxShadow: insetOf(glow, small) }]} />
+          <View style={[StyleSheet.absoluteFill, { borderRadius: R, borderCurve: 'continuous', boxShadow: insetOf(glow, small) }]} />
         ) : null}
         {glow === 'frost' || (g && small) ? (
-          <Image source={noiseTile(noise)} resizeMode="repeat" style={{ position: 'absolute', top: 0, left: 0, width: size.w, height: size.h, opacity: 0.5, borderRadius: Math.min(radius, Math.min(size.w, size.h) / 2), borderCurve: 'continuous', overflow: 'hidden' }} />
+          <Image source={noiseTile(noise)} resizeMode="repeat" style={{ position: 'absolute', top: 0, left: 0, width: size.w, height: size.h, opacity: 0.5 }} />
         ) : null}
         </View>
       ) : null}
