@@ -32,6 +32,7 @@ import {
   SparklesIcon,
   TaskDone01Icon,
   UserIcon,
+  PauseIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { View } from 'react-native';
@@ -63,6 +64,7 @@ const icons = {
   chevronRight: ArrowRight01Icon,
   chevronDown: ArrowDown01Icon,
   play: PlayIcon,
+  pause: PauseIcon,
   bookmark: Bookmark01Icon,
   share: Share05Icon,
   close: Cancel01Icon,

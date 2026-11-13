@@ -52,7 +52,8 @@
       ],
       "expo-image",
       "expo-sqlite",
-      "expo-asset"
+      "expo-asset",
+      ["expo-audio", { "microphonePermission": "يستمع المكنون إلى تلاوتك للتسميع فقط. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل." }]
     ],
     "scheme": "maknoon",
     "extra": {

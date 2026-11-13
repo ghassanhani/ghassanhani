@@ -14,6 +14,7 @@ import { APP_NAME } from '@/config';
 import { METHODS, cityByKey } from '@/content/prayer';
 import { ar, basmala } from '@/content/quran';
 import { downloadModel, modelStatus, recitationModel, removeModel } from '@/recitation/model';
+import { recitationById, recitations } from '@/recitation/player';
 import { semanticEnabled } from '@/search/semantic';
 import { colors } from '@/theme/tokens';
 
@@ -128,6 +129,9 @@ export default function SettingsScreen() {
         </>
       ) : null}
 
+      <Display size={21.5}>التلاوة</Display>
+      <ReciterPicker current={prefs.reciter} onPick={(id) => setPrefs({ reciter: id })} />
+
       <Display size={21.5}>حزم التفسير</Display>
       <GlassCard style={{ paddingVertical: 8 }}>
         {packs.map((p, i) => (
@@ -188,6 +192,48 @@ export default function SettingsScreen() {
       </Body>
       <Caption style={{ textAlign: 'center' }}>{S.version}</Caption>
     </Screen>
+  );
+}
+
+/** Choose the recitation (RATQ, Hafs ʿan ʿĀṣim). «آية بآية» marks those with verified ayah timings. */
+function ReciterPicker({ current, onPick }: { current: number; onPick: (id: number) => void }) {
+  const [open, setOpen] = useState(false);
+  const r = recitationById(current);
+  return (
+    <GlassCard style={{ paddingVertical: 8 }}>
+      <Pressable accessibilityRole="button" accessibilityLabel="تغيير القارئ" onPress={() => setOpen((v) => !v)} style={[styles.row, { gap: 12, paddingVertical: 12 }]}>
+        <View style={{ flex: 1 }}>
+          <Display size={16}>{r.name}</Display>
+          <Caption>{r.t ? 'آية بآية أو السورة كاملة' : 'السورة كاملة فقط'}</Caption>
+        </View>
+        <Icon name="chevronDown" size={18} color={colors.primary} />
+      </Pressable>
+      {open
+        ? recitations.map((x) => (
+            <Fragment key={x.id}>
+              <View style={styles.sep} />
+              <Pressable
+                accessibilityRole="radio"
+                accessibilityState={{ selected: x.id === current }}
+                onPress={() => {
+                  onPick(x.id);
+                  setOpen(false);
+                }}
+                style={[styles.row, { gap: 10, paddingVertical: 10 }]}
+              >
+                <View style={{ flex: 1 }}>
+                  <Body size={14} weight={x.id === current ? 'bold' : 'regular'} color={x.id === current ? colors.primary : colors.ink}>
+                    {x.name}
+                  </Body>
+                  <Caption>{[x.publisher, x.t ? 'آية بآية' : 'السورة كاملة'].filter(Boolean).join(' · ')}</Caption>
+                </View>
+                {x.id === current ? <Icon name="badge" size={18} color={colors.primary} /> : null}
+              </Pressable>
+            </Fragment>
+          ))
+        : null}
+      <Caption style={{ paddingVertical: 8 }}>تُشغَّل التلاوة من رتق مباشرة (CC BY-NC-ND) · ٣٦ مصحفًا برواية حفص عن عاصم. تشغيل آية واحدة يحتاج توقيت الآيات، وهو متاح في ٨ منها؛ مع غيرها تُشغَّل الآية بصوت إبراهيم الدوسري.</Caption>
+    </GlassCard>
   );
 }
 

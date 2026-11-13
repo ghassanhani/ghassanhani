@@ -12,12 +12,14 @@ import { colors, space } from '@/theme/tokens';
 import { METHODS, type MethodKey, cityByKey, fmtDuration, fmtTime, usePrayerDay } from '@/content/prayer';
 
 import { usePrefs } from '@/store/prefs';
+import { toggleAyah, usePlayer } from '@/recitation/player';
 
 export default function HomeScreen() {
   const a = home.ayahOfDay;
   const ayah = getAyah(a.surah, a.ayah);
   // Live, on-device times (Adhan) for the default city.
   const [prefs] = usePrefs();
+  const audio = usePlayer();
   const city = cityByKey(prefs.city);
   const pd = usePrayerDay(city, prefs.asr, (METHODS.find((m) => m.key === prefs.prayerMethod)?.key ?? city.method) as MethodKey);
   const five = pd.times.filter((t) => t.key !== 'sunrise');
@@ -104,7 +106,9 @@ export default function HomeScreen() {
         <GlassCard soft tint="neutral" style={{ minHeight: 189 }}>
           <View style={styles.between}>
             <Display size={20}>{a.title}</Display>
-            <IconBubble name="play" iconSize={16} color={colors.white} fill={colors.primary} />
+            <Pressable accessibilityRole="button" accessibilityLabel={audio.playing === `${a.surah}:${a.ayah}` ? 'إيقاف التلاوة' : 'استماع'} hitSlop={6} onPress={() => toggleAyah(a.surah, a.ayah)}>
+              <IconBubble name={audio.playing === `${a.surah}:${a.ayah}` ? 'pause' : 'play'} iconSize={16} color={colors.white} fill={colors.primary} />
+            </Pressable>
           </View>
           <AyahText size={21} lineHeight={38} style={[{ marginTop: 6 }, ayah && { fontFamily: ayah.fontFamily }]}>
             {ayah ? ayah.text : ayahPlaceholder(a.surahName, a.ayah)}

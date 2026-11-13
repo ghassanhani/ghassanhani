@@ -15,6 +15,7 @@ import { ar, ayahPlaceholder, getAyah, quranSource } from '@/content/quran';
 import { packsSupported } from '@/content/packs';
 import { useTafsir, type TafsirEntry } from '@/content/tafsir';
 import { translationOf } from '@/content/translation';
+import { recitationCredit, toggleAyah, usePlayer } from '@/recitation/player';
 import { quranIndex } from '@/content/worship';
 import { colors } from '@/theme/tokens';
 
@@ -29,6 +30,8 @@ export default function AyahScreen() {
   const tafsir = (all ?? []).filter((t) => t.text);
   const missing = (all ?? []).filter((t) => !t.installed);
   const tr = translationOf(s, a);
+  const audio = usePlayer();
+  const here = audio.playing === `${s}:${a}`;
 
   return (
     <Screen backdrop="sky" withTabBar={false} header={<DetailHeader title={ayahToday.title} />}>
@@ -39,7 +42,7 @@ export default function AyahScreen() {
           </Display>
           <View style={[styles.row, { gap: 8 }]}>
             <GlassIcon name="image" label="صورة للمشاركة" />
-            <GlassIcon name="play" label="استماع" />
+            <GlassIcon name={here ? 'pause' : 'play'} label={here ? 'إيقاف التلاوة' : 'استماع'} onPress={() => toggleAyah(s, a)} />
           </View>
         </View>
         <AyahText size={23} lineHeight={46} color={colors.white} style={[{ marginTop: 8 }, ayah && { fontFamily: ayah.fontFamily }]}>
@@ -49,6 +52,11 @@ export default function AyahScreen() {
         <Caption color="rgba(255,255,255,0.55)" style={{ fontSize: 10 }}>
           {quranSource.credit}
         </Caption>
+        {here && audio.reciter ? (
+          <Caption color="rgba(255,255,255,0.7)" style={{ fontSize: 10 }}>
+            {recitationCredit(audio.reciter)}
+          </Caption>
+        ) : null}
       </HeroCard>
 
       <Drawer title={ayahToday.tafsirTitle} count={tafsir.length ? String(tafsir.length) : undefined}>
@@ -167,9 +175,9 @@ function TafsirCard({ entry }: { entry: TafsirEntry & { text: string } }) {
   );
 }
 
-function GlassIcon({ name, label }: { name: 'play' | 'image'; label: string }) {
+function GlassIcon({ name, label, onPress }: { name: 'play' | 'pause' | 'image'; label: string; onPress?: () => void }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={6}>
       <Squircle radius={18} fill="rgba(255,255,255,0.2)" glow="button" style={styles.glassIcon}>
         <Icon name={name} size={16} color={colors.white} />
       </Squircle>

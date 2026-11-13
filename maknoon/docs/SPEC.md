@@ -110,12 +110,13 @@ Status **cleared** means ingest freely. Anything else: ask the founder first.
 |---|---|---|---|
 | Quran text (Hafs) | Tanzil, Uthmani text | cleared | Keep verbatim; show the Tanzil credit and link |
 | Tafsir: الطبري، السعدي، ابن كثير، البغوي، المختصر | RATQ (ratq.itqan.dev), from مركز تفسير | cleared (founder works with the RATQ team) | Labelled CC-BY-ND: show as published with attribution; already split by ayah with coded footnotes. Ask the founder how footnotes should be displayed |
-| French translation of meanings | RATQ (Rachid Maach) | cleared | Verbatim with attribution |
+| French translation of meanings | RATQ (Rachid Maach) | cleared | Verbatim with attribution. Imported 2026-11-13 (`pipeline/importers/ratq/translation.mjs`) |
+| English translation of meanings | RATQ cms-9 (Hilali-Khan, IslamHouse) | ask | Available on RATQ, CC BY-ND; not imported until the founder decides |
 | Prayer times | `adhan-js` | cleared | MIT |
 | Recitation-check model | `tarteel-ai/whisper-base-ar-quran` | confirm licence on model card | |
 | Hadith text and gradings | undecided | **blocked** | Candidates: future RATQ resources, a permission from Sunnah.com or Dorar, or the public-domain `fawazahmed0/hadith-api` (provenance questions). Build the schema and importer interface now; ingest when the founder names the source |
 | Other translations | QuranEnc | ask | Conditions apply |
-| Recitation audio | undecided | **blocked** | |
+| Recitation audio | RATQ recitations (api.cms.itqan.dev): 36 complete Hafs ʿan ʿĀṣim mushafs (المركز السعودي للتلاوات، جمعية مكنون، تحبير، قراءات القرآن) | **used by founder decision 2026-11-13** ("use RATQ") | CC BY-NC-ND (free app). Streamed from RATQ storage; ayah timings bundled only where complete and verified (8 of 36), others play whole surahs. Importer `pipeline/importers/ratq/recitations.mjs` |
 | Quran display font | Amiri Quran (OFL) | cleared as default | KFGQPC fonts wait for written permission |
 | Mushaf page layout and font: QCF4 (Madinah Mushaf 1441, King Fahd Complex, Uthman Taha; files by Ahmad ElGharib) via npm `quran-qcf4` | founder decision 2026-11-13, on the founder's own responsibility | **used by founder decision** | Font files are not committed or served to the web; bundled in the iOS/Android app only. Importer `pipeline/importers/qcf4` ties every glyph to the KFGQPC Hafs text before writing. A written permission request to KFGQPC is still recommended |
 | Word morphology | Quranic Arabic Corpus | ask | Licence is GPL with conditions |

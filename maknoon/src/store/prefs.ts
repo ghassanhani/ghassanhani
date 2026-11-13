@@ -31,6 +31,7 @@ export type Prefs = {
   notes: Record<string, string>;
   installedPacks: string[];
   recitationModel: boolean; // the optional speech-model pack is downloaded and verified
+  reciter: number; // RATQ recitation id (assets/content/recitations.json)
 };
 
 // Defaults = the canvas's initial states.
@@ -57,6 +58,7 @@ export const DEFAULT_PREFS: Prefs = {
   notes: {},
   installedPacks: [],
   recitationModel: false,
+  reciter: 35, // إبراهيم الدوسري: complete ayah timings on RATQ
 };
 
 const KEY = 'maknoon.prefs.v1';
