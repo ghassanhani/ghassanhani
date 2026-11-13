@@ -70,6 +70,7 @@ export default function MushafScreen() {
 }
 
 const PAGE_MARGIN = 10; // the side margin of the mushaf page (pt)
+const PAPER_TICK = 0.08; // a haptic tick for every 8% of the width the page is drawn
 const QURAN_INK = '#111114'; // the printed page's deep black: sharper than the app's body ink
 // Dark mode, for the mushaf only: a deep warm black page and soft warm-white ink (not pure white,
 // which glares at night).
@@ -214,20 +215,34 @@ function MushafPage({ page }: { page: number }) {
   useQcf4Fonts(Math.max(1, page - 1));
   useEffect(loadTurn, []);
   const turned = (d: number) => {
+    haptic.land();
     haptic.soft();
     goTo(page + d);
   };
   const canNext = page < LAST_PAGE && canCurlNext;
   const canPrev = page > 1 && canCurlPrev;
+  // Touch: the paper is felt in the hand. A soft bump when the finger takes the page, a fine tick
+  // every so often as it is drawn across (like paper fibres under the finger), a firm tap when it
+  // lands, a soft one when it falls back.
+  const step = useSharedValue(0);
   const pan = Gesture.Pan()
     .enabled(PAGE_FLIP)
     .activeOffsetX([-16, 16])
     .failOffsetY([-14, 14])
+    .onStart(() => {
+      step.set(0);
+      runOnJS(haptic.soft)();
+    })
     .onUpdate((e) => {
       // Arabic page turning: right → left for the next page (the leaf lifts from its right edge)
       let v = -e.translationX / winW;
       if ((v > 0 && !canNext) || (v < 0 && !canPrev)) v *= 0.08; // first or last page: a little give, no turn
       flip.set(Math.max(-1, Math.min(1, v)));
+      const k = Math.floor(Math.abs(v) / PAPER_TICK);
+      if (k !== step.get()) {
+        step.set(k);
+        runOnJS(haptic.select)();
+      }
     })
     .onEnd((e) => {
       const v = flip.get();
@@ -241,7 +256,10 @@ function MushafPage({ page }: { page: number }) {
         const left = 1 - Math.abs(v);
         const duration = Math.max(160, Math.min(520, (fling ? 300 : 460) * left + 90));
         flip.set(withTiming(d, { duration, easing: Easing.out(Easing.cubic) }, (done) => done && runOnJS(turned)(d)));
-      } else flip.set(withSpring(0, { damping: 19, stiffness: 210, mass: 0.9 }));
+      } else {
+        runOnJS(haptic.soft)();
+        flip.set(withSpring(0, { damping: 19, stiffness: 210, mass: 0.9 }));
+      }
     });
   // The curl: turning forward, the current page curls away over the next one; turning back, the
   // previous page curls back down over the current one. Each shows only during its own turn.

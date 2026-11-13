@@ -48,6 +48,8 @@ export const haptic = {
   select: () => nativeHaptics && Haptics.selectionAsync().catch(() => {}),
   /** a meaningful moment: recitation check starts/ends */
   soft: () => nativeHaptics && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).catch(() => {}),
+  /** a page lands after a turn */
+  land: () => nativeHaptics && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {}),
   /** the recitation check found a word to re-check */
   warn: () => nativeHaptics && Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {}),
 };
