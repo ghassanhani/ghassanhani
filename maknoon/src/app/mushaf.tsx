@@ -17,7 +17,7 @@ import { AyahText, Body, Caption, Display } from '@/components/Typography';
 import { mushaf as m } from '@/content/design';
 import { ar, ayahPlaceholder, ayatOnPage, getAyah } from '@/content/quran';
 import { SURAH_TITLES } from '@/content/surahTitles';
-import { ayahKey, pageOfAyah, type Qcf4Line, qcf4Available, qcf4Em, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
+import { ayahKey, pageOfAyah, type Qcf4Line, qcf4Available, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
 import { recitationCredit, togglePage, usePlayer } from '@/recitation/player';
 import { AyahMarker } from '@/components/AyahMarker';
 import { F } from '@/theme/fonts';
@@ -68,6 +68,12 @@ export default function MushafScreen() {
   return <MushafPage key={page} page={page} />;
 }
 
+const PAGE_MARGIN = 10; // the side margin of the mushaf page (pt)
+const QURAN_INK = '#111114'; // the printed page's deep black: sharper than the app's body ink
+// The widest line of each page in its font, in em (measured from the fonts, see the json):
+// each page's glyphs are drawn as large as its widest line allows.
+const LINE_EM: number[] = (require('../../assets/content/qcf4-line-em.json') as { em: number[] }).em;
+const lineEm = (page: number) => Math.min(17.6, Math.max(16, (LINE_EM[page - 1] ?? 17.4) + 0.15));
 const isWord = (t: string) => /[\u0621-\u064A]/.test(t);
 // Words per ayah, counted the same way the recitation check counts them (cached: asked for every glyph).
 const WORDS = new Map<string, number>();
@@ -253,7 +259,7 @@ function MushafPage({ page }: { page: number }) {
       <GestureDetector gesture={pan}>
       <Animated.View ref={pageRef} collapsable={false} style={StyleSheet.absoluteFill}>
       <Backdrop name="sand" />
-      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 24, paddingBottom: insets.bottom + 150 }}>
+      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: PAGE_MARGIN, paddingBottom: insets.bottom + 150 }}>
         <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={toggleControls}>
           {qcf ? (
             qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={pickSurah} held={held} onHold={onHold} onTap={toggleControls} /> : <View style={{ minHeight: 600 }} />
@@ -448,7 +454,7 @@ const PageSheet = memo(function PageSheet({ page }: { page: number }) {
   return (
     <View style={StyleSheet.absoluteFill}>
       <Backdrop name="sand" />
-      <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 24 }}>
+      <View style={{ paddingTop: insets.top + 12, paddingHorizontal: PAGE_MARGIN }}>
         {qcf ? (
           ready ? <QcfPageView page={page} zoom={100} current={null} onPickSurah={() => undefined} /> : null
         ) : (
@@ -471,14 +477,19 @@ const PageSheet = memo(function PageSheet({ page }: { page: number }) {
  * In the recitation check a hidden word keeps its place (transparent), exactly like the text mode.
  */
 function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, onHold, onTap }: { page: number; zoom: number; tasmee?: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void; held?: string | null; onHold?: (key: string) => void; onTap?: () => void }) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const pg = qcf4Page(page);
   // At 100% the page is the printed page, line for line. Zoomed in, the same words in the same order
   // flow onto as many lines as the screen needs (no sideways scrolling, nothing cut off).
   const reflow = zoom > 100;
-  const w = Math.min(width, 520) - 48;
-  const size = (w / qcf4Em.line) * (zoom / 100);
-  const lineH = size * 2.05;
+  // As the printed mushaf on a phone: the lines run nearly edge to edge (the glyphs as large as
+  // the width allows) and the fifteen lines share the screen's height evenly.
+  const w = Math.min(width, 560) - 2 * PAGE_MARGIN;
+  // Sized on what the words of the page really take (about 16.2 em a line), not the font's
+  // wider line frame (18.8 em): larger, clearer glyphs with even word spacing.
+  const size = (w / lineEm(page)) * (zoom / 100);
+  const lineH = reflow ? size * 2.05 : Math.min(size * 2.3, Math.max(size * 1.75, (height - insets.top - insets.bottom - 150) / 15));
   const centred = page <= 2; // the first two pages are set in a narrow block, centred
   const row = isRTL() ? 'row' : 'row-reverse';
   // Words counted per ayah the same way the recitation check counts them.
@@ -525,7 +536,7 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, on
     }
     if ('b' in l) {
       rows.push(
-        <Text key={li} style={{ fontFamily: l.f, fontSize: size, lineHeight: lineH, color: colors.ink, textAlign: 'center' }}>
+        <Text key={li} style={{ fontFamily: l.f, fontSize: size, lineHeight: lineH, color: QURAN_INK, textAlign: 'center' }}>
           {l.b}
         </Text>,
       );
@@ -561,14 +572,20 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, on
 
 /** The glyphs of one mushaf line, drawn from their codes (see `codesOf`); redrawn only when those change. */
 const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH, onHold, onTap }: { l: Extract<Qcf4Line, { g: string }>; codes: string; font: string; size: number; lineH: number; onHold?: (key: string) => void; onTap?: () => void }) {
-  const base = { fontFamily: font, fontSize: size, lineHeight: lineH, color: colors.ink };
+  const base = { fontFamily: font, fontSize: size, lineHeight: lineH, color: QURAN_INK };
   return (
     <>
       {Array.from(l.g, (ch, gi) => {
         const c = codes[gi];
         const k = `${gi}-${ch}`;
         // The ayah end: the design's teal medallion with the ayah number, in place of the font's mark
-        if (c === 'm') return <AyahMarker key={k} n={Number(ayahKey(l.a[gi]).split(':')[1])} scale={size / 21} />;
+        // in the same 1-em box as the font's own mark, drawn a little smaller so it never touches the words beside it
+        if (c === 'm')
+          return (
+            <View key={k} style={{ width: size * 1.004, alignItems: 'center' }}>
+              <AyahMarker n={Number(ayahKey(l.a[gi]).split(':')[1])} scale={(size / 21) * 0.86} />
+            </View>
+          );
         const style = c === 'k' ? styles.wHeld : c === 'l' ? styles.wListen : c === 'c' ? styles.wCurrent : c === 'h' ? styles.wHidden : c === 'x' ? styles.wCheck : null;
         const ai = l.a[gi];
         return (
