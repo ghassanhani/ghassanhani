@@ -14,6 +14,8 @@ import Animated, { type SharedValue, useAnimatedStyle } from 'react-native-reani
  * `visible` (0/1) shows the curl only while a turn is under way; it stays mounted and ready at rest.
  * `leaf` draws the turning page; `under` the page that appears beneath it. Geometry is physical
  * (laid out left-to-right); the pages inside keep their right-to-left layout.
+ * `fromRight`: the leaf lifts from its right edge and turns to the left (binding on the left) — the
+ * whole curl is mirrored, and each page copy is mirrored back so its text reads normally.
  */
 const STRIPS = 14;
 const PAPER = '#EDE7DD';
@@ -25,7 +27,9 @@ export const PageCurl = memo(function PageCurl({
   height: H,
   leaf,
   under,
+  fromRight = false,
 }: {
+  fromRight?: boolean;
   progress: SharedValue<number>;
   visible: SharedValue<number>;
   width: number;
@@ -78,11 +82,11 @@ export const PageCurl = memo(function PageCurl({
   });
 
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, styles.root, root]} pointerEvents="none">
+    <Animated.View style={[StyleSheet.absoluteFill, styles.root, fromRight && styles.mirror, root]} pointerEvents="none">
       <View style={[StyleSheet.absoluteFill, styles.ltr]}>
       {/* 1 · the page beneath, and the roll's shadow on it */}
       <Animated.View style={[styles.clip, { left: 0, height: H }, underStyle]}>
-        <View style={[styles.pinned, { width: W, height: H }, styles.rtl]}>{under}</View>
+        <View style={[styles.pinned, { width: W, height: H }, styles.rtl, fromRight && styles.mirror]}>{under}</View>
       </Animated.View>
       <Animated.View style={[styles.abs, { width: W * 0.38, height: H }, castShadow]}>
         <LinearGradient colors={['rgba(30,20,10,0)', 'rgba(30,20,10,0.08)', 'rgba(30,20,10,0.30)']} locations={[0, 0.55, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
@@ -90,12 +94,12 @@ export const PageCurl = memo(function PageCurl({
       {/* 2 · the leaf, flat */}
       <Animated.View style={[styles.clip, { height: H }, flat]}>
         <Animated.View style={[styles.pinned, { width: W, height: H }, flatInner]}>
-          <View style={[StyleSheet.absoluteFill, styles.rtl]}>{leaf}</View>
+          <View style={[StyleSheet.absoluteFill, styles.rtl, fromRight && styles.mirror]}>{leaf}</View>
         </Animated.View>
       </Animated.View>
       {/* 3 · the leaf rising round the roll, then its continuous shading */}
       {Array.from({ length: STRIPS }, (_, i) => (
-        <Strip key={i} i={i} W={W} H={H} geo={geo} progress={progress} leaf={leaf} />
+        <Strip key={i} i={i} W={W} H={H} geo={geo} progress={progress} leaf={leaf} mirror={fromRight} />
       ))}
       <Animated.View style={[styles.abs, { height: H }, rollShade]}>
         <LinearGradient
@@ -125,7 +129,7 @@ export const PageCurl = memo(function PageCurl({
 });
 
 /** One fine strip of paper on the rising quarter of the roll, squeezed by its curve. */
-function Strip({ i, W, H, geo, progress, leaf }: { i: number; W: number; H: number; geo: (p: number) => { x: number; R: number }; progress: SharedValue<number>; leaf: ReactNode }) {
+function Strip({ i, W, H, geo, progress, leaf, mirror }: { i: number; W: number; H: number; geo: (p: number) => { x: number; R: number }; progress: SharedValue<number>; leaf: ReactNode; mirror: boolean }) {
   const span = (p: number) => {
     'worklet';
     const { x, R } = geo(p);
@@ -148,7 +152,7 @@ function Strip({ i, W, H, geo, progress, leaf }: { i: number; W: number; H: numb
   return (
     <Animated.View style={[styles.clip, { height: H }, box]}>
       <Animated.View style={[{ position: 'absolute', left: 0, top: 0, width: W, height: H, transformOrigin: 'left' }, inner]}>
-        <View style={[StyleSheet.absoluteFill, styles.rtl]}>{leaf}</View>
+        <View style={[StyleSheet.absoluteFill, styles.rtl, mirror && styles.mirror]}>{leaf}</View>
       </Animated.View>
     </Animated.View>
   );
@@ -164,4 +168,5 @@ const styles = StyleSheet.create({
   clip: { position: 'absolute', top: 0, overflow: 'hidden' },
   // a page copy is pinned to the window's left edge (in a right-to-left page it would otherwise hang from the right)
   pinned: { position: 'absolute', left: 0, top: 0 },
+  mirror: { transform: [{ scaleX: -1 }] },
 });

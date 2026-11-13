@@ -112,9 +112,9 @@ function MushafPage({ page }: { page: number }) {
     togglePage(su, ay);
   };
 
-  // ── Turning the page like a printed mushaf: the binding is on the right. Swiping left → right lifts the
-  // page by its free (left) edge and turns it over the spine, showing the next page beneath; swiping
-  // right → left brings the previous page back over. Vertical scrolling and taps are left alone.
+  // ── Turning the page like paper, the Arabic way: swiping right → left lifts the page by its right edge
+  // and turns it to the left, showing the next page beneath; swiping left → right brings the previous
+  // page back. Vertical scrolling and taps are left alone.
   const { width: winW } = useWindowDimensions();
   const flip = useSharedValue(0); // 0 rest · (0, 1] turning to the next page · [-1, 0) bringing back the previous
   const { height: winH } = useWindowDimensions();
@@ -137,7 +137,8 @@ function MushafPage({ page }: { page: number }) {
     .activeOffsetX([-16, 16])
     .failOffsetY([-14, 14])
     .onUpdate((e) => {
-      let v = e.translationX / winW;
+      // Arabic page turning: right → left for the next page (the leaf lifts from its right edge)
+      let v = -e.translationX / winW;
       if ((v > 0 && !canNext) || (v < 0 && !canPrev)) v *= 0.08; // first or last page: a little give, no turn
       flip.set(Math.max(-1, Math.min(1, v)));
     })
@@ -145,8 +146,9 @@ function MushafPage({ page }: { page: number }) {
       const v = flip.get();
       const d = v > 0 ? 1 : -1;
       const allowed = d === 1 ? canNext : canPrev;
-      const fling = Math.abs(e.velocityX) > 650 && Math.sign(e.velocityX) === d;
-      if (allowed && (Math.abs(v) > 0.3 || fling) && Math.sign(e.velocityX || v) !== -d) {
+      const vx = -e.velocityX;
+      const fling = Math.abs(vx) > 650 && Math.sign(vx) === d;
+      if (allowed && (Math.abs(v) > 0.3 || fling) && Math.sign(vx || v) !== -d) {
         runOnJS(playTurn)();
         // the rest of the turn takes time in proportion to what is left, quicker for a flick, easing out like paper settling
         const left = 1 - Math.abs(v);
@@ -231,8 +233,8 @@ function MushafPage({ page }: { page: number }) {
       </ScrollView>
       </Animated.View>
       </GestureDetector>
-      {PAGE_FLIP && curlsReady && canNext ? <PageCurl progress={forward} visible={showForward} width={winW} height={winH} leaf={<PageSheet page={page} />} under={<PageSheet page={page + 1} />} /> : null}
-      {PAGE_FLIP && curlsReady && canPrev ? <PageCurl progress={backward} visible={showBackward} width={winW} height={winH} leaf={<PageSheet page={page - 1} />} under={<PageSheet page={page} />} /> : null}
+      {PAGE_FLIP && curlsReady && canNext ? <PageCurl fromRight progress={forward} visible={showForward} width={winW} height={winH} leaf={<PageSheet page={page} />} under={<PageSheet page={page + 1} />} /> : null}
+      {PAGE_FLIP && curlsReady && canPrev ? <PageCurl fromRight progress={backward} visible={showBackward} width={winW} height={winH} leaf={<PageSheet page={page - 1} />} under={<PageSheet page={page} />} /> : null}
 
       <SurahPicker
         visible={picking}
