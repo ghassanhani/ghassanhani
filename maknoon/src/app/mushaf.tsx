@@ -481,15 +481,15 @@ function MushafPage({ page }: { page: number }) {
             <GlassRound label="رجوع" onPress={() => (router.canGoBack() ? router.back() : router.replace('/quran'))}>
               <ThiqalIcon name="fwd" size={22} color={colors.white} />
             </GlassRound>
-            <Squircle radius={24} fill={SOLID} style={styles.pager}>
-              <Pressable accessibilityRole="button" accessibilityLabel="الصفحة السابقة" hitSlop={8} disabled={page <= 1} onPress={() => goTo(page - 1)} style={styles.pagerBtn}>
-                <ThiqalIcon name="fwd" size={20} color={page <= 1 ? 'rgba(255,255,255,0.35)' : colors.white} />
-              </Pressable>
-              <Body size={15} weight="bold" lineHeight={20} color={colors.white}>{`صفحة ${ar(page)}`}</Body>
-              <Pressable accessibilityRole="button" accessibilityLabel="الصفحة التالية" hitSlop={8} disabled={page >= LAST_PAGE} onPress={() => goTo(page + 1)} style={styles.pagerBtn}>
-                <ThiqalIcon name="back" size={20} color={page >= LAST_PAGE ? 'rgba(255,255,255,0.35)' : colors.white} />
-              </Pressable>
-            </Squircle>
+            {/* The surah of this page; tap to choose another */}
+            <Pressable accessibilityRole="button" accessibilityLabel={`سورة ${quranIndex.surahs[(onPage[0]?.surah ?? 1) - 1]?.name ?? ''} · تغيير السورة`} onPress={pickSurah}>
+              <Squircle radius={24} fill={SOLID} style={styles.pager}>
+                <Body size={15} weight="bold" lineHeight={22} color={colors.white} numberOfLines={1}>
+                  {`سُورَةُ ${quranIndex.surahs[(onPage[0]?.surah ?? 1) - 1]?.name ?? ''}`}
+                </Body>
+                <Icon name="chevronDown" size={18} color={colors.white} />
+              </Squircle>
+            </Pressable>
             <PressScale accessibilityRole="button" accessibilityLabel={listening ? 'إيقاف التلاوة' : 'استمع من هذه الصفحة'} onPress={listen} feedback="tap" scaleTo={0.92}>
               <Squircle radius={24} fill={colors.primary} glow="frost" noise={51.2} style={styles.listenBtn}>
                 <ThiqalIcon name={listening ? 'pause' : 'play'} size={20} color={colors.white} />
@@ -831,8 +831,7 @@ const styles = StyleSheet.create({
   offscreen: { position: 'absolute', top: 0, left: -20000 },
   topStrip: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: 'rgba(237,232,225,0.96)', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(39,40,51,0.08)' },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  pager: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6 },
-  pagerBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  pager: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, maxWidth: 220 },
   listenBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   wCurrent: { color: '#1F7A33', backgroundColor: '#CDE9C3' },
   // a word to re-check: clearly marked, as a teacher's red pencil would
