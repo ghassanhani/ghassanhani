@@ -219,9 +219,8 @@ function SurahBanner({ surah, onPress }: { surah: number; onPress: () => void })
         {TITLE_ART[surah] ? (
           <Image source={TITLE_ART[surah]} style={styles.bannerTitle} contentFit="contain" accessibilityLabel={`سورة ${name}`} />
         ) : (
-          <Display size={24} color={colors.white} lineHeight={34}>
-            {`سورة ${name}`}
-          </Display>
+          // Free calligraphic fallback until each surah has its drawn title: Amiri Quran (SIL OFL).
+          <Text style={styles.bannerName}>{`سُورَةُ ${name}`}</Text>
         )}
         <View style={styles.bannerChevron}>
           <Icon name="chevronDown" size={14} color={colors.white} />
@@ -332,6 +331,7 @@ const styles = StyleSheet.create({
   bannerArt: { position: 'absolute', left: -4, right: -4, top: -6, bottom: -9 },
   bannerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   bannerTitle: { width: 122, height: 44 },
+  bannerName: { fontFamily: F.quran, fontSize: 25, lineHeight: 44, color: colors.white, textAlign: 'center' },
   bannerChevron: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.28)', alignItems: 'center', justifyContent: 'center' },
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 },
   pageNo: { minWidth: 52, height: 30, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
