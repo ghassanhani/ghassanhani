@@ -1,6 +1,6 @@
 // The Thiqal icon library (rounded, outline, 1.5 stroke on a 24 grid), as used in the Gymco app
 // (ghassanhani/Gymco: lib/ui/kit/icon_paths.dart). `pause` is drawn here in the same style; the
-// Gymco file has none. Licence: Gymco's docs note the Thiqal licence is still to be confirmed.
+// Gymco file has none. Thiqal is the founder's own icon library.
 export const THIQAL: Record<string, string> = {
   back: "<path d=\"M15 6C15 6 9.00001 10.4189 9 12C8.99999 13.5812 15 18 15 18\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",
   fwd: "<path d=\"M9.00005 6C9.00005 6 15 10.4189 15 12C15 13.5812 9 18 9 18\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",

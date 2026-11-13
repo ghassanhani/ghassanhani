@@ -1,10 +1,11 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { ReduceMotion, SlideInDown, SlideOutDown, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { ReduceMotion, SlideInDown, SlideOutDown, runOnJS, useDerivedValue, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
 import { ThiqalIcon } from '@/components/ThiqalIcon';
+import { PageCurl } from '@/components/PageCurl';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,8 +42,8 @@ import { usePrefs } from '@/store/prefs';
  * words keep their place, so the ayah marks stay where the mushaf has them.
  */
 const LAST_PAGE = 604;
-/** The physical page turn (swipe, leaf animation, sound) is built but off until the founder defines the experience. */
-const PAGE_FLIP = false;
+/** The physical page turn: swipe to curl the page over like paper, with the page-turn sound. */
+const PAGE_FLIP = true;
 
 // The page-turn sound: one take generated with ElevenLabs (sound effects) and trimmed to the turn.
 let turnSound: AudioPlayer | null = null;
@@ -116,6 +117,9 @@ function MushafPage({ page }: { page: number }) {
   // right → left brings the previous page back over. Vertical scrolling and taps are left alone.
   const { width: winW } = useWindowDimensions();
   const flip = useSharedValue(0); // 0 rest · (0, 1] turning to the next page · [-1, 0) bringing back the previous
+  const { height: winH } = useWindowDimensions();
+  const [turning, setTurning] = useState<0 | 1 | -1>(0);
+  const dir = useSharedValue(0);
   useQcf4Fonts(Math.min(LAST_PAGE, page + 1)); // the neighbours' fonts are ready before a turn
   useQcf4Fonts(Math.max(1, page - 1));
   const turned = (d: number) => {
@@ -128,7 +132,16 @@ function MushafPage({ page }: { page: number }) {
     .enabled(PAGE_FLIP)
     .activeOffsetX([-16, 16])
     .failOffsetY([-14, 14])
+    .onStart(() => {
+      dir.set(0);
+    })
     .onUpdate((e) => {
+      // the direction is set by the first real movement (some platforms start the gesture at 0)
+      if (dir.get() === 0 && e.translationX !== 0) {
+        const d = e.translationX > 0 ? 1 : -1;
+        dir.set(d);
+        if ((d === 1 && canNext) || (d === -1 && canPrev)) runOnJS(setTurning)(d);
+      }
       let v = e.translationX / winW;
       if ((v > 0 && !canNext) || (v < 0 && !canPrev)) v *= 0.08; // first or last page: a little give, no turn
       flip.set(Math.max(-1, Math.min(1, v)));
@@ -140,38 +153,18 @@ function MushafPage({ page }: { page: number }) {
       if (allowed && (Math.abs(v) > 0.3 || Math.abs(e.velocityX) > 700) && Math.sign(e.velocityX || v) === d) {
         runOnJS(playTurn)();
         flip.set(withTiming(d, { duration: 420 }, (done) => done && runOnJS(turned)(d)));
-      } else flip.set(withSpring(0, { damping: 20, stiffness: 220 }));
+      } else flip.set(withSpring(0, { damping: 20, stiffness: 220 }, (done) => done && runOnJS(setTurning)(0)));
     });
-  // The turning leaf: pivots on its right edge (the spine), shaded as it lifts off the page.
-  const leafCurrent = useAnimatedStyle(() => {
-    const v = Math.max(0, flip.get());
-    return { transform: [{ perspective: 1800 }, { rotateY: `${-180 * v}deg` }] };
-  });
-  const leafCurrentShade = useAnimatedStyle(() => ({ opacity: interpolate(Math.max(0, flip.get()), [0, 0.5], [0, 0.28]) }));
-  const leafBack = useAnimatedStyle(() => {
-    const v = Math.max(0, flip.get());
-    return { opacity: v > 0.5 ? 1 : 0, transform: [{ perspective: 1800 }, { rotateY: `${180 - 180 * v}deg` }] };
-  });
-  const leafPrev = useAnimatedStyle(() => {
-    const v = Math.min(0, flip.get());
-    return { opacity: v < 0 ? 1 : 0, transform: [{ perspective: 1800 }, { rotateY: `${-180 * (1 + v)}deg` }] };
-  });
-  const leafPrevShade = useAnimatedStyle(() => ({ opacity: interpolate(Math.min(0, flip.get()), [-1, -0.5], [0, 0.28]) }));
-  const under = useAnimatedStyle(() => ({ opacity: flip.get() > 0 ? 1 : 0 }));
-  // the shadow the lifted leaf casts on the page beneath, strongest near the fold
-  const underShade = useAnimatedStyle(() => ({ opacity: interpolate(Math.abs(flip.get()), [0, 0.15, 1], [0, 0.22, 0]) }));
+  // The curl: turning forward, the current page curls away over the next one; turning back, the
+  // previous page curls back down over the current one. Drawn only while a turn is under way.
+  const forward = useDerivedValue(() => Math.max(0, flip.get()));
+  const backward = useDerivedValue(() => 1 + Math.min(0, flip.get()));
 
   return (
     <View style={{ flex: 1 }}>
       <Backdrop name="sand" />
-      {/* the next page, waiting beneath the leaf */}
-      <Animated.View style={[StyleSheet.absoluteFill, under]} pointerEvents="none">
-        {PAGE_FLIP && canNext ? <PageSheet page={page + 1} /> : null}
-        <Animated.View style={[StyleSheet.absoluteFill, styles.fold, underShade]} />
-      </Animated.View>
       <GestureDetector gesture={pan}>
-      <Animated.View style={[StyleSheet.absoluteFill, styles.leaf, leafCurrent]}>
-      <Backdrop name="sand" />
+      <Animated.View style={StyleSheet.absoluteFill}>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 24, paddingBottom: insets.bottom + 150 }}>
         <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={() => setControls((v) => !v)}>
           {qcf ? (
@@ -235,16 +228,10 @@ function MushafPage({ page }: { page: number }) {
           </View>
         </Pressable>
       </ScrollView>
-      <Animated.View style={[StyleSheet.absoluteFill, styles.dark, leafCurrentShade]} pointerEvents="none" />
       </Animated.View>
       </GestureDetector>
-      {/* the back of the leaf: plain paper, seen once it passes upright */}
-      <Animated.View style={[StyleSheet.absoluteFill, styles.leaf, styles.paperBack, leafBack]} pointerEvents="none" />
-      {/* the previous page, coming back over the spine */}
-      <Animated.View style={[StyleSheet.absoluteFill, styles.leaf, leafPrev]} pointerEvents="none">
-        {PAGE_FLIP && canPrev ? <PageSheet page={page - 1} /> : null}
-        <Animated.View style={[StyleSheet.absoluteFill, styles.dark, leafPrevShade]} />
-      </Animated.View>
+      {turning === 1 ? <PageCurl progress={forward} width={winW} height={winH} leaf={() => <PageSheet page={page} />} under={<PageSheet page={page + 1} />} /> : null}
+      {turning === -1 ? <PageCurl progress={backward} width={winW} height={winH} leaf={() => <PageSheet page={page - 1} />} under={<PageSheet page={page} />} /> : null}
 
       <SurahPicker
         visible={picking}
@@ -625,11 +612,6 @@ const styles = StyleSheet.create({
   wListen: { color: colors.primary },
   nowPlaying: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16 },
   // frosted strip so the bar reads as its own layer above the page (and never sits on the surah banner)
-  // a leaf of the mushaf turns on its right edge (the binding)
-  leaf: { transformOrigin: 'right', backfaceVisibility: 'hidden', overflow: 'hidden' },
-  paperBack: { backgroundColor: '#E9E2D7' },
-  dark: { backgroundColor: '#000' },
-  fold: { backgroundColor: '#000' },
   topStrip: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: 'rgba(237,232,225,0.96)', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(39,40,51,0.08)' },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pager: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6 },
