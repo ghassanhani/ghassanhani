@@ -55,7 +55,7 @@ export default function SurahIndexScreen() {
           const on = i === tab;
           return (
             <Pressable key={t} accessibilityRole="tab" accessibilityState={{ selected: on }} onPress={() => setTab(i)}>
-              <Squircle radius={21} fill={on ? colors.primary : 'rgba(255,255,255,0.7)'} glow={on ? 'button' : 'glass'} stroke={on ? undefined : '#FFFFFF'} style={styles.chip}>
+              <Squircle radius={21} fill={on ? colors.primary : 'rgba(255,255,255,0.7)'} glow={on ? 'none' : 'glass'} stroke={on ? undefined : '#FFFFFF'} style={styles.chip}>
                 <Body size={14} weight={on ? 'bold' : 'medium'} color={on ? colors.white : colors.ink} lineHeight={20}>
                   {t}
                 </Body>
