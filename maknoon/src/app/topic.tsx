@@ -87,7 +87,7 @@ export default function TopicScreen() {
         ))}
       </GlassCard>
 
-      <GlassCard tint="peach" style={{ gap: 10 }}>
+      <GlassCard style={{ gap: 10 }}>
         <View style={[styles.row, { gap: 10 }]}>
           <IconBubble name="note" size={34} iconSize={16} color="#B8975A" />
           <Display size={20}>{T.reflect.title}</Display>
@@ -111,7 +111,7 @@ export default function TopicScreen() {
       <Display size={21.5}>{T.relatedTitle}</Display>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.rail} contentContainerStyle={styles.railContent}>
         {T.related.map((r) => (
-          <GlassCard key={r} tint="mint" style={styles.related}>
+          <GlassCard key={r} style={styles.related}>
             <Display size={18}>{r}</Display>
           </GlassCard>
         ))}

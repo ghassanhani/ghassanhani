@@ -59,7 +59,7 @@ export default function ZakatScreen() {
         </View>
       </HeroCard>
 
-      <GlassCard tint="peach" style={{ gap: 16 }}>
+      <GlassCard style={{ gap: 16 }}>
         <Display size={21.5}>{Z.basisTitle}</Display>
         <Segmented
           options={[
@@ -76,7 +76,7 @@ export default function ZakatScreen() {
         <Chip label={Z.sampleNote} tone="pending" />
       </GlassCard>
 
-      <GlassCard tint="mint" style={{ gap: 14 }}>
+      <GlassCard style={{ gap: 14 }}>
         <Display size={21.5}>{Z.assetsTitle}</Display>
         {Z.fields.map((f) => (
           <InnerCard key={f.key} style={[styles.row, { gap: 12 }]}>
@@ -98,7 +98,7 @@ export default function ZakatScreen() {
         ))}
       </GlassCard>
 
-      <GlassCard tint="peach" style={{ gap: 16 }}>
+      <GlassCard style={{ gap: 16 }}>
         <View style={[styles.row, { gap: 12, alignItems: 'flex-start' }]}>
           <Squircle radius={20} fill={colors.primary} glow="button" style={styles.icon}>
             <Icon name="books" size={20} color={colors.white} />

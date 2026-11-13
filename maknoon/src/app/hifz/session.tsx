@@ -59,7 +59,7 @@ export default function HifzSessionScreen() {
         ))}
       </GlassCard>
 
-      <GlassCard tint="mint" style={{ gap: 14 }}>
+      <GlassCard style={{ gap: 14 }}>
         <View style={[styles.row, { justifyContent: 'space-between' }]}>
           <Display size={20}>{S.repeat.title}</Display>
           <SoftButton label={hidden ? 'أظهر الآية' : 'أخفِ الآية'} onPress={() => setHidden((h) => !h)} />
@@ -112,7 +112,7 @@ export default function HifzSessionScreen() {
         <Cta label={S.tasmee.cta} height={40} compact onPress={() => router.push(`/mushaf?page=${S.page}`)} />
       </GlassCard>
 
-      <GlassCard tint="peach" style={{ gap: 10 }}>
+      <GlassCard style={{ gap: 10 }}>
         <Display size={20}>{S.after.title}</Display>
         <Body size={14} color="#4A4B57" lineHeight={24}>
           {S.after.body}

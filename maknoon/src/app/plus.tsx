@@ -39,7 +39,7 @@ export default function PlusScreen() {
 
       {paid ? (
         <>
-          <GlassCard tint="lavender" style={{ gap: 4 }}>
+          <GlassCard style={{ gap: 4 }}>
             <Display size={21.5} style={{ marginBottom: 8 }}>
               {P.perksTitle}
             </Display>
@@ -57,7 +57,7 @@ export default function PlusScreen() {
               </View>
             ))}
           </GlassCard>
-          <GlassCard tint="neutral" style={{ gap: 14 }}>
+          <GlassCard style={{ gap: 14 }}>
             <Segmented
               options={[
                 { value: 'month' as const, label: 'شهري' },

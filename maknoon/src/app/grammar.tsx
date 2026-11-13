@@ -14,7 +14,7 @@ export default function GrammarScreen() {
     <Screen backdrop="sea" withTabBar={false} header={<PageHeader title={G.title} fallback="/library" />}>
       <Breadcrumbs items={G.crumbs} />
 
-      <GlassCard tint="neutral" style={{ gap: 14 }}>
+      <GlassCard style={{ gap: 14 }}>
         <View style={[styles.row, { justifyContent: 'space-between' }]}>
           <Caption style={{ fontSize: 13, flex: 1 }}>{G.label}</Caption>
           <ReviewedChip />
@@ -64,7 +64,7 @@ export default function GrammarScreen() {
         <SoftButton label={G.more} />
       </GlassCard>
 
-      <GlassCard tint="peach" style={{ gap: 8 }}>
+      <GlassCard style={{ gap: 8 }}>
         <View style={[styles.row, { justifyContent: 'space-between' }]}>
           <Caption style={{ fontSize: 13 }}>{G.lexicon.source}</Caption>
           <Display size={20} color={colors.primary}>
@@ -77,7 +77,7 @@ export default function GrammarScreen() {
         <Caption>{G.lexicon.ref}</Caption>
       </GlassCard>
 
-      <GlassCard tint="lavender" style={{ gap: 4 }}>
+      <GlassCard style={{ gap: 4 }}>
         <Display size={21.5} style={{ marginBottom: 6 }}>
           {G.matnTitle}
         </Display>

@@ -112,7 +112,7 @@ export default function AssistantScreen() {
 function AnswerCard({ answer }: { answer: Answer }) {
   if (answer.kind === 'ruling') {
     return (
-      <GlassCard tint="peach" style={{ gap: 10 }}>
+      <GlassCard style={{ gap: 10 }}>
         <Chip label={A.a2.flag} tone="pending" />
         <Body size={14} color="#4A4B57" lineHeight={24}>
           لا يصدر المساعد فتوى.

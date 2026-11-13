@@ -79,7 +79,7 @@ export default function HifzScreen() {
       </GlassCard>
 
       {lock === 'shown' ? (
-        <GlassCard tint="peach" style={{ gap: 10 }}>
+        <GlassCard style={{ gap: 10 }}>
           <View style={[styles.row, { gap: 10 }]}>
             <IconBubble name="list" size={34} iconSize={16} color="#DA753A" />
             <Display size={18}>{H.lock.title}</Display>
@@ -100,7 +100,7 @@ export default function HifzScreen() {
         </Squircle>
       )}
 
-      <GlassCard tint="neutral" style={{ gap: 12 }}>
+      <GlassCard style={{ gap: 12 }}>
         <Display size={22}>{H.map.title}</Display>
         <View style={styles.juzGrid}>
           {Array.from({ length: 30 }, (_, i) => i + 1).map((n) => {
@@ -124,7 +124,7 @@ export default function HifzScreen() {
         </View>
       </GlassCard>
 
-      <GlassCard tint="neutral" style={{ gap: 12 }}>
+      <GlassCard style={{ gap: 12 }}>
         <Display size={22}>{H.pace.title}</Display>
         <Segmented options={H.pace.options.map((o) => ({ value: o.v, label: o.label }))} value={pace} onChange={setPace} />
         <View style={[styles.row, { gap: 12 }]}>

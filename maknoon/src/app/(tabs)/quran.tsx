@@ -38,7 +38,7 @@ export default function QuranHubScreen() {
       </HeroCard>
 
       {/* Khatma */}
-      <GlassCard tint="lavender">
+      <GlassCard>
         <View style={styles.between}>
           <View>
             <Display size={24}>{q.khatma.title}</Display>
@@ -74,7 +74,7 @@ export default function QuranHubScreen() {
       </ScrollView>
 
       {/* Listen */}
-      <GlassCard tint="mint">
+      <GlassCard>
         <View style={styles.between}>
           <View style={{ flex: 1 }}>
             <Display size={24}>{q.listen.title}</Display>

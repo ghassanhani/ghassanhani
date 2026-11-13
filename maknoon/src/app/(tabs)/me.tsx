@@ -36,7 +36,7 @@ export default function MeScreen() {
         <RoundButton icon="list" label="الإعدادات" onPress={() => router.push('/settings')} />
       </View>
 
-      <GlassCard tint="neutral" style={{ gap: 8 }}>
+      <GlassCard style={{ gap: 8 }}>
         <View style={[styles.row, { gap: 8 }]}>
           <Display size={17} style={{ flex: 1 }}>
             {M.sync.title}
@@ -61,7 +61,7 @@ export default function MeScreen() {
       </View>
       <View style={[styles.row, { gap: 12 }]}>
         {M.collections.map((c) => (
-          <GlassCard key={c.title} tint="lavender" style={{ flex: 1, padding: 16, gap: 4, minHeight: 110 }}>
+          <GlassCard key={c.title} style={{ flex: 1, padding: 16, gap: 4, minHeight: 110 }}>
             <IconBubble name="bookmark" size={31} iconSize={16} color={colors.ink} />
             <Display size={16} style={{ marginTop: 'auto' }}>
               {c.title}

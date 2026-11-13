@@ -11,6 +11,7 @@ import { Body, Display } from './Typography';
 type Box = { style?: StyleProp<ViewStyle>; children?: ReactNode };
 
 /** White 70% glass card, radius 36, inner glows. Optional colour tint. */
+/** `tint`: the coloured lights are a Home-only treatment in the canvas; cards elsewhere stay plain white glass. */
 export function GlassCard({ style, children, tint, soft }: Box & { tint?: TintName; soft?: boolean }) {
   return (
     <Squircle

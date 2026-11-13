@@ -104,7 +104,7 @@ export default function PrayerScreen() {
         })}
       </GlassCard>
 
-      <GlassCard tint="lavender" style={{ gap: 14 }}>
+      <GlassCard style={{ gap: 14 }}>
         <View style={[styles.row, { gap: 16 }]}>
           <Compass bearing={qibla} />
           <View style={{ flex: 1 }}>

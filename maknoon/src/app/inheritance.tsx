@@ -72,7 +72,7 @@ export default function InheritanceScreen() {
         </View>
       </GlassCard>
 
-      <GlassCard tint="mint" style={{ gap: 12 }}>
+      <GlassCard style={{ gap: 12 }}>
         <View>
           <Display size={21.5}>{I.example.title}</Display>
           <Caption>{I.example.sub}</Caption>

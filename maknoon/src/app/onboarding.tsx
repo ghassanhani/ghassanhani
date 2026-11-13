@@ -80,7 +80,7 @@ export default function OnboardingScreen() {
 
 function Step({ n, title, note, children }: { n: string; title: string; note?: string; children: React.ReactNode }) {
   return (
-    <GlassCard tint="neutral" style={{ gap: 12 }}>
+    <GlassCard style={{ gap: 12 }}>
       <View style={[styles.row, { gap: 10 }]}>
         <CountBadge value={n} />
         <Display size={20}>{title}</Display>

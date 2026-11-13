@@ -90,7 +90,7 @@ export default function FiqhScreen() {
         ))}
       </GlassCard>
 
-      <GlassCard tint="lavender" style={{ gap: 12, alignItems: 'stretch' }}>
+      <GlassCard style={{ gap: 12, alignItems: 'stretch' }}>
         <Display size={21.5}>{Q.cause.title}</Display>
         <Body size={14} color="#4A4B57" style={{ textAlign: 'center' }}>
           {Q.cause.intro}
