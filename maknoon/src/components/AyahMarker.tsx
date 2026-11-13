@@ -8,6 +8,11 @@ import { F } from '@/theme/fonts';
  * so `scale` is the text size / 21. Used wherever an ayah ends, in place of the font's own mark.
  */
 const MARKER = require('../../assets/brand/ayah-marker.png');
+// The image is 23 × 30 pt at 6× with 1 pt of room round the 20.973 × 27.934 medallion, so nothing
+// on its edge is ever cropped; it is drawn 1 pt out from the marker's box on every side.
+const PAD = 1;
+const IMG_W = 23;
+const IMG_H = 30;
 
 export function AyahMarker({ n, scale = 1 }: { n: number; scale?: number }) {
   const w = 20.973 * scale;
@@ -18,7 +23,7 @@ export function AyahMarker({ n, scale = 1 }: { n: number; scale?: number }) {
   return (
     <View style={{ width: w, height: h, alignItems: 'center', justifyContent: 'center' }} accessibilityLabel={`الآية ${digits}`}>
       {/* the design's medallion, pre-rendered (an image is far cheaper than parsing SVG for every ayah) */}
-      <Image source={MARKER} style={{ position: 'absolute', left: 0, top: 0, width: w, height: h }} />
+      <Image source={MARKER} style={{ position: 'absolute', left: -PAD * scale, top: -PAD * scale, width: IMG_W * scale, height: IMG_H * scale }} />
       <Text style={{ fontFamily: F.display, fontSize: fs, lineHeight: fs * 1.25, color: '#2E2F39', textAlign: 'center', marginTop: 1 * scale }}>{digits}</Text>
     </View>
   );
