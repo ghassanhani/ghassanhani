@@ -18,6 +18,7 @@ import { useTafsir, type TafsirEntry } from '@/content/tafsir';
 import { LANGS, type Lang, translationOf } from '@/content/translation';
 import { prefetchAyah, recitationCredit, toggleAyah, usePlayer } from '@/recitation/player';
 import { quranIndex } from '@/content/worship';
+import { ayahOfDay } from '@/store/reading';
 import { colors } from '@/theme/tokens';
 
 /** Ayah detail ("آية اليوم"): canonical text on top, link drawers below. */
@@ -26,6 +27,9 @@ export default function AyahScreen() {
   const [s, a] = id.split(':').map(Number);
   const meta = home.ayahOfDay; // the design defines آل عمران ٣
   const isDesignAyah = s === meta.surah && a === meta.ayah;
+  const today = ayahOfDay();
+  // «آية اليوم» only for today's ayah; any other ayah (from the tafsir, search, the Mushaf) is named
+  const title = today.surah === s && today.ayah === a ? ayahToday.title : `${quranIndex.surahs[s - 1]?.name ?? ''} · الآية ${ar(a)}`;
   const ayah = getAyah(s, a);
   const all = useTafsir(s, a);
   const tafsir = (all ?? []).filter((t) => t.text);
@@ -37,11 +41,11 @@ export default function AyahScreen() {
   useEffect(() => prefetchAyah(s, a), [s, a]);
 
   return (
-    <Screen backdrop="sky" withTabBar={false} header={<DetailHeader title={ayahToday.title} />}>
+    <Screen backdrop="sky" withTabBar={false} header={<DetailHeader title={title} />}>
       <HeroCard hero="ocean" style={{ minHeight: 210 }}>
         <View style={styles.between}>
           <Display size={22} color={colors.white}>
-            {ayahToday.title}
+            {title}
           </Display>
           <View style={[styles.row, { gap: 8 }]}>
             <GlassIcon name="translation" label="الترجمة" />

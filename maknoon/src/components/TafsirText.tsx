@@ -8,7 +8,7 @@ import { colors } from '@/theme/tokens';
  * except the markers themselves, which are formatting, not content:
  *   ¬ … ¥   edition / manuscript note (Ibn Kathir, Dar Ibn al-Jawzi) → small muted
  *   _ … _   highlighted gharib word (al-Mukhtasar)                     → teal
- *   { … }   Quran quotation                                             → kept, teal
+ *   { … }   Quran quotation                                             → kept, teal, in the Quran font
  */
 export function TafsirText({ text, numberOfLines, color = colors.ink }: { text: string; numberOfLines?: number; color?: string }) {
   const body = text.replace(/^\s+/, '').replace(/\r\n?/g, '\n');
@@ -36,7 +36,7 @@ export function TafsirText({ text, numberOfLines, color = colors.ink }: { text: 
             {p.t}
           </Text>
         ) : p.k === 'quran' ? (
-          <Text key={i} style={{ color: colors.primary }}>
+          <Text key={i} style={{ color: colors.primary, fontFamily: F.quran, fontSize: 16 }}>
             {p.t}
           </Text>
         ) : (
