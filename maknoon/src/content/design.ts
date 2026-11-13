@@ -53,10 +53,11 @@ export const home = {
   },
 };
 
+// khatma.doneFraction is a demo value, drawn half full as in the canvas; real khatma progress replaces it.
 export const quranHub = {
   title: 'القرآن الكريم',
   resume: { label: 'تابع من حيث توقفت', surah: 'سورة الكهف', meta: 'الآية ٧٧ من ١١٠ · الجزء ١٦', progress: 0.67 },
-  khatma: { title: 'ختمتي', plan: 'خطة ٣٠ يومًا · جزء كل يوم', done: '٢', unit: 'جزء', doneFraction: 2 / 30, wirdLabel: 'ورد اليوم', wird: 'الجزء ١٦ · نحو ٢٠ صفحة', cta: 'اقرأ الان' },
+  khatma: { title: 'ختمتي', plan: 'خطة ٣٠ يومًا · جزء كل يوم', done: '٢', unit: 'جزء', doneFraction: 0.51, wirdLabel: 'ورد اليوم', wird: 'الجزء ١٦ · نحو ٢٠ صفحة', cta: 'اقرأ الان' },
   shortcuts: [
     { title: 'المصحف الشريف', icon: 'quran2', route: '/mushaf' },
     { title: 'آيات للدراسة', icon: 'sparkle', route: null },

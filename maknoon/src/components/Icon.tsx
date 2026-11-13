@@ -76,6 +76,7 @@ const icons = {
   list: TaskDone01Icon,
   hizb: SparklesIcon, // drawn from the canvas (rub-el-hizb)
   translation: SparklesIcon, // drawn from the canvas
+  quranSolid: Quran02Icon, // the Mushaf button's solid book, drawn from the canvas
   booksSolid: Books01Icon, // the tab bar's solid variant, drawn from the canvas
 } as const;
 

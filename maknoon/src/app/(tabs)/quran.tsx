@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Fragment } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { ClipPath, Defs, FeGaussianBlur, Filter, G, Path } from 'react-native-svg';
 import { Icon, type IconName } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
@@ -32,7 +32,7 @@ export default function QuranHubScreen() {
           <ProgressBar value={q.resume.progress} fill="#26CCDB" track="#FFFFFF" />
         </View>
         <View style={styles.row}>
-          <PillButton label="المصحف" icon="quran2" onPress={() => router.push('/mushaf')} />
+          <PillButton label="المصحف" icon="quranSolid" onPress={() => router.push('/mushaf')} />
           <PillButton label="آيات للدراسة" variant="glass" />
         </View>
       </HeroCard>
@@ -173,47 +173,63 @@ export default function QuranHubScreen() {
   );
 }
 
+/** A ring segment (annulus with round ends) clockwise from 12 o'clock, as one closed path. */
+function arcPath(c: number, R: number, r: number, frac: number) {
+  const f = Math.min(Math.max(frac, 0.001), 0.9999);
+  const hw = (R - r) / 2;
+  const a0 = -Math.PI / 2;
+  const a1 = a0 + f * 2 * Math.PI;
+  const pt = (a: number, rad: number) => `${(c + rad * Math.cos(a)).toFixed(3)} ${(c + rad * Math.sin(a)).toFixed(3)}`;
+  const large = f > 0.5 ? 1 : 0;
+  return `M${pt(a0, R)}A${R} ${R} 0 ${large} 1 ${pt(a1, R)}A${hw} ${hw} 0 0 1 ${pt(a1, r)}A${r} ${r} 0 ${large} 0 ${pt(a0, r)}A${hw} ${hw} 0 0 1 ${pt(a0, R)}Z`;
+}
+
+/** The canvas inner shadow: everything outside `d`, offset and blurred, painted inside `d`. */
+function RingInset({ id, d, size, dx, dy, color, blur }: { id: string; d: string; size: number; dx: number; dy: number; color: string; blur: number }) {
+  return (
+    <>
+      <Defs>
+        <ClipPath id={`c${id}`}>
+          <Path d={d} />
+        </ClipPath>
+        <Filter id={`f${id}`} filterUnits="userSpaceOnUse" x={-20} y={-20} width={size + 40} height={size + 40}>
+          <FeGaussianBlur stdDeviation={blur} />
+        </Filter>
+      </Defs>
+      <G clipPath={`url(#c${id})`}>
+        <G filter={`url(#f${id})`}>
+          <Path d={`M-20 -20H${size + 20}V${size + 20}H-20Z ${d}`} fill={color} fillRule="evenodd" transform={`translate(${dx} ${dy})`} />
+        </G>
+      </G>
+    </>
+  );
+}
+
 function Ring({ value, label, unit }: { value: number; label: string; unit: string }) {
-  // canvas: 50pt ring, 6.6pt thick; track #C6B2B2 at 30%, arc #3526DB with round ends
+  // canvas: a 50pt ring 6.6pt thick. Track #C6B2B2 at 30% with a dark inner shadow (4 4 blur 2, 25%);
+  // arc #3526DB with round ends and a white inner light (0 4 blur 2, 72%).
   const size = 52;
-  const w = 6.57;
-  const r = 25.05 - w / 2;
-  const c = 2 * Math.PI * r;
+  const c = size / 2;
+  const R = 25.05;
+  const r = R - 6.57;
+  const track = `M${c - R} ${c}a${R} ${R} 0 1 0 ${2 * R} 0a${R} ${R} 0 1 0 ${-2 * R} 0Z M${c - r} ${c}a${r} ${r} 0 1 1 ${2 * r} 0a${r} ${r} 0 1 1 ${-2 * r} 0Z`;
+  const arc = arcPath(c, R, r, Math.max(value, 0.08));
   return (
     <View style={[styles.center, { width: size, height: size }]}>
       <Svg width={size} height={size} style={{ position: 'absolute' }}>
-        <Circle cx={size / 2} cy={size / 2} r={r} stroke="#C6B2B2" strokeOpacity={0.3} strokeWidth={w} fill="none" />
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke="#3526DB"
-          strokeWidth={w}
-          fill="none"
-          strokeLinecap="round"
-          strokeDasharray={`${Math.max(c * value, c * 0.08)} ${c}`}
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        />
-        {/* the arc's inner light (0 4 blur 2 white .72), as a thin highlight along its outer half */}
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r + w / 4}
-          stroke="#FFFFFF"
-          strokeOpacity={0.35}
-          strokeWidth={1.5}
-          fill="none"
-          strokeLinecap="round"
-          strokeDasharray={`${Math.max(c * value, c * 0.08) * 0.9} ${c * 2}`}
-          transform={`rotate(-88 ${size / 2} ${size / 2})`}
-        />
+        <G opacity={0.3}>
+          <Path d={track} fill="#C6B2B2" fillRule="evenodd" />
+          <RingInset id="t" d={track} size={size} dx={4} dy={4} color="rgba(0,0,0,0.25)" blur={2} />
+        </G>
+        <Path d={arc} fill="#3526DB" />
+        <RingInset id="a" d={arc} size={size} dx={0} dy={4} color="rgba(255,255,255,0.72)" blur={2} />
       </Svg>
-      <Display size={15} lineHeight={17}>
+      <Display size={17} lineHeight={17}>
         {label}
       </Display>
-      <Body size={9} lineHeight={11} color={colors.muted}>
+      <Display size={10} lineHeight={13}>
         {unit}
-      </Body>
+      </Display>
     </View>
   );
 }
