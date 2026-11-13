@@ -23,7 +23,7 @@ const NOISE: Record<number, number> = {
   128: require('../../assets/brand/glass-noise-128.png'),
 };
 /** Native continuous corner radius per design radius (see `R` in Squircle). */
-export const SMOOTH_K = 1.27;
+export const SMOOTH_K = 1; // the design's own radius (1.27 matched Figma's curve length but read too round)
 const noiseTile = (n: number) => NOISE[n >= 100 ? 128 : n >= 45 ? 51 : 38];
 
 export type SquircleProps = ViewProps & {
@@ -63,9 +63,8 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
     onLayout?.(e);
   };
 
-  // The shape itself is native: Apple's continuous ("squircle") corner, sized so its curve runs as
-  // far along the edges as the design's Figma corner (smoothing 94% starts the bend 1.94 r from the
-  // corner; the continuous curve starts 1.53 R from it, so R = 1.27 r). Fill, glow, grain and the
+  // The shape itself is native: Apple's continuous ("squircle") corner at the design's radius
+  // (the founder found the longer, Figma-length curve too round). Fill, glow, grain and the
   // coloured lights are all clipped to this one shape, so every layer shares the same smooth corner.
   const R = useMemo(() => {
     const k = radius * SMOOTH_K;
