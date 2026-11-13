@@ -153,10 +153,11 @@ Version 1 is lexical and runs offline at no cost. The semantic layer comes after
 |---|---|---|---|
 | Recitation check | User's device | Free | User, labelled experimental |
 | Semantic search | Local GPU once + small CPU server | About €5–10 a month | Ranking only; shows real sources |
+| Assistant summary (level 2, optional) | User's device (Qwen2.5-1.5B-Instruct, Apache-2.0, ~1.1 GB download) | Free | 2–3 sentences above the sources, each citing a source number; filtered by `guard.ts`; labelled automatic |
 | Link mining (e.g. hadith cited inside Ibn Kathir → canonical hadith IDs) | Founder's machine (RTX 5070 Ti) or the founder's Claude plan | Free | `edge` rows with `status = 'suggested'`, then human review |
 | Entity extraction, parallel-narration clustering, topic tagging | Same | Free | Suggested rows, then human review |
 
-AI output reaches users only as ranking or as links a human has reviewed. If a generated-answer assistant is added later, it returns node IDs that the app renders from the database, and a code check drops any reference that does not resolve.
+AI output reaches users as ranking, as links a human has reviewed, or (founder decision 2026-11-13) as the optional on-device assistant summary. The summary cites sources by number only; a code check drops any sentence without a valid source number, with a quotation (marks, or 5 words found in an ayah or in the given sources), or with ruling words. Quran, hadith and dhikr text is rendered from the database, never from the model.
 
 ## 7. Design
 

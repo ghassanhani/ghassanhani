@@ -43,6 +43,7 @@ Last updated: 2026-11-12. Run `npm run check` to re-verify everything marked "te
 | M10 | Recitation check | Running on iPhone (build 14) | Live listening rewritten as one loop over the newest audio (no queue, no lost words at slice ends); slips announced with a vibration and a note and marked in red; Tarteel-style bar (slips count, position, time; surah, hide ayat, highlighter, page/text view, hint). Model 59.7 MB q5_1 from this repo, SHA-256 checked. **Not done:** the deliberate-mistake test set with catch and false-alarm rates, a network-traffic check. |
 | M11 | Module skeletons | Screens only | Hub screens exist from the canvas with sample content. Not loading from fixtures, no coverage meter from real counts. |
 | M12 | Semantic search | Done ahead of order | All 6,236 ayat have vectors (BGE-M3, MIT). Top-5 on the test set: words 73% → words + meaning 87% (`npm run search:eval`). Cost: Cloudflare free tier (€0). Only ayat are embedded so far, since other node types don't exist yet. |
+| — | Assistant summary (level 2) | Built, not yet tried on a phone | Founder decision 2026-11-13. Optional on-device model (Qwen2.5-1.5B-Instruct q4_k_m, Apache-2.0, 1.1 GB, SHA-256 checked) via llama.rn writes 2–3 cited sentences above the sources; `guard.ts` drops uncited sentences, quotes and rulings (tests in `tests/guard.test.mts`). The model could not be run in the build machine, so answer quality is checked on device. |
 
 ## Rule-by-rule (CLAUDE.md)
 

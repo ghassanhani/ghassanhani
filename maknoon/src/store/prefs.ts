@@ -30,6 +30,8 @@ export type Prefs = {
   hifzLock: 'shown' | 'paused' | 'dismissed';
   notes: Record<string, string>;
   installedPacks: string[];
+  summaryModel: boolean; // the optional summary model (assistant, level 2) is downloaded and verified
+  aiSummary: boolean; // show the automatic summary above the sources when the model is there
   recitationModel: boolean; // the optional speech-model pack is downloaded and verified
   reciter: number; // RATQ recitation id (assets/content/recitations.json)
   lastPage: number | null; // the mushaf page last open (reading position), on the device only
@@ -62,6 +64,8 @@ export const DEFAULT_PREFS: Prefs = {
   hifzLock: 'shown',
   notes: {},
   installedPacks: [],
+  summaryModel: false,
+  aiSummary: true,
   recitationModel: false,
   reciter: 35, // إبراهيم الدوسري: complete ayah timings on RATQ
   lastPage: null,

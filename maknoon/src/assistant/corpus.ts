@@ -85,3 +85,7 @@ const curated: Node[] = [
 
 export const curatedNodes = curated;
 export const surahLabel = surahName;
+/** An ayah's plain (undiacritised) text, as in the search index. */
+export const ayahPlain = (key: string) => SEARCH[key] ?? '';
+/** Every ayah's plain text (used to recognise quoted ayat). */
+export const allAyahPlain = () => Object.values(SEARCH);

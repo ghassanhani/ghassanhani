@@ -4,6 +4,8 @@ import { type ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Pressable } from '@/components/Tap';
 import type { Node } from '@/assistant/corpus';
 import { ask, type Answer } from '@/assistant/engine';
+import { type Line, summarize, summaryStatus } from '@/assistant/summary';
+import { usePrefs } from '@/store/prefs';
 import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
@@ -17,7 +19,7 @@ import { APP_NAME } from '@/config';
 import { TypingDots } from '@/components/motion';
 import { colors } from '@/theme/tokens';
 
-type Turn = { q: string; answer: Answer | null };
+type Turn = { id: number; q: string; answer: Answer | null; summary?: Line[] | 'loading' };
 
 /**
  * Retrieval-only assistant (plan §8). Answers are cards from the app's own texts,
@@ -26,6 +28,7 @@ type Turn = { q: string; answer: Answer | null };
  */
 export default function AssistantScreen() {
   const [turns, setTurns] = useState<Turn[]>([]);
+  const [prefs] = usePrefs();
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
@@ -35,10 +38,15 @@ export default function AssistantScreen() {
     if (!question || busy) return;
     setInput('');
     setBusy(true);
-    setTurns((t) => [...t, { q: question, answer: null }]);
+    const id = Date.now();
+    const patch = (p: Partial<Turn>) => setTurns((t) => t.map((x) => (x.id === id ? { ...x, ...p } : x)));
+    setTurns((t) => [...t, { id, q: question, answer: null }]);
     const answer = await ask(question);
-    setTurns((t) => t.map((x, i) => (i === t.length - 1 ? { ...x, answer } : x)));
+    // level 2: a short on-device summary above the sources, when the model is installed and on
+    const summing = answer.kind === 'sources' && summaryStatus() === 'ready' && prefs.aiSummary;
+    patch({ answer, summary: summing ? 'loading' : undefined });
     setBusy(false);
+    if (summing) patch({ summary: await summarize(question, [...answer.nodes, ...answer.tafsir]) });
   };
 
   return (
@@ -68,7 +76,7 @@ export default function AssistantScreen() {
               </Squircle>
             </Pressable>
           </Squircle>
-          <Caption style={{ textAlign: 'center', marginTop: 6 }}>{`بحث في نصوص ${APP_NAME} يعرض المصادر كما هي · لا يُولَّد أي نص`}</Caption>
+          <Caption style={{ textAlign: 'center', marginTop: 6 }}>{prefs.aiSummary && summaryStatus() === 'ready' ? `بحث في نصوص ${APP_NAME} يعرض المصادر كما هي · مع ملخّص آلي تجريبي` : `بحث في نصوص ${APP_NAME} يعرض المصادر كما هي · لا يُولَّد أي نص`}</Caption>
         </>
       }
     >
@@ -96,13 +104,14 @@ export default function AssistantScreen() {
         </View>
       ) : null}
 
-      {turns.map((t, i) => (
-        <View key={i} style={{ gap: 12 }}>
+      {turns.map((t) => (
+        <View key={t.id} style={{ gap: 12 }}>
           <Squircle radius={22} fill={colors.primary} glow="button" style={styles.bubble}>
             <Body size={15} weight="medium" color={colors.white}>
               {t.q}
             </Body>
           </Squircle>
+          {t.summary ? <SummaryCard summary={t.summary} /> : null}
           {t.answer ? <AnswerCard answer={t.answer} /> : <TypingDots color={colors.primary} />}
         </View>
       ))}
@@ -149,6 +158,32 @@ function AnswerCard({ answer }: { answer: Answer }) {
       ))}
       <View style={styles.hairline} />
       <Caption>المصادر تُعرض كما هي في قاعدة البيانات، بعلامة حالة مراجعتها.</Caption>
+    </GlassCard>
+  );
+}
+
+/** The automatic summary (level 2): guarded sentences, each pointing at the numbered sources below. */
+function SummaryCard({ summary }: { summary: Line[] | 'loading' }) {
+  if (summary !== 'loading' && !summary.length) return null;
+  return (
+    <GlassCard soft style={{ gap: 8 }}>
+      <View style={[styles.row, { justifyContent: 'space-between' }]}>
+        <Display size={16}>ملخّص آلي</Display>
+        <Chip label="راجع النصوص" tone="pending" />
+      </View>
+      {summary === 'loading' ? (
+        <TypingDots color={colors.primary} />
+      ) : (
+        summary.map((l, i) => (
+          <Body key={i} size={14} lineHeight={26} color={colors.ink}>
+            {l.text}
+            <Body size={12} weight="bold" color={colors.primary}>
+              {` [${l.cites.map((c) => ar(c)).join('، ')}]`}
+            </Body>
+          </Body>
+        ))
+      )}
+      <Caption>كتبه نموذج صغير على هاتفك من المصادر المرقّمة أدناه فقط، وقد يخطئ. المرجع هو النصوص نفسها.</Caption>
     </GlassCard>
   );
 }

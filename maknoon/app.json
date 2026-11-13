@@ -73,6 +73,13 @@
         {
           "microphonePermission": "يستمع المكنون إلى تلاوتك للتسميع فقط. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل."
         }
+      ],
+      [
+        "llama.rn",
+        {
+          "enableEntitlements": false,
+          "enableOpenCLAndHexagon": false
+        }
       ]
     ],
     "scheme": "maknoon",

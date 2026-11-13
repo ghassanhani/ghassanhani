@@ -15,6 +15,7 @@ import { APP_NAME } from '@/config';
 import { METHODS, cityByKey } from '@/content/prayer';
 import { ar, basmala } from '@/content/quran';
 import { downloadModel, modelStatus, recitationModel, removeModel } from '@/recitation/model';
+import { downloadSummaryModel, removeSummaryModel, summaryModel, summaryStatus } from '@/assistant/summary';
 import { recitationById, recitations } from '@/recitation/player';
 import { semanticEnabled } from '@/search/semantic';
 import { colors } from '@/theme/tokens';
@@ -47,6 +48,19 @@ export default function SettingsScreen() {
       setRecError(true);
     }
     setRecBusy(false);
+  };
+  const sumStatus = summaryStatus();
+  const [sumBusy, setSumBusy] = useState(false);
+  const [sumError, setSumError] = useState(false);
+  const getSummaryModel = async () => {
+    setSumBusy(true);
+    setSumError(false);
+    try {
+      await downloadSummaryModel();
+    } catch {
+      setSumError(true);
+    }
+    setSumBusy(false);
   };
   const meaning = prefs.meaningSearch;
   const setMeaning = (v: boolean) => setPrefs({ meaningSearch: v });
@@ -126,6 +140,30 @@ export default function SettingsScreen() {
             </View>
             {recError ? <Caption color={colors.pendingInk}>تعذّر التنزيل أو لم يطابق الملف بصمته. لم يُحفظ شيء.</Caption> : null}
             <Caption>نموذج Tarteel لتمييز التلاوة (Apache-2.0)، محوَّل ليعمل على الهاتف. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل.</Caption>
+          </GlassCard>
+        </>
+      ) : null}
+
+      {sumStatus !== 'unsupported' ? (
+        <>
+          <Display size={21.5}>الملخّص الآلي · تجريبي</Display>
+          <GlassCard style={{ gap: 8 }}>
+            <View style={[styles.row, { justifyContent: 'space-between', gap: 12 }]}>
+              <View style={{ flex: 1 }}>
+                <Display size={16}>{summaryModel.title}</Display>
+                <Caption>{sumStatus === 'ready' ? 'مثبّت · يعمل دون اتصال' : `${ar((summaryModel.bytes / 1e9).toFixed(1))} غ.ب · تنزيل اختياري`}</Caption>
+              </View>
+              {sumStatus === 'missing' ? (
+                sumBusy ? <ActivityIndicator color={colors.primary} /> : <SoftButton label="تنزيل" onPress={getSummaryModel} />
+              ) : (
+                <SoftButton label="حذف" onPress={() => void removeSummaryModel()} />
+              )}
+            </View>
+            {sumError ? <Caption color={colors.pendingInk}>تعذّر التنزيل أو لم يطابق الملف بصمته. لم يُحفظ شيء.</Caption> : null}
+            {sumStatus === 'ready' ? <ToggleRow title="اعرض الملخّص في المساعد" sub="جمل قصيرة فوق المصادر، كل جملة برقم مصدرها" value={prefs.aiSummary} onChange={(v) => setPrefs({ aiSummary: v })} /> : null}
+            <Caption>
+              نموذج لغوي صغير (Qwen2.5 · Apache-2.0) يعمل على هاتفك فقط، فلا يُرسل سؤالك إلى أي مكان. يكتب جملًا قصيرة عن المصادر التي وجدها البحث، ثم يحذف التطبيق كل جملة بلا رقم مصدر، أو فيها اقتباس، أو حكم فقهي. قد يخطئ، فالمرجع دائمًا النصوص المعروضة تحته.
+            </Caption>
           </GlassCard>
         </>
       ) : null}
