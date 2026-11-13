@@ -147,6 +147,19 @@ function MushafPage({ page }: { page: number }) {
     [qcf, page, onPage],
   );
   const tasmee = useTasmee(keys);
+  // a red word tapped during the recitation check: what the listening model heard there
+  const [heardNote, setHeardNote] = useState<string | null>(null);
+  const onFlag = useCallback(
+    (key: string, word: number) => {
+      const h = tasmee.heardAt(key, word, ayahWords(key));
+      if (h === null) return;
+      haptic.select();
+      setHeardNote(h ? `سُمِعَت: ${h}` : 'لم تُسمَع هذه الكلمة');
+      setTimeout(() => setHeardNote(null), 3500);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tasmee.heardAt],
+  );
   // One block per surah on the page (the last juz has several surahs on one page).
   const blocks: { surah: number; starts: boolean; ayat: { key: string; text: string }[]; fontFamily?: string }[] = [];
   for (const x of onPage) {
@@ -333,7 +346,7 @@ function MushafPage({ page }: { page: number }) {
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: PAGE_MARGIN, paddingBottom: insets.bottom + 150 }}>
         <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={toggleControls} style={() => null}>
           {pageView ? (
-            qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={pickSurah} held={held} onHold={onHold} onTap={onTapWord} dark={dark} highlights={prefs.highlights} /> : <View style={{ minHeight: 600 }} />
+            qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={pickSurah} held={held} onHold={onHold} onTap={onTapWord} onFlag={onFlag} dark={dark} highlights={prefs.highlights} /> : <View style={{ minHeight: 600 }} />
           ) : null}
           {pageView ? null : blocks.map((b, i) => (
             <View key={b.surah} style={i > 0 ? { marginTop: 18 } : null}>
@@ -427,6 +440,16 @@ function MushafPage({ page }: { page: number }) {
               </Body>
             ) : null}
           </View>
+        </Animated.View>
+      ) : null}
+
+      {heardNote ? (
+        <Animated.View entering={fadeIn} exiting={fadeOut} style={[styles.tasmee, { top: insets.top + 6 }]} pointerEvents="none">
+          <Squircle radius={16} fill="rgba(255,255,255,0.92)" glow="glass" style={styles.note}>
+            <Body size={15} weight="bold" color={colors.ink} style={{ textAlign: 'center' }}>
+              {heardNote}
+            </Body>
+          </Squircle>
         </Animated.View>
       ) : null}
 
@@ -640,7 +663,7 @@ const PageSheet = memo(function PageSheet({ page, dark = false, text = false }: 
  * the widest line of the whole mushaf fits the width, so every page has the same size, as in print.
  * In the recitation check a hidden word keeps its place (transparent), exactly like the text mode.
  */
-function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, onHold, onTap, dark = false, highlights }: { page: number; zoom: number; tasmee?: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void; held?: string | null; onHold?: (key: string) => void; onTap?: (key?: string) => void; dark?: boolean; highlights?: string[] }) {
+function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, onHold, onTap, onFlag, dark = false, highlights }: { page: number; zoom: number; tasmee?: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void; held?: string | null; onHold?: (key: string) => void; onTap?: (key?: string) => void; onFlag?: (key: string, word: number) => void; dark?: boolean; highlights?: string[] }) {
   const ink = dark ? DARK.ink : QURAN_INK;
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -684,7 +707,7 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, on
       }
       return c;
     }).join('');
-  const glyphs = (l: Extract<Qcf4Line, { g: string }>, li: number) => <Glyphs key={`g${li}`} l={l} codes={codesOf(l)} font={pg.f} size={size} lineH={lineH} ink={ink} onHold={onHold} onTap={onTap} />;
+  const glyphs = (l: Extract<Qcf4Line, { g: string }>, li: number) => <Glyphs key={`g${li}`} l={l} codes={codesOf(l)} font={pg.f} size={size} lineH={lineH} ink={ink} onHold={onHold} onTap={onTap} onFlag={onFlag} />;
   // Rows of the page: headers and basmala as they are; word lines either kept line for line,
   // or (zoomed) joined into one flowing paragraph per run of lines.
   const rows: React.ReactNode[] = [];
@@ -737,7 +760,7 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, on
 }
 
 /** The glyphs of one mushaf line, drawn from their codes (see `codesOf`); redrawn only when those change. */
-const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH, ink, onHold, onTap }: { l: Extract<Qcf4Line, { g: string }>; codes: string; font: string; size: number; lineH: number; ink: string; onHold?: (key: string) => void; onTap?: (key?: string) => void }) {
+const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH, ink, onHold, onTap, onFlag }: { l: Extract<Qcf4Line, { g: string }>; codes: string; font: string; size: number; lineH: number; ink: string; onHold?: (key: string) => void; onTap?: (key?: string) => void; onFlag?: (key: string, word: number) => void }) {
   const base = { fontFamily: font, fontSize: size, lineHeight: lineH, color: ink };
   return (
     <>
@@ -755,7 +778,7 @@ const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH, ink, onHold, 
         const style = c === 'y' ? styles.wMarked : c === 'k' ? styles.wHeld : c === 'l' ? styles.wListen : c === 'c' ? styles.wCurrent : c === 'h' ? styles.wHidden : c === 'x' ? styles.wCheck : null;
         const ai = l.a[gi];
         return (
-          <Text key={k} style={[base, style]} onPress={onHold && ai && onTap ? () => onTap(ayahKey(ai)) : undefined} onLongPress={onHold && ai ? () => onHold(ayahKey(ai)) : undefined} suppressHighlighting>
+          <Text key={k} style={[base, style]} onPress={c === 'x' && onFlag && ai ? () => onFlag(ayahKey(ai), l.i[gi]) : onHold && ai && onTap ? () => onTap(ayahKey(ai)) : undefined} onLongPress={onHold && ai ? () => onHold(ayahKey(ai)) : undefined} suppressHighlighting>
             {ch}
           </Text>
         );

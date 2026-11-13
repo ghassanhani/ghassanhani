@@ -10,6 +10,7 @@ import { fold } from '../search/arabic.ts';
  *   · a word written as one or as two (two heard words that join into one expected, or the reverse)
  *   · repeating a word or phrase, and extra words (reciters go back and repeat)
  *   · stopping early, unless the caller says the reciter finished
+ *   · one و/ي the model adds after a whole word for a vowel lengthened at a pause
  * Flagged on purpose: any other letter difference. يعلمون for تعلمون is exactly the kind
  * of slip a memorizer needs to hear about, so there is no fuzzy letter matching.
  *
@@ -53,6 +54,13 @@ type Word = { ayah: number; index: number; raw: string; norm: string; full: stri
  */
 const loose = (w: string) => w.replace(/(?<=.)ا/g, '');
 
+/**
+ * The speech model writes what it hears at a pause: a lengthened last vowel as a letter («العقدي»,
+ * «يوسوسو»). One و or ي after the whole word, spelled in full, is the same word; any other
+ * difference still counts (ن is not tolerated: «ولئن» for «ولا» is a real slip).
+ */
+const tail = (eFull: string, hFull: string) => hFull.length === eFull.length + 1 && hFull.startsWith(eFull) && 'وي'.includes(hFull[hFull.length - 1]);
+
 function expectedWords(ayat: ExpectedAyah[]): Word[] {
   const out: Word[] = [];
   ayat.forEach((a, ai) => {
@@ -91,7 +99,7 @@ export function check(ayat: ExpectedAyah[], heardText: string, opts: Options = {
     const e = E[i - 1].norm;
     for (let j = 1; j <= m; j++) {
       const h = H[j - 1];
-      let best = cost[(i - 1) * W + (j - 1)] + (e === h ? 0 : WORD);
+      let best = cost[(i - 1) * W + (j - 1)] + (e === h || tail(E[i - 1].full, heard[j - 1]) ? 0 : WORD);
       let s = 1;
       const miss = cost[(i - 1) * W + j] + WORD;
       if (miss < best) {
@@ -137,7 +145,7 @@ export function check(ayat: ExpectedAyah[], heardText: string, opts: Options = {
   for (let i = stopAt, j = m; i > 0 || j > 0; ) {
     const s = step[i * W + j];
     if (s === 1) {
-      state[i - 1] = E[i - 1].norm === H[j - 1] ? 'ok' : { heard: heard[j - 1] };
+      state[i - 1] = E[i - 1].norm === H[j - 1] || tail(E[i - 1].full, heard[j - 1]) ? 'ok' : { heard: heard[j - 1] };
       i--;
       j--;
     } else if (s === 2) {

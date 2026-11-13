@@ -3,7 +3,9 @@ import plain from '../../assets/content/quran-search.json';
 import { type Listening, listeningSupported, startListening } from './listen';
 import { type ExpectedAyah, type WordState, check, wordCount } from './match';
 import { modelStatus } from './model';
+import { setAudioModeAsync } from 'expo-audio';
 import { haptic } from '@/components/motion';
+import { stop as stopRecitation } from './player';
 
 const PLAIN = plain as Record<string, string>;
 
@@ -138,6 +140,9 @@ export function useTasmee(ayahKeys: string[]) {
     try {
       setNote(null);
       setHideText(true);
+      // a recitation playing would hold the audio session for playback only: stop it and open the mic
+      stopRecitation();
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true, shouldPlayInBackground: false }).catch(() => undefined);
       session.current = await startListening((t) => setHeard(`${kept.current} ${t}`.trim()));
       setListening(true);
     } catch {
@@ -155,7 +160,7 @@ export function useTasmee(ayahKeys: string[]) {
       kept.current = `${kept.current} ${await s.stop()}`.trim();
       setHeard(kept.current);
     } catch {
-      setNote('mic-failed');
+      // the last words could not be read: what was heard before stays; the mic itself worked
     }
   };
 
@@ -197,5 +202,14 @@ export function useTasmee(ayahKeys: string[]) {
     return { state: st, current };
   };
 
-  return { active, listening, note, alert, start, stop, hint, reset, wordState, done: !!result?.complete, errors: confirmed.length, position, elapsed, hideText, setHideText };
+  /** What the model heard where a word is marked (a changed word), '' for a word not heard at all. */
+  const heardAt = (ayahKey: string, index: number, shown: number): string | null => {
+    const l = layout.map.get(ayahKey);
+    if (!l || !l.count || !result) return null;
+    const i = l.count === shown ? index : Math.min(l.count - 1, Math.round((index * (l.count - 1)) / Math.max(1, shown - 1)));
+    const f = result.flags.find((x) => x.kind !== 'skipped-ayah' && x.ayah === ayahKey && x.word === i);
+    return f ? (f.kind === 'changed' ? f.heard : '') : null;
+  };
+
+  return { active, listening, note, alert, start, stop, hint, reset, wordState, heardAt, done: !!result?.complete, errors: confirmed.length, position, elapsed, hideText, setHideText };
 }

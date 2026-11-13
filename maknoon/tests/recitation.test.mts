@@ -179,3 +179,13 @@ test('an alif the Mushaf writes small (dagger alif) is not a mistake: «مالك
   const r = check(fatiha, heard, { finished: true });
   assert.deepEqual(r.flags, []);
 });
+
+test('a vowel the model writes at a pause (و or ي after the last word) is not a slip', () => {
+  for (const k of sample.slice(0, 120)) {
+    const w = words(k);
+    for (const v of ['ي', 'و']) {
+      const heard = [...w.slice(0, -1), w[w.length - 1] + v].join(' ');
+      assert.equal(checkAyah(ayah(k), heard).flags.length, 0, `${k} +${v}`);
+    }
+  }
+});
