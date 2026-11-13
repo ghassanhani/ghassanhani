@@ -133,7 +133,8 @@ function MushafPage({ page }: { page: number }) {
             <View style={{ flex: 1 }} />
             <View style={styles.pageNo} accessibilityLabel={`صفحة ${ar(page)}`}>
               <SvgXml xml={PAGE_FRAME_XML} width={52.49} height={32.157} style={StyleSheet.absoluteFill} />
-              <Display size={15} lineHeight={20} color="#2E2F39">
+              {/* Thmanyah Serif Display Black, about 18pt, as in the design */}
+              <Display size={18} lineHeight={22} color="#2E2F39">
                 {ar(page)}
               </Display>
             </View>
