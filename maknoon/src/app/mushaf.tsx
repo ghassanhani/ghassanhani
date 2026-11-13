@@ -14,8 +14,7 @@ import { mushaf as m } from '@/content/design';
 import { ar, ayahPlaceholder, ayatLabel, ayatOnPage, getAyah } from '@/content/quran';
 import { stripTashkeel } from '@/content/text';
 import { ayahKey, qcf4Available, qcf4Em, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
-import { SvgXml } from 'react-native-svg';
-import { AYAH_MARKER_XML } from '@/components/ayahMarker';
+import { AyahMarker } from '@/components/AyahMarker';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
 import { quranIndex } from '@/content/worship';
@@ -289,24 +288,6 @@ function QcfPageView({ page, tasmee, onPickSurah }: { page: number; tasmee: Retu
           </View>
         );
       })}
-    </View>
-  );
-}
-
-/**
- * The ayah marker from the design canvas: a teal medallion with gold dots around a light disc,
- * the number set in the display font in dark ink. Drawn at 20.973 × 27.934 in the design (21pt text).
- */
-function AyahMarker({ n, scale = 1 }: { n: number; scale?: number }) {
-  const w = 20.973 * scale;
-  const h = 27.934 * scale;
-  const digits = ar(n);
-  const fs = (digits.length === 1 ? 15 : digits.length === 2 ? 11.5 : 9) * scale;
-  return (
-    <View style={{ width: w, height: h, alignItems: 'center', justifyContent: 'center' }} accessibilityLabel={`الآية ${digits}`}>
-      <View style={{ position: 'absolute', left: 0.807 * scale, top: 4.033 * scale, width: 19.36 * scale, height: 19.36 * scale, borderRadius: 9.68 * scale, backgroundColor: '#E2E2E2' }} />
-      <SvgXml xml={AYAH_MARKER_XML} width={w} height={h} style={{ position: 'absolute', left: 0, top: 0 }} />
-      <Text style={{ fontFamily: F.display, fontSize: fs, lineHeight: fs * 1.25, color: '#2E2F39', textAlign: 'center', marginTop: 1 * scale }}>{digits}</Text>
     </View>
   );
 }

@@ -50,3 +50,10 @@ test('qcf4: 114 surah headers and 112 basmalas', () => {
   assert.equal(lines.filter((l: object) => 'h' in l).length, 114);
   assert.equal(lines.filter((l: object) => 'b' in l).length, 112);
 });
+
+test('ayah marks: each KFGQPC medallion glyph stands for its own ayah number', () => {
+  for (const [key, text] of Object.entries(hafs) as [string, string][]) {
+    const mark = text.trim().split(/\s+/).pop()!;
+    assert.equal(mark.codePointAt(0)! - 0xfc00 + 1, Number(key.split(':')[1]), key);
+  }
+});

@@ -1,6 +1,7 @@
 import { Text, type TextProps } from 'react-native';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
+import { AyahMarker, ayahNumberOfMark } from './AyahMarker';
 
 type Props = TextProps & { size?: number; color?: string; lineHeight?: number };
 
@@ -20,22 +21,17 @@ export function Body({ size = 14, color = colors.ink, lineHeight, weight = 'regu
 const AYAH_MARK = /([\uFC00-\uFDFF]|\u06DD[\u0660-\u0669]+)/;
 
 /**
- * Quran text. The ayah-end medallions are drawn in the brand teal as in the canvas; the
- * characters themselves are untouched (only their colour differs). Light text keeps its colour.
+ * Quran text. Each ayah-end mark is drawn as the design's marker (teal medallion with the ayah
+ * number) in place of the font's medallion; the words themselves are untouched.
  */
-export function AyahText({ size = 22, color = colors.ink, lineHeight, style, children, markColor, ...rest }: Props & { markColor?: string }) {
-  const mark = markColor ?? (color === colors.ink ? colors.primary : color);
+export function AyahText({ size = 22, color = colors.ink, lineHeight, style, children, ...rest }: Props & { markColor?: string }) {
   const content =
     typeof children === 'string' && AYAH_MARK.test(children)
-      ? children.split(AYAH_MARK).map((part, i) =>
-          AYAH_MARK.test(part) ? (
-            <Text key={i} style={{ color: mark }}>
-              {part}
-            </Text>
-          ) : (
-            part
-          ),
-        )
+      ? children.split(AYAH_MARK).map((part, i) => {
+          if (!AYAH_MARK.test(part)) return part;
+          const n = ayahNumberOfMark(part);
+          return n ? <AyahMarker key={i} n={n} scale={size / 21} /> : part;
+        })
       : children;
   return (
     <Text {...rest} style={[{ fontFamily: F.quran, fontSize: size, color, lineHeight: lineHeight ?? Math.round(size * 2.0), writingDirection: 'rtl' }, style]}>
