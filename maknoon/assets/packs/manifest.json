@@ -23,7 +23,13 @@
    "bytes": 15839232,
    "sha256": "bb02f85acfe21e58a3ece0efecd2224b6f5faddfe1d5ac52d3337e51face7e2c",
    "bundled": false,
-   "version": 1
+   "version": 1,
+   "csv": {
+    "url": "https://storage.cms.itqan.dev/media/uploads/assets/6/versions/6/tf-ab-saadi_ar.csv",
+    "version": "1.0.0",
+    "bytes": 9562857,
+    "sha256": "619759cf37bd69b94a54bb3595cbcb9910200785b581299a69a52ba498f2db89"
+   }
   },
   {
    "slug": "tafsir-ibn-katheer",
@@ -35,7 +41,13 @@
    "bytes": 34238464,
    "sha256": "621767c17ca9d1084a4146dae7bbc1c07ee936157c5109a5e5d20ae10aecc5c3",
    "bundled": false,
-   "version": 1
+   "version": 1,
+   "csv": {
+    "url": "https://storage.cms.itqan.dev/media/uploads/assets/5/versions/233/tafsir-ibn-katheer-21.csv",
+    "version": "2.1.0",
+    "bytes": 25106977,
+    "sha256": "13de5445b360c5b325879d6ad94d385cd1814939c715232ca352ad3895b39f58"
+   }
   },
   {
    "slug": "tafsir-albaghawi",
@@ -47,7 +59,13 @@
    "bytes": 24567808,
    "sha256": "ad5ef43d383617b4285a1ee40b73eaa4df1bc565d07651503e3148a4e0a75e86",
    "bundled": false,
-   "version": 1
+   "version": 1,
+   "csv": {
+    "url": "https://storage.cms.itqan.dev/media/uploads/assets/7/versions/None/tf-ab-baghawy_ar.csv",
+    "version": "1.0.0",
+    "bytes": 18304658,
+    "sha256": "57c1a9df8eace9cfd98ae170f8044857cde73618fa63d0be8338ed797f0130a8"
+   }
   },
   {
    "slug": "tafsir-altabari",
@@ -59,7 +77,13 @@
    "bytes": 51941376,
    "sha256": "a504fc6b2733df44884590e3158428cae6f0e6389676ba3d21fde109adc41566",
    "bundled": false,
-   "version": 1
+   "version": 1,
+   "csv": {
+    "url": "https://storage.cms.itqan.dev/media/uploads/assets/4/versions/None/tf-ab-tabary_ar.csv",
+    "version": "1.0.0",
+    "bytes": 43833014,
+    "sha256": "95e4dd2f35504771ea3b447f7313db16ac78962664eda406d908a295b6e3c677"
+   }
   }
  ]
 }

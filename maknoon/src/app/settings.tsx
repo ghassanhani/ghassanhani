@@ -133,14 +133,14 @@ export default function SettingsScreen() {
         {packs.map((p, i) => (
           <Fragment key={p.slug}>
             {i ? <View style={styles.sep} /> : null}
-            <PackRow slug={p.slug} title={p.title} bytes={p.bytes} bundled={p.bundled} installed={packsSupported && isInstalled(p.slug)} />
+            <PackRow slug={p.slug} title={p.title} bytes={p.csv?.bytes ?? p.bytes} bundled={p.bundled} installed={packsSupported && isInstalled(p.slug)} />
           </Fragment>
         ))}
         <Caption style={{ paddingVertical: 8 }}>
           {!packsSupported
             ? 'الحزم الكاملة متاحة في تطبيق iOS وAndroid؛ نسخة الويب تعرض العيّنة فقط.'
             : packsDownloadable
-              ? 'تُنزَّل كل حزمة مرة واحدة وتعمل دون اتصال · نص التفسير كما نُشر (CC BY-ND).'
+              ? 'تُنزَّل كل حزمة مرة واحدة من رتق وتعمل دون اتصال · نص التفسير كما نُشر (CC BY-ND).'
               : 'التنزيل غير مفعّل بعد: لم يُضبط رابط استضافة الحزم.'}
         </Caption>
       </GlassCard>
