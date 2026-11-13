@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Pressable, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
+import { FlatList, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/components/Icon';
 import { haptic } from '@/components/motion';

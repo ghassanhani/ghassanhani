@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import { Icon, type IconName } from '@/components/Icon';
 import { atStart } from '@/components/motion';
 import { Screen } from '@/components/Screen';

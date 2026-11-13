@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Fragment } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import { HeroLink, StatTiles } from '@/components/blocks';
 import { Icon, type IconName } from '@/components/Icon';
 import { Screen } from '@/components/Screen';

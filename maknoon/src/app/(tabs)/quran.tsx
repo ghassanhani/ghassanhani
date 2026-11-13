@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Fragment } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import Svg, { ClipPath, Defs, G, Path } from 'react-native-svg';
 import { Icon, type IconName } from '@/components/Icon';
 import { Screen } from '@/components/Screen';

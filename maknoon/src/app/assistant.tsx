@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { type ComponentRef, useRef, useState } from 'react';
-import { Pressable, type ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { type ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import type { Node } from '@/assistant/corpus';
 import { ask, type Answer } from '@/assistant/engine';
 import { Icon } from '@/components/Icon';

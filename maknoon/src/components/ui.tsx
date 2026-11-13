@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
-import { Pressable, type PressableProps, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { type PressableProps, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import Animated, { interpolateColor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 import { atStart, haptic, isRTL, motion, PressScale } from './motion';
 import { F } from '@/theme/fonts';

@@ -46,6 +46,8 @@ import {
   Share05Icon,
   SparklesIcon,
   TaskDone01Icon,
+  TranslateIcon,
+  LeftToRightListBulletIcon,
   UserIcon,
   PauseIcon,
 } from '@hugeicons/core-free-icons';
@@ -108,7 +110,8 @@ const icons = {
   sparkle: SparklesIcon,
   list: TaskDone01Icon,
   hizb: SparklesIcon, // drawn from the canvas (rub-el-hizb)
-  translation: SparklesIcon, // drawn from the canvas
+  translation: TranslateIcon,
+  index: LeftToRightListBulletIcon,
   quranSolid: Quran02Icon, // the Mushaf button's solid book, drawn from the canvas
   booksSolid: Books01Icon, // the tab bar's solid variant, drawn from the canvas
 } as const;
@@ -116,11 +119,12 @@ const icons = {
 export type IconName = keyof typeof icons;
 
 /**
- * Icons are the design canvas's own glyphs where it has them (exact Figma vectors: solid and
- * glossy styles); the rest fall back to Hugeicons stroke-rounded. `outline` forces the fallback.
+ * One icon family across the app: Hugeicons stroke-rounded, one stroke weight, so every bubble,
+ * row and button reads the same. The design canvas's own glyphs (solid / glossy) are used only
+ * where asked with `canvas` (the tab bar, which the canvas draws as solid shapes).
  */
-export function Icon({ name, size = 24, color = colors.ink, strokeWidth = 1.5, outline }: { name: IconName; size?: number; color?: string; strokeWidth?: number; outline?: boolean }) {
-  const glyph = outline ? undefined : CANVAS_ICONS[name];
+export function Icon({ name, size = 24, color = colors.ink, strokeWidth = 1.7, canvas }: { name: IconName; size?: number; color?: string; strokeWidth?: number; canvas?: boolean; outline?: boolean }) {
+  const glyph = canvas ? CANVAS_ICONS[name] : undefined;
   // A glossy glyph is drawn for white-on-colour; asked for any other colour (a dark icon on a light
   // bubble, an inactive tab) it is shown as one solid shape in that colour, as the canvas does there.
   const mono = !!glyph?.glossy && !isWhite(color);

@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import { Breadcrumbs } from '@/components/blocks';
 import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';

@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import { colors } from '@/theme/tokens';
 import { Icon } from './Icon';
 import { Squircle } from './Squircle';

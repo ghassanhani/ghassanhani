@@ -34,10 +34,10 @@ export const home = {
   adhkarCard: { label: 'الأذكار', title: 'أذكار المساء', meta: 'كل ذِكر مع مصدره ودرجته', cta: 'ابدأ الآن' },
   hifzReview: { label: 'مراجعة الحفظ', title: '٣ مقاطع اليوم', surahs: ['الملك', 'القلم', 'الحاقة'] },
   adhkarRail: [
-    { title: 'أذكار الصباح والمساء', icon: 'ramadhan1', cat: 'sabah' },
-    { title: 'الذكر\nالمطلق', icon: 'quran3', cat: 'mutlaq' },
-    { title: 'أذكار بعد الصلاة', icon: 'ramadhan2', cat: 'salah' },
-    { title: 'أذكار النوم والاستيقاظ', icon: 'quran2', cat: 'nawm' },
+    { title: 'أذكار الصباح والمساء', icon: 'sun', cat: 'sabah' },
+    { title: 'الذكر\nالمطلق', icon: 'tasbih', cat: 'mutlaq' },
+    { title: 'أذكار بعد الصلاة', icon: 'mosque', cat: 'salah' },
+    { title: 'أذكار النوم والاستيقاظ', icon: 'moon', cat: 'nawm' },
   ] as const,
   learn: {
     label: 'مسار التعليم',
@@ -59,10 +59,10 @@ export const quranHub = {
   resume: { label: 'تابع من حيث توقفت', surah: 'سورة الكهف', meta: 'الآية ٧٧ من ١١٠ · الجزء ١٦', progress: 0.67 },
   khatma: { title: 'ختمتي', plan: 'خطة ٣٠ يومًا · جزء كل يوم', done: '٢', unit: 'جزء', doneFraction: 0.51, wirdLabel: 'ورد اليوم', wird: 'الجزء ١٦ · نحو ٢٠ صفحة', cta: 'اقرأ الان' },
   shortcuts: [
-    { title: 'المصحف الشريف', icon: 'quran2', route: '/mushaf' },
-    { title: 'آيات للدراسة', icon: 'sparkle', route: null },
-    { title: 'فهرس سور القران', icon: 'list', route: '/surahs' },
-    { title: 'أذكار بعد الصلاة', icon: 'quran2', route: '/adhkar?cat=salah' },
+    { title: 'المصحف الشريف', icon: 'quran', route: '/mushaf' },
+    { title: 'آيات للدراسة', icon: 'bookOpen', route: null },
+    { title: 'فهرس سور القران', icon: 'index', route: '/surahs' },
+    { title: 'أذكار بعد الصلاة', icon: 'tasbih', route: '/adhkar?cat=salah' },
   ] as const,
   listen: { title: 'استمع', surah: 'سورة الكهف', meta: '[القارئ المرخّص] · من الآية ٧٧' },
   hifz: {

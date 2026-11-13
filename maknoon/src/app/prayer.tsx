@@ -1,6 +1,7 @@
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Image, Linking, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Image, Linking, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, Defs, G, Line, LinearGradient, Polygon, RadialGradient, Stop, Text as SvgText } from 'react-native-svg';
 import { Icon } from '@/components/Icon';

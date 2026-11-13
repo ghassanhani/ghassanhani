@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import { LinkRow, StatTiles } from '@/components/blocks';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';

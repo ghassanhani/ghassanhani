@@ -9,7 +9,8 @@ import { ThiqalIcon } from '@/components/ThiqalIcon';
 import { PageCurl } from '@/components/PageCurl';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type ShotTarget, pageShot, shotsSupported, takePageShot } from '@/content/pageShots';
-import { Image as RNImage, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { Image as RNImage, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Backdrop } from '@/components/Backdrop';
 import { Icon, type IconName } from '@/components/Icon';
@@ -302,7 +303,7 @@ function MushafPage({ page }: { page: number }) {
       <Animated.View ref={pageRef} collapsable={false} style={StyleSheet.absoluteFill}>
       <PageBg dark={dark} />
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: PAGE_MARGIN, paddingBottom: insets.bottom + 150 }}>
-        <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={toggleControls}>
+        <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={toggleControls} style={() => null}>
           {pageView ? (
             qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={pickSurah} held={held} onHold={onHold} onTap={onTapWord} dark={dark} highlights={prefs.highlights} /> : <View style={{ minHeight: 600 }} />
           ) : null}

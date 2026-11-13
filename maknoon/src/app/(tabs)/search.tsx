@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import { curatedNodes, type Node } from '@/assistant/corpus';
 import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';

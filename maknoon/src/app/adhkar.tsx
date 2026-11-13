@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import Svg, { Circle } from 'react-native-svg';
 import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';

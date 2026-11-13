@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import Svg, { Circle } from 'react-native-svg';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';

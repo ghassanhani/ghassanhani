@@ -1,6 +1,7 @@
 import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Linking, Pressable, Share, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Linking, Share, StyleSheet, View } from 'react-native';
+import { Pressable } from '@/components/Tap';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { Body, Caption, Display } from '@/components/Typography';
