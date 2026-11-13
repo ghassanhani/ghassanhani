@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { MadinahAyah } from '@/components/MadinahAyah';
 import { type ComponentRef, useRef, useState } from 'react';
 import { type ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Pressable } from '@/components/Tap';
@@ -10,7 +11,7 @@ import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
-import { AyahText, Body, Caption, Display } from '@/components/Typography';
+import { Body, Caption, Display } from '@/components/Typography';
 import { Chip, GlassCard, InnerCard } from '@/components/ui';
 import { assistant as A } from '@/content/account';
 import { ar, getAyah } from '@/content/quran';
@@ -211,9 +212,7 @@ function SourceCard({ n, num }: { n: Node; num?: number }) {
         ) : null}
       </View>
       {ayah ? (
-        <AyahText size={20} lineHeight={38} style={{ fontFamily: ayah.fontFamily }}>
-          {ayah.text}
-        </AyahText>
+        <MadinahAyah surah={n.surah!} ayah={n.ayah!} size={20} />
       ) : n.text ? (
         <Display size={16} lineHeight={28}>
           {n.text}

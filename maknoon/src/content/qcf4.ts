@@ -74,3 +74,47 @@ export function useQcf4Fonts(page: number) {
   }, [id, loaded]);
   return loaded;
 }
+
+// Ayah number (1–6236) → its glyphs, page by page (an ayah can run over a page turn).
+let BY_AYAH: Map<number, { f: string; g: string[]; end: boolean[] }[]> | null = null;
+/** The Madinah glyphs of one ayah ("s:a"), in reading order, with the font of each page they sit on. */
+export function ayahGlyphs(key: string) {
+  if (!BY_AYAH) {
+    BY_AYAH = new Map();
+    for (const pg of data.pages)
+      for (const l of pg.l) {
+        if (!('a' in l)) continue;
+        Array.from(l.g).forEach((ch, gi) => {
+          const n = l.a[gi];
+          if (!n) return;
+          const runs = BY_AYAH!.get(n) ?? BY_AYAH!.set(n, []).get(n)!;
+          let run = runs[runs.length - 1];
+          if (!run || run.f !== pg.f) runs.push((run = { f: pg.f, g: [], end: [] }));
+          run.g.push(ch);
+          run.end.push(l.i[gi] === -1);
+        });
+      }
+  }
+  const n = KEYS.indexOf(key) + 1;
+  return n ? (BY_AYAH.get(n) ?? []) : [];
+}
+
+/** Loads the given QCF4 fonts; true once they are all ready. */
+export function useQcf4FontSet(names: string[]) {
+  const id = [...new Set(names)].join(',');
+  const [done, setDone] = useState('');
+  const loaded = qcf4Available() && (preview() || done === id || id.split(',').every((n) => Font.isLoaded(n)));
+  useEffect(() => {
+    if (loaded || !qcf4Available() || !id) return;
+    let live = true;
+    const map: Record<string, number> = {};
+    for (const n of id.split(',')) if (qcf4Fonts[n]) map[n] = qcf4Fonts[n];
+    Font.loadAsync(map)
+      .then(() => live && setDone(id))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [id, loaded]);
+  return loaded;
+}

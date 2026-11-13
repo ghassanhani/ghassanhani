@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { MadinahAyah } from '@/components/MadinahAyah';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '@/components/Tap';
 import { Icon, type IconName } from '@/components/Icon';
@@ -119,9 +120,13 @@ export default function HomeScreen() {
               <IconBubble name={audio.playing === `${a.surah}:${a.ayah}` ? 'pause' : 'play'} iconSize={16} color={colors.white} fill={colors.primary} />
             </Pressable>
           </View>
-          <AyahText size={21} lineHeight={38} style={[{ marginTop: 6 }, ayah && { fontFamily: ayah.fontFamily }]}>
-            {ayah ? ayah.text : ayahPlaceholder(a.surahName, a.ayah)}
-          </AyahText>
+          {ayah ? (
+            <MadinahAyah surah={a.surah} ayah={a.ayah} size={21} style={{ marginTop: 6 }} />
+          ) : (
+            <AyahText size={21} lineHeight={38} style={{ marginTop: 6 }}>
+              {ayahPlaceholder(a.surahName, a.ayah)}
+            </AyahText>
+          )}
           <Caption style={{ marginTop: 4 }}>{a.ref}</Caption>
         </GlassCard>
       </Pressable>

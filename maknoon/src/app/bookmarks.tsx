@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
+import { MadinahAyah } from '@/components/MadinahAyah';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '@/components/Tap';
 import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
-import { AyahText, Body, Caption, Display } from '@/components/Typography';
+import { Body, Caption, Display } from '@/components/Typography';
 import { GlassCard } from '@/components/ui';
 import { pageOfAyah } from '@/content/qcf4';
 import { ar, getAyah } from '@/content/quran';
@@ -47,9 +48,7 @@ export default function BookmarksScreen() {
                   </Pressable>
                 </View>
                 {ayah ? (
-                  <AyahText size={19} lineHeight={34} numberOfLines={3} style={{ fontFamily: ayah.fontFamily }}>
-                    {ayah.text}
-                  </AyahText>
+                  <MadinahAyah surah={s} ayah={a} size={19} numberOfLines={3} />
                 ) : null}
                 {page ? <Caption>{`صفحة ${ar(page)}`}</Caption> : null}
               </GlassCard>

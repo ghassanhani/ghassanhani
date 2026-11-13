@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { MadinahAyah } from '@/components/MadinahAyah';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Pressable } from '@/components/Tap';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -58,9 +59,7 @@ export default function SurahScreen() {
           return (
             <Pressable accessibilityRole="link" accessibilityLabel={`${meta.name} الآية ${a}`} onPress={() => router.push(`/ayah/${n}:${a}`)}>
               <Squircle radius={24} fill="rgba(255,255,255,0.7)" stroke="#FFFFFF" glow="glass" style={styles.ayah}>
-                <AyahText size={size} lineHeight={size * 2} style={{ fontFamily: ayah.fontFamily }}>
-                  {ayah.text}
-                </AyahText>
+                <MadinahAyah surah={n} ayah={a} size={size} />
               </Squircle>
             </Pressable>
           );

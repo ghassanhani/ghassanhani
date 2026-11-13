@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { MadinahAyah } from '@/components/MadinahAyah';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Pressable } from '@/components/Tap';
@@ -6,11 +7,11 @@ import { curatedNodes, type Node } from '@/assistant/corpus';
 import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
-import { AyahText, Body, Caption, Display } from '@/components/Typography';
+import { Body, Caption, Display } from '@/components/Typography';
 import { Chip, GlassCard, HeroCard } from '@/components/ui';
 import { search as s } from '@/content/design';
 import { searchTafsirPack } from '@/content/packs';
-import { ar, getAyah } from '@/content/quran';
+import { ar } from '@/content/quran';
 import { quranIndex } from '@/content/worship';
 import { matchCount, rootInfo, searchQuran, terms } from '@/search/engine';
 import { fuse, searchByMeaning, semanticEnabled, type SemanticHit } from '@/search/semantic';
@@ -143,7 +144,6 @@ export default function SearchScreen() {
 
       {showQuran &&
         ayatShown.map((h) => {
-          const a = getAyah(h.surah, h.ayah);
           return (
             <Pressable key={h.key} accessibilityRole="link" onPress={() => router.push(`/ayah/${h.key}` as never)}>
               <GlassCard style={{ gap: 4 }}>
@@ -154,9 +154,7 @@ export default function SearchScreen() {
                   </View>
                   <Caption>{`${quranIndex.surahs[h.surah - 1].name} · ${ar(h.ayah)}`}</Caption>
                 </View>
-                <AyahText size={21} lineHeight={40} style={a ? { fontFamily: a.fontFamily } : null}>
-                  {a?.text ?? ''}
-                </AyahText>
+                <MadinahAyah surah={h.surah} ayah={h.ayah} size={21} />
               </GlassCard>
             </Pressable>
           );

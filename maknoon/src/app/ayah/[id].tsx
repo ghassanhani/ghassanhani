@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { MadinahAyah } from '@/components/MadinahAyah';
 import { useEffect, useState } from 'react';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { fadeIn, haptic, isRTL, motion } from '@/components/motion';
@@ -52,9 +53,13 @@ export default function AyahScreen() {
             <GlassIcon name={here ? 'pause' : 'play'} label={here ? 'إيقاف التلاوة' : 'استماع'} onPress={() => toggleAyah(s, a)} />
           </View>
         </View>
-        <AyahText size={23} lineHeight={46} color={colors.white} style={[{ marginTop: 8 }, ayah && { fontFamily: ayah.fontFamily }]}>
-          {ayah ? ayah.text : ayahPlaceholder(isDesignAyah ? meta.surahName : (quranIndex.surahs[s - 1]?.name ?? String(s)), a)}
-        </AyahText>
+        {ayah ? (
+          <MadinahAyah surah={s} ayah={a} size={23} color={colors.white} style={{ marginTop: 8 }} />
+        ) : (
+          <AyahText size={23} lineHeight={46} color={colors.white} style={{ marginTop: 8 }}>
+            {ayahPlaceholder(isDesignAyah ? meta.surahName : (quranIndex.surahs[s - 1]?.name ?? String(s)), a)}
+          </AyahText>
+        )}
         <Caption color="rgba(255,255,255,0.8)">{isDesignAyah ? meta.ref : `${quranIndex.surahs[s - 1]?.name ?? ar(s)} : ${ar(a)}`}</Caption>
         <Caption color="rgba(255,255,255,0.55)" style={{ fontSize: 10 }}>
           {quranSource.credit}
