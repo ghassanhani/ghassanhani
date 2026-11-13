@@ -12,10 +12,11 @@ import { colors } from '@/theme/tokens';
 
 // Worship tools stay one tap away (they have no tab of their own).
 const tools: { title: string; icon: IconName; route: string }[] = [
-  { title: 'مواقيت الصلاة والقبلة', icon: 'compass', route: '/prayer' },
-  { title: 'الأذكار', icon: 'moonCloud', route: '/adhkar' },
-  { title: 'حاسبة الزكاة', icon: 'books', route: '/zakat' },
-  { title: 'حاسبة المواريث', icon: 'books', route: '/inheritance' },
+  // one family (Hugeicons line icons), one weight, one colour
+  { title: 'مواقيت الصلاة والقبلة', icon: 'mosque', route: '/prayer' },
+  { title: 'الأذكار', icon: 'tasbih', route: '/adhkar' },
+  { title: 'حاسبة الزكاة', icon: 'zakat', route: '/zakat' },
+  { title: 'حاسبة المواريث', icon: 'scale', route: '/inheritance' },
 ];
 
 export default function MeScreen() {
