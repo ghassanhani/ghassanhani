@@ -308,10 +308,11 @@ function QiblaCompass({ bearing }: { bearing: number }) {
               <Image source={require('../../assets/brand/kaaba.png')} style={{ width: 40, height: 40 }} accessibilityLabel="الكعبة" />
             </Animated.View>
           </Animated.View>
-          {/* the reading in the middle stays still: where the phone points now */}
+          {/* the reading in the middle stays still: where the phone points now (only while the compass runs) */}
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]} pointerEvents="none">
-            <Display size={34} lineHeight={44} color={facing ? '#24774A' : colors.ink}>{deg === null ? `${ar(Math.round(bearing))}°` : `${ar(deg)}°`}</Display>
-            <Caption>{deg === null ? 'القبلة' : 'اتجاهك'}</Caption>
+            {deg !== null ? (
+              <Display size={36} lineHeight={46} color={facing ? '#24774A' : colors.ink}>{`${ar(deg)}°`}</Display>
+            ) : null}
           </View>
         </View>
       </View>
