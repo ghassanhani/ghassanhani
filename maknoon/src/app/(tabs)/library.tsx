@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
+import { atStart } from '@/components/motion';
 import { Body, Caption, Display } from '@/components/Typography';
 import { GlassCard, HeroCard } from '@/components/ui';
 import { library as l } from '@/content/design';
@@ -46,7 +47,7 @@ export default function LibraryScreen() {
                 {/* coverage meter: share of links reviewed by scholars */}
                 <View style={styles.track}>
                   {/* the design's frosted glass fill (soft inner light, grain), as the wird bar on Home */}
-                  <Squircle radius={9} fill="rgba(51,95,89,0.82)" glow="frost" noise={51.2} style={[styles.fill, { width: `${s.coverageFraction * 100}%` }]} />
+                  <Squircle radius={9} fill="rgba(51,95,89,0.82)" glow="frost" noise={51.2} style={[styles.fill, atStart(0), { width: `${s.coverageFraction * 100}%` }]} />
                 </View>
                 <Body size={12} weight="medium" color={colors.primary} lineHeight={16}>
                   {s.coverage}
@@ -84,7 +85,8 @@ const styles = StyleSheet.create({
   cell: { width: '48.3%' },
   shelf: { height: 165, padding: 20, gap: 4 },
   track: { height: 17, borderRadius: 9, borderCurve: 'continuous', backgroundColor: 'rgba(129,130,144,0.3)', boxShadow: 'inset 4px 4px 4px -1px rgba(0,0,0,0.12)' },
-  fill: { position: 'absolute', top: 0, bottom: 0, right: 0 }, // fills from the right, where an Arabic line starts (as drawn)
+  // fills from where the line starts (the right in Arabic): `atStart`, because native RTL swaps left/right
+  fill: { position: 'absolute', top: 0, bottom: 0 },
   between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   arrow: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
 });
