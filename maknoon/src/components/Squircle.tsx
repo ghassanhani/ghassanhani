@@ -1,18 +1,14 @@
 import { getSvgPath } from 'figma-squircle';
 import { type ReactNode, useId, useMemo, useState } from 'react';
-import { type LayoutChangeEvent, StyleSheet, View, type ViewProps, type ViewStyle, type StyleProp } from 'react-native';
+import { Image, type LayoutChangeEvent, StyleSheet, View, type ViewProps, type ViewStyle, type StyleProp } from 'react-native';
 import Svg, {
   ClipPath,
   Mask,
   Defs,
   Ellipse,
-  FeGaussianBlur,
-  Filter,
   G,
-  Image as SvgImage,
   LinearGradient,
   Path,
-  Pattern,
   RadialGradient,
   Rect,
   Stop,
@@ -22,8 +18,14 @@ import { type Blob, CORNER_SMOOTHING } from '@/theme/tokens';
 /** frost = glass + the wide faint light + grain: large glass cards only (icon bubbles stay glass). */
 export type GlowStrength = 'none' | 'glass' | 'frost' | 'button';
 
-// The canvas's frosted grain: a 256px noise tile drawn at 38px, 50% opacity, over every glass surface.
-const NOISE = require('../../assets/brand/glass-noise.png');
+// The canvas's frosted grain: a noise tile at 38 / 51.2 / 128 pt, 50% opacity, over every glass surface.
+// Drawn as a natively repeated image (an SVG pattern of an image is slow to draw on phones).
+const NOISE: Record<number, number> = {
+  38: require('../../assets/brand/glass-noise-38.png'),
+  51: require('../../assets/brand/glass-noise-51.png'),
+  128: require('../../assets/brand/glass-noise-128.png'),
+};
+const noiseTile = (n: number) => NOISE[n >= 100 ? 128 : n >= 45 ? 51 : 38];
 
 export type SquircleProps = ViewProps & {
   radius: number;
@@ -94,20 +96,10 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
               </LinearGradient>
             ) : null}
             {blobs?.map((b, i) =>
-              b.blur && !b.exact ? (
+              b.blur ? (
                 <G key={i}>
                   <BlurGradient id={`b${uid}${i}`} b={b} w={size.w} h={size.h} />
                   <BlurGradient id={`bs${uid}${i}`} b={{ ...b, blur: 2 }} w={size.w} h={size.h} />
-                  {b.fade ? <FadeMask id={`${uid}${i}`} b={b} w={size.w} h={size.h} /> : null}
-                </G>
-              ) : b.blur ? (
-                <G key={i}>
-                  <Filter id={`bf${uid}${i}`} filterUnits="userSpaceOnUse" x={-400} y={-400} width={size.w + 800} height={size.h + 800}>
-                    <FeGaussianBlur stdDeviation={b.blur} />
-                  </Filter>
-                  <Filter id={`bs${uid}${i}`} filterUnits="userSpaceOnUse" x={-400} y={-400} width={size.w + 800} height={size.h + 800}>
-                    <FeGaussianBlur stdDeviation={2} />
-                  </Filter>
                   {b.fade ? <FadeMask id={`${uid}${i}`} b={b} w={size.w} h={size.h} /> : null}
                 </G>
               ) : (
@@ -119,19 +111,6 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
               </RadialGradient>
               ),
             )}
-            {g ? (
-              <>
-                <Filter id={`g${uid}`} filterUnits="userSpaceOnUse" x={-200} y={-200} width={size.w + 400} height={size.h + 400}>
-                  <FeGaussianBlur stdDeviation={small ? 5 : 7} />
-                </Filter>
-                <Filter id={`h${uid}`} filterUnits="userSpaceOnUse" x={-200} y={-200} width={size.w + 400} height={size.h + 400}>
-                  <FeGaussianBlur stdDeviation={2} />
-                </Filter>
-                <Filter id={`w${uid}`} filterUnits="userSpaceOnUse" x={-200} y={-200} width={size.w + 400} height={size.h + 400}>
-                  <FeGaussianBlur stdDeviation={43.5} />
-                </Filter>
-              </>
-            ) : null}
             {g && small && fill ? (
               <RadialGradient id={`e${uid}`} cx="50%" cy="50%" rx="50%" ry="50%">
                 <Stop offset="0" stopColor={fill} stopOpacity={0.92} />
@@ -139,17 +118,12 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
                 <Stop offset="1" stopColor={fill} stopOpacity={0.45} />
               </RadialGradient>
             ) : null}
-            {glow === 'frost' || (g && small) ? (
-              <Pattern id={`n${uid}`} patternUnits="userSpaceOnUse" width={noise} height={noise}>
-                <SvgImage href={NOISE} width={noise} height={noise} preserveAspectRatio="none" />
-              </Pattern>
-            ) : null}
           </Defs>
           <G clipPath={`url(#c${uid})`}>
             {fill || gradient ? <Path d={d} fill={gradient ? `url(#f${uid})` : g && small && fill ? `url(#e${uid})` : fill} /> : null}
             {blobs?.map((b, i) => {
               const e = { cx: b.cx * size.w, cy: b.cy * size.h, rx: b.rx * size.w, ry: b.ry * size.h, fill: b.color, opacity: b.opacity ?? 1 };
-              if (b.blur && !b.exact) {
+              if (b.blur) {
                 const grow = 2.5 * b.blur;
                 return (
                   <G key={i}>
@@ -158,13 +132,6 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
                   </G>
                 );
               }
-              if (b.blur)
-                return (
-                  <G key={i}>
-                    <Ellipse {...e} filter={`url(#bf${uid}${i})`} mask={b.fade ? `url(#mb${uid}${i})` : undefined} />
-                    {b.fade ? <Ellipse {...e} filter={`url(#bs${uid}${i})`} mask={`url(#ms${uid}${i})`} /> : null}
-                  </G>
-                );
               return (
               <Ellipse
                 key={i}
@@ -180,22 +147,21 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
               <>
                 {/* The canvas inner shadows, reproduced exactly: each one is the area outside the shape
                     (grown inward by `erode`), shifted, blurred and filled white. Ordered as in the canvas. */}
-                {glow === 'frost' ? <Inset d={d} w={size.w} h={size.h} erode={6} dy={4} opacity={0.2} filter={`url(#w${uid})`} /> : null}
-                <Inset d={d} w={size.w} h={size.h} erode={3} dy={4} opacity={g.wide} filter={`url(#g${uid})`} />
-                <Inset d={d} w={size.w} h={size.h} erode={0} dy={4} opacity={g.top} filter={`url(#h${uid})`} />
-                <Inset d={d} w={size.w} h={size.h} erode={0} dy={-4} opacity={g.bottom} filter={`url(#h${uid})`} />
+                {glow === 'frost' ? <SoftInset d={d} erode={6} sigma={43.5} dy={4} opacity={0.2} /> : null}
+                <SoftInset d={d} erode={3} sigma={7} dy={4} opacity={g.wide} />
+                <SoftInset d={d} erode={0} sigma={2} dy={4} opacity={g.top} />
+                <SoftInset d={d} erode={0} sigma={2} dy={-4} opacity={g.bottom} />
               </>
             ) : null}
             {g && small ? (
               <>
-                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={0.18} strokeWidth={12} filter={`url(#g${uid})`} transform="translate(0 4)" />
-                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={0.5} strokeWidth={6} filter={`url(#h${uid})`} transform="translate(0 4)" />
-                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={0.3} strokeWidth={6} filter={`url(#h${uid})`} transform="translate(0 -4)" />
+                <SoftInset d={d} erode={6} sigma={5} dy={4} opacity={0.18} />
+                <SoftInset d={d} erode={3} sigma={2} dy={4} opacity={0.5} />
+                <SoftInset d={d} erode={3} sigma={2} dy={-4} opacity={0.3} />
               </>
             ) : null}
             {/* icon bubbles in the canvas: the colour is softly veiled and grained, never a dark disc */}
             {g && small ? <Rect x={0} y={0} width={size.w} height={size.h} fill="#FFFFFF" opacity={0.08} /> : null}
-            {glow === 'frost' || (g && small) ? <Rect x={0} y={0} width={size.w} height={size.h} fill={`url(#n${uid})`} opacity={0.5} /> : null}
           </G>
           {stroke ? (
             <G clipPath={`url(#c${uid})`}>
@@ -203,6 +169,9 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
             </G>
           ) : null}
         </Svg>
+        {glow === 'frost' || (g && small) ? (
+          <Image source={noiseTile(noise)} resizeMode="repeat" style={[StyleSheet.absoluteFill, { opacity: 0.5, borderRadius: Math.min(radius, Math.min(size.w, size.h) / 2), borderCurve: 'continuous', overflow: 'hidden' }]} />
+        ) : null}
         </View>
       ) : null}
       {children}
@@ -210,16 +179,32 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
   );
 }
 
-/** An inset shadow: white outside the shape plus an `erode`-wide band inside its edge, offset and blurred. */
-function Inset({ d, w, h, erode, dy, opacity, filter }: { d: string; w: number; h: number; erode: number; dy: number; opacity: number; filter: string }) {
-  const P = 200;
-  const outside = `M${-P} ${-P}H${w + P}V${h + P}H${-P}Z ${d}`;
+/**
+ * An inset shadow without an SVG filter (filters are re-computed on the CPU on phones, which made
+ * every card slow): white light coming in from the edge, as the canvas's blurred inner shadow, drawn
+ * as a few stacked strokes clipped to the shape. Each stroke's opacity is solved so the stack follows
+ * the Gaussian falloff of the original (`erode` px solid, then blur `sigma`), shifted `dy` px.
+ */
+const BANDS = 7;
+function SoftInset({ d, erode, sigma, dy, opacity }: { d: string; erode: number; sigma: number; dy: number; opacity: number }) {
+  const bands = useMemo(() => {
+    const q = (x: number) => 0.5 * (1 - erf((x - erode) / (sigma * Math.SQRT2))); // light left at depth x
+    const max = erode + 2.6 * sigma;
+    const out: { r: number; a: number }[] = [];
+    let prev = 0;
+    for (let k = 1; k <= BANDS; k++) {
+      const r = max * (1 - (k - 1) / BANDS); // outermost first
+      const mid = max * (1 - (k - 0.5) / BANDS);
+      const t = Math.min(0.999, opacity * q(mid));
+      const a = Math.max(0, 1 - (1 - t) / (1 - prev));
+      out.push({ r, a });
+      prev = Math.max(prev, t);
+    }
+    return out;
+  }, [erode, sigma, opacity]);
   return (
-    <G opacity={opacity} filter={filter}>
-      <G transform={`translate(0 ${dy})`}>
-        <Path d={outside} fill="#FFFFFF" fillRule="evenodd" />
-        {erode ? <Path d={d} fill="none" stroke="#FFFFFF" strokeWidth={erode * 2} /> : null}
-      </G>
+    <G transform={`translate(0 ${dy})`}>
+      {bands.map((b, i) => (b.a > 0.002 ? <Path key={i} d={d} fill="none" stroke="#FFFFFF" strokeOpacity={b.a} strokeWidth={b.r * 2} /> : null))}
     </G>
   );
 }

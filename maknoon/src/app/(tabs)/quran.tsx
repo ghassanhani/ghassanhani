@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Fragment } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Svg, { ClipPath, Defs, FeGaussianBlur, Filter, G, Path } from 'react-native-svg';
+import Svg, { ClipPath, Defs, G, Path } from 'react-native-svg';
 import { Icon, type IconName } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
@@ -185,21 +185,18 @@ function arcPath(c: number, R: number, r: number, frac: number) {
 }
 
 /** The canvas inner shadow: everything outside `d`, offset and blurred, painted inside `d`. */
-function RingInset({ id, d, size, dx, dy, color, blur }: { id: string; d: string; size: number; dx: number; dy: number; color: string; blur: number }) {
+function RingInset({ id, d, size, dx, dy, color }: { id: string; d: string; size: number; dx: number; dy: number; color: string; blur: number }) {
+  // the inner shadow without an SVG filter (filters are slow on phones): the offset edge, drawn twice softly
   return (
     <>
       <Defs>
         <ClipPath id={`c${id}`}>
           <Path d={d} />
         </ClipPath>
-        <Filter id={`f${id}`} filterUnits="userSpaceOnUse" x={-20} y={-20} width={size + 40} height={size + 40}>
-          <FeGaussianBlur stdDeviation={blur} />
-        </Filter>
       </Defs>
       <G clipPath={`url(#c${id})`}>
-        <G filter={`url(#f${id})`}>
-          <Path d={`M-20 -20H${size + 20}V${size + 20}H-20Z ${d}`} fill={color} fillRule="evenodd" transform={`translate(${dx} ${dy})`} />
-        </G>
+        <Path d={`M-20 -20H${size + 20}V${size + 20}H-20Z ${d}`} fill={color} fillOpacity={0.55} fillRule="evenodd" transform={`translate(${dx} ${dy})`} />
+        <Path d={`M-20 -20H${size + 20}V${size + 20}H-20Z ${d}`} fill={color} fillOpacity={0.45} fillRule="evenodd" transform={`translate(${dx * 0.5} ${dy * 0.5})`} />
       </G>
     </>
   );

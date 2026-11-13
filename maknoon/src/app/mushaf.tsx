@@ -6,8 +6,9 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
 import { ThiqalIcon } from '@/components/ThiqalIcon';
 import { PageCurl } from '@/components/PageCurl';
-import { memo, useEffect, useMemo, useState } from 'react';
-import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { type ShotTarget, pageShot, shotsSupported, takePageShot } from '@/content/pageShots';
+import { FlatList, Image as RNImage, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Backdrop } from '@/components/Backdrop';
 import { Icon } from '@/components/Icon';
@@ -21,8 +22,6 @@ import { SURAH_TITLES } from '@/content/surahTitles';
 import { ayahKey, pageOfAyah, qcf4Available, qcf4Em, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
 import { recitationCredit, togglePage, usePlayer } from '@/recitation/player';
 import { AyahMarker } from '@/components/AyahMarker';
-import { PAGE_FRAME_XML } from '@/components/ayahMarker';
-import { SvgXml } from 'react-native-svg';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
 import { quranIndex } from '@/content/worship';
@@ -48,14 +47,19 @@ const PAGE_FLIP = true;
 
 // The page-turn sound: one take generated with ElevenLabs (sound effects) and trimmed to the turn.
 let turnSound: AudioPlayer | null = null;
-function playTurn() {
+/** Loaded when the Mushaf opens, so the turn plays the instant the page is let go. */
+function loadTurn() {
   try {
     turnSound ??= createAudioPlayer(require('../../assets/sounds/page-turn.mp3'));
-    turnSound.seekTo(0).catch(() => undefined);
-    turnSound.play();
   } catch {
     // sound is a nicety; the page still turns
   }
+}
+function playTurn() {
+  loadTurn();
+  if (!turnSound) return;
+  turnSound.seekTo(0).catch(() => undefined);
+  turnSound.play();
 }
 const DEFAULT_PAGE = 50; // the page the design shows
 
@@ -119,20 +123,60 @@ function MushafPage({ page }: { page: number }) {
   const { width: winW } = useWindowDimensions();
   const flip = useSharedValue(0); // 0 rest · (0, 1] turning to the next page · [-1, 0) bringing back the previous
   const { height: winH } = useWindowDimensions();
-  // Both curls are drawn ahead, invisibly, once the page has settled: the turn follows the finger from its first move.
-  const [curlsReady, setCurlsReady] = useState(false);
+  // The curl is drawn from still images of the pages (cheap), taken once in the background after the
+  // page settles: this page, then the next and previous ones, rendered off screen just long enough to shoot.
+  const pageRef = useRef<ShotTarget>(null);
+  const nextRef = useRef<ShotTarget>(null);
+  const prevRef = useRef<ShotTarget>(null);
+  const [shots, setShots] = useState(0); // bumps when a shot lands
+  const needNext = shotsSupported && page < LAST_PAGE && !pageShot(page + 1);
+  const needPrev = shotsSupported && page > 1 && !pageShot(page - 1);
+  const [shootNeighbours, setShootNeighbours] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setCurlsReady(true), 500);
-    return () => clearTimeout(t);
-  }, []);
+    if (!PAGE_FLIP || !shotsSupported || !qcfReady) return;
+    let live = true;
+    const t = setTimeout(async () => {
+      try {
+        if (pageRef.current && !pageShot(page)) await takePageShot(page, pageRef.current);
+        if (live) setShots((n) => n + 1);
+        if (live && (needNext || needPrev)) setShootNeighbours(true);
+      } catch {
+        // no shot: the page simply won't curl until one is taken
+      }
+    }, 450);
+    return () => {
+      live = false;
+      clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qcfReady, page]);
+  const onNeighbourReady = async () => {
+    await new Promise((r) => setTimeout(r, 250)); // the page's glyphs are laid out
+    try {
+      if (nextRef.current && needNext) await takePageShot(page + 1, nextRef.current);
+      if (prevRef.current && needPrev) await takePageShot(page - 1, prevRef.current);
+    } catch {
+      // try again on the next visit
+    }
+    setShootNeighbours(false);
+    setShots((n) => n + 1);
+  };
+  const curImg = shotsSupported ? pageShot(page) : null;
+  const nextImg = shotsSupported ? pageShot(page + 1) : null;
+  const prevImg = shotsSupported ? pageShot(page - 1) : null;
+  void shots;
+  const canCurlNext = !shotsSupported || (!!curImg && !!nextImg);
+  const canCurlPrev = !shotsSupported || (!!curImg && !!prevImg);
+  const shotView = (uri: string) => <RNImage source={{ uri }} style={{ width: winW, height: winH }} />;
   useQcf4Fonts(Math.min(LAST_PAGE, page + 1)); // the neighbours' fonts are ready before a turn
   useQcf4Fonts(Math.max(1, page - 1));
+  useEffect(loadTurn, []);
   const turned = (d: number) => {
     haptic.soft();
     goTo(page + d);
   };
-  const canNext = page < LAST_PAGE;
-  const canPrev = page > 1;
+  const canNext = page < LAST_PAGE && canCurlNext;
+  const canPrev = page > 1 && canCurlPrev;
   const pan = Gesture.Pan()
     .enabled(PAGE_FLIP)
     .activeOffsetX([-16, 16])
@@ -167,8 +211,24 @@ function MushafPage({ page }: { page: number }) {
   return (
     <View style={{ flex: 1 }}>
       <Backdrop name="sand" />
+      {/* the neighbouring pages, off screen, only while their still images are taken */}
+      {shootNeighbours ? (
+        <View style={styles.offscreen} pointerEvents="none">
+          {needNext ? (
+            <View ref={nextRef} collapsable={false} style={{ width: winW, height: winH }} onLayout={onNeighbourReady}>
+              <PageSheet page={page + 1} />
+            </View>
+          ) : null}
+          {needPrev ? (
+            <View ref={prevRef} collapsable={false} style={{ width: winW, height: winH }} onLayout={needNext ? undefined : onNeighbourReady}>
+              <PageSheet page={page - 1} />
+            </View>
+          ) : null}
+        </View>
+      ) : null}
       <GestureDetector gesture={pan}>
-      <Animated.View style={StyleSheet.absoluteFill}>
+      <Animated.View ref={pageRef} collapsable={false} style={StyleSheet.absoluteFill}>
+      <Backdrop name="sand" />
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 24, paddingBottom: insets.bottom + 150 }}>
         <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={() => setControls((v) => !v)}>
           {qcf ? (
@@ -218,7 +278,7 @@ function MushafPage({ page }: { page: number }) {
           <View style={styles.footer}>
             <View style={{ flex: 1 }} />
             <View style={styles.pageNo} accessibilityLabel={`صفحة ${ar(page)}`}>
-              <SvgXml xml={PAGE_FRAME_XML} width={52.49} height={32.157} style={StyleSheet.absoluteFill} />
+              <Image source={require('../../assets/brand/page-frame.png')} style={StyleSheet.absoluteFill} contentFit="fill" />
               {/* Thmanyah Serif Display Black, about 18pt, as in the design */}
               <Display size={18} lineHeight={22} color="#2E2F39">
                 {ar(page)}
@@ -234,8 +294,12 @@ function MushafPage({ page }: { page: number }) {
       </ScrollView>
       </Animated.View>
       </GestureDetector>
-      {PAGE_FLIP && curlsReady && canNext ? <PageCurl fromRight progress={forward} visible={showForward} width={winW} height={winH} leaf={<PageSheet page={page} />} under={<PageSheet page={page + 1} />} /> : null}
-      {PAGE_FLIP && curlsReady && canPrev ? <PageCurl fromRight progress={backward} visible={showBackward} width={winW} height={winH} leaf={<PageSheet page={page - 1} />} under={<PageSheet page={page} />} /> : null}
+      {PAGE_FLIP && canNext ? (
+        <PageCurl fromRight progress={forward} visible={showForward} width={winW} height={winH} leaf={curImg ? shotView(curImg) : <PageSheet page={page} />} under={nextImg ? shotView(nextImg) : <PageSheet page={page + 1} />} />
+      ) : null}
+      {PAGE_FLIP && canPrev ? (
+        <PageCurl fromRight progress={backward} visible={showBackward} width={winW} height={winH} leaf={prevImg ? shotView(prevImg) : <PageSheet page={page - 1} />} under={curImg ? shotView(curImg) : <PageSheet page={page} />} />
+      ) : null}
 
       <SurahPicker
         visible={picking}
@@ -612,6 +676,7 @@ const styles = StyleSheet.create({
   wListen: { color: colors.primary },
   nowPlaying: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16 },
   // frosted strip so the bar reads as its own layer above the page (and never sits on the surah banner)
+  offscreen: { position: 'absolute', top: 0, left: -20000 },
   topStrip: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: 'rgba(237,232,225,0.96)', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(39,40,51,0.08)' },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pager: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6 },
