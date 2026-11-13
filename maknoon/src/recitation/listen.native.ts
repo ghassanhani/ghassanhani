@@ -39,6 +39,7 @@ const BPS = RATE * 2;
 const MIN_BYTES = BPS * 0.5; // wait for half a second of sound before the first reading
 const CUT_AFTER = BPS * 6; // past 6 s, finished phrases are set aside and the window moves on
 const HARD_CUT = BPS * 14; // a phrase that never pauses is set aside whole at 14 s
+const OVERLAP_MS = 400; // audio kept before a cut, so the next phrase keeps its first word
 // whisper.cpp writes noise and silence as bracketed tags: never part of what was recited
 const tags = (t: string) => t.replace(/\[[^\]]*\]|\([^)]*\)|\*[^*]*\*/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -57,7 +58,9 @@ const decode = (b64: string) => {
  */
 export async function startListening(onHeard?: (textSoFar: string) => void): Promise<Listening> {
   if (!(await microphoneAllowed())) throw new Error('Microphone permission denied');
-  const ctx = await whisper();
+  // The microphone opens at once and keeps every sample while the model loads (a second or two
+  // the first time): the reciter who starts straight away loses nothing.
+  const loading = whisper();
 
   let chunks: Uint8Array[] = [];
   let size = 0;
@@ -92,6 +95,15 @@ export async function startListening(onHeard?: (textSoFar: string) => void): Pro
     size += c.length;
   });
   LiveAudioStream.start();
+  let ctx: Awaited<ReturnType<typeof whisper>>;
+  try {
+    ctx = await loading;
+  } catch (e) {
+    live = false;
+    sub?.remove?.();
+    await LiveAudioStream.stop().catch(() => undefined);
+    throw e;
+  }
 
   const read = async (final: boolean) => {
     const audio = window();
@@ -109,7 +121,9 @@ export async function startListening(onHeard?: (textSoFar: string) => void): Pro
       const last = segs[segs.length - 1];
       kept.push(...segs.slice(0, -1).map((g) => g.text).filter(Boolean));
       open = last.text;
-      drop(Math.round(last.t0 * 10 * (BPS / 1000))); // t0 is in 10 ms steps
+      // t0 is in 10 ms steps and can come a little late: keep OVERLAP_MS before it, so the phrase's
+      // first word is read again rather than lost (a word heard twice is not a mistake)
+      drop(Math.max(0, Math.round((last.t0 * 10 - OVERLAP_MS) * (BPS / 1000))));
     } else if (audio.length >= HARD_CUT) {
       kept.push(tags(r.result));
       open = '';

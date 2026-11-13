@@ -44,15 +44,22 @@ export type Options = {
   finished?: boolean;
 };
 
-type Word = { ayah: number; index: number; raw: string; norm: string };
+type Word = { ayah: number; index: number; raw: string; norm: string; full: string };
+
+/**
+ * Spelling, not reading: the Mushaf writes «مَٰلِكِ» and «ٱلْعَٰلَمِينَ» with a dagger alif (dropped by
+ * the normalizer: «ملك», «العلمين»), the model may write «مالك», «العالمين». An alif inside a word is
+ * therefore ignored when comparing; every other letter still counts.
+ */
+const loose = (w: string) => w.replace(/(?<=.)ا/g, '');
 
 function expectedWords(ayat: ExpectedAyah[]): Word[] {
   const out: Word[] = [];
   ayat.forEach((a, ai) => {
     let i = 0;
     for (const raw of a.text.split(/\s+/)) {
-      const norm = fold(raw).replace(/ /g, '');
-      if (norm) out.push({ ayah: ai, index: i++, raw, norm });
+      const full = fold(raw).replace(/ /g, '');
+      if (full) out.push({ ayah: ai, index: i++, raw, norm: loose(full), full });
     }
   });
   return out;
@@ -67,7 +74,8 @@ const WORD = 1; // cost of a missing, changed or extra word
  */
 export function check(ayat: ExpectedAyah[], heardText: string, opts: Options = {}): Result {
   const E = expectedWords(ayat);
-  const H = fold(heardText).split(' ').filter(Boolean);
+  const heard = fold(heardText).split(' ').filter(Boolean); // as heard (reported as is)
+  const H = heard.map(loose); // compared without inner alifs
   const n = E.length;
   const m = H.length;
   const W = m + 1;
@@ -95,14 +103,14 @@ export function check(ayat: ExpectedAyah[], heardText: string, opts: Options = {
         best = extra;
         s = 3;
       }
-      if (j >= 2 && H[j - 2] + h === e) {
+      if (j >= 2 && loose(heard[j - 2] + heard[j - 1]) === e) {
         const c = cost[(i - 1) * W + (j - 2)];
         if (c < best) {
           best = c;
           s = 4;
         }
       }
-      if (i >= 2 && E[i - 2].norm + e === h) {
+      if (i >= 2 && loose(E[i - 2].full + E[i - 1].full) === h) {
         const c = cost[(i - 2) * W + (j - 1)];
         if (c < best) {
           best = c;
@@ -129,7 +137,7 @@ export function check(ayat: ExpectedAyah[], heardText: string, opts: Options = {
   for (let i = stopAt, j = m; i > 0 || j > 0; ) {
     const s = step[i * W + j];
     if (s === 1) {
-      state[i - 1] = E[i - 1].norm === H[j - 1] ? 'ok' : { heard: H[j - 1] };
+      state[i - 1] = E[i - 1].norm === H[j - 1] ? 'ok' : { heard: heard[j - 1] };
       i--;
       j--;
     } else if (s === 2) {

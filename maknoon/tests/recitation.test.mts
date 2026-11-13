@@ -171,3 +171,11 @@ test('the prompt never says "wrong"', () => {
   const k = keys[1];
   for (const f of checkAyah(ayah(k), '').flags) assert.match(prompt(f), /^تأكد من هذه/);
 });
+
+test('an alif the Mushaf writes small (dagger alif) is not a mistake: «مالك», «العالمين»', () => {
+  const fatiha = ['1:1', '1:2', '1:3', '1:4'].map(ayah);
+  // as the speech model writes it: full alifs where the Uthmani text has small ones
+  const heard = 'بسم الله الرحمن الرحيم الحمد لله رب العالمين الرحمن الرحيم مالك يوم الدين';
+  const r = check(fatiha, heard, { finished: true });
+  assert.deepEqual(r.flags, []);
+});
