@@ -13,12 +13,15 @@ import { METHODS, type MethodKey, cityByKey, fmtDuration, fmtTime, usePrayerDay 
 
 import { usePrefs } from '@/store/prefs';
 import { ayahOfDay, readingAt } from '@/store/reading';
-import { toggleAyah, usePlayer } from '@/recitation/player';
+import { prefetchAyah, toggleAyah, usePlayer } from '@/recitation/player';
+import { useEffect } from 'react';
 
 export default function HomeScreen() {
   // A different ayah every day (store/reading.ts), always the canonical text.
   const a = { ...home.ayahOfDay, ...ayahOfDay() };
   const ayah = getAyah(a.surah, a.ayah);
+  // its recitation is fetched ahead (a few hundred KB), so the play button starts at once
+  useEffect(() => prefetchAyah(a.surah, a.ayah), [a.surah, a.ayah]);
   // Live, on-device times (Adhan) for the default city.
   const [prefs] = usePrefs();
   const audio = usePlayer();

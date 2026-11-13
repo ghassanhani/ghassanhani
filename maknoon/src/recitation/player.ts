@@ -9,6 +9,7 @@ import { createAudioPlayer, setAudioModeAsync, type AudioPlayer, type AudioStatu
 import { useSyncExternalStore } from 'react';
 import { quranIndex } from '@/content/worship';
 import { getPrefs } from '@/store/prefs';
+import { ayahClip } from './ayahClip';
 
 export type Recitation = {
   id: number;
@@ -105,12 +106,21 @@ function ensure() {
 
 async function load(url: string) {
   const p = ensure();
+  // ready as soon as the player says so: from its status event, or seen directly (a quick look
+  // every 40 ms), never a fixed wait; 10 s at most for a slow network
   const ready = new Promise<void>((res) => {
     loaded = res;
-    setTimeout(res, 12000);
+    const t0 = Date.now();
+    const look = setInterval(() => {
+      if (p.isLoaded || Date.now() - t0 > 10000) {
+        clearInterval(look);
+        res();
+      }
+    }, 40);
   });
   p.replace({ uri: url });
   await ready;
+  loaded = null;
   return p;
 }
 
@@ -153,6 +163,16 @@ export async function playAyah(surah: number, ayah: number) {
   follow = null;
   set({ playing: `${surah}:${ayah}`, loading: true, reciter: r, ayah: null });
   try {
+    // just this ayah's bytes, fetched ahead or now (see ayahClip); else stream the surah and seek
+    const clip = await ayahClip(r.urls[surah - 1], `${r.id}-${surah}-${ayah}`, start * 1000, end * 1000);
+    if (state.playing !== `${surah}:${ayah}`) return; // stopped while it was fetched
+    if (clip) {
+      const p = await load(clip);
+      stopAt = null;
+      await p.seekTo(0);
+      p.play();
+      return;
+    }
     const p = await load(r.urls[surah - 1]);
     await p.seekTo(start);
     stopAt = end;
@@ -160,6 +180,13 @@ export async function playAyah(surah: number, ayah: number) {
   } finally {
     set({ loading: false });
   }
+}
+
+/** Fetches one ayah ahead (its bytes only), so pressing play starts at once (the ayah of the day). */
+export function prefetchAyah(surah: number, ayah: number) {
+  const r = timedReciter();
+  const i = FIRST[surah] + ayah - 1;
+  ayahClip(r.urls[surah - 1], `${r.id}-${surah}-${ayah}`, r.t![2 * i], r.t![2 * i + 1]).catch(() => undefined);
 }
 
 /** Plays a whole surah with the chosen recitation (works for every recitation). */

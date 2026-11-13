@@ -15,7 +15,7 @@ import { ar, ayahPlaceholder, getAyah, quranSource } from '@/content/quran';
 import { packsSupported } from '@/content/packs';
 import { useTafsir, type TafsirEntry } from '@/content/tafsir';
 import { LANGS, type Lang, translationOf } from '@/content/translation';
-import { recitationCredit, toggleAyah, usePlayer } from '@/recitation/player';
+import { prefetchAyah, recitationCredit, toggleAyah, usePlayer } from '@/recitation/player';
 import { quranIndex } from '@/content/worship';
 import { colors } from '@/theme/tokens';
 
@@ -33,6 +33,7 @@ export default function AyahScreen() {
   const tr = translationOf(s, a, lang);
   const audio = usePlayer();
   const here = audio.playing === `${s}:${a}`;
+  useEffect(() => prefetchAyah(s, a), [s, a]);
 
   return (
     <Screen backdrop="sky" withTabBar={false} header={<DetailHeader title={ayahToday.title} />}>
