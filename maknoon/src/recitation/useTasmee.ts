@@ -38,7 +38,10 @@ export function useTasmee(ayahKeys: string[]) {
     return { map, total: offset };
   }, [expected]);
 
-  const [heard, setHeard] = useState(''); // everything heard so far on this page
+  // everything heard so far on this page, and the reading before it (a slip counts once it holds in both)
+  const [heardPair, setHeardPair] = useState({ now: '', before: '' });
+  const heard = heardPair.now;
+  const setHeard = (t: string) => setHeardPair((p) => (p.now === t ? p : { now: t, before: p.now }));
   // Reader's choices in the check: keep unrecited words hidden (recite from memory), and mark slips.
   // «إخفاء الآيات»: unrecited words are hidden at once, before or during listening; starting to
   // listen turns it on (recite from memory), and the reader can turn it off to read along.
@@ -52,7 +55,32 @@ export function useTasmee(ayahKeys: string[]) {
   const session = useRef<Listening | null>(null);
   const preview = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const result = useMemo(() => (heard ? check(expected, heard) : null), [expected, heard]);
+  const raw = useMemo(() => (heard ? check(expected, heard) : null), [expected, heard]);
+  const previous = useMemo(() => (heardPair.before ? check(expected, heardPair.before) : null), [expected, heardPair.before]);
+  // A slip is shown only when it is settled: the same word was flagged in the reading before too
+  // (the model's reading of the phrase being recited still changes), and the reciter is at least
+  // two words past it. Until then the word just waits, neither red nor green.
+  const result = useMemo(() => {
+    if (!raw) return null;
+    if (!listening) return raw; // stopped: the whole reading is final
+    const lastOk = raw.last;
+    const before = new Set((previous?.flags ?? []).map((f) => (f.kind === 'skipped-ayah' ? f.ayah : `${f.ayah}:${f.word}`)));
+    const flat = (f: (typeof raw.flags)[number]) => {
+      const l = layout.map.get(f.ayah);
+      return l ? (f.kind === 'skipped-ayah' ? l.offset + l.count - 1 : l.offset + f.word) : Infinity;
+    };
+    const settled = raw.flags.filter((f) => before.has(f.kind === 'skipped-ayah' ? f.ayah : `${f.ayah}:${f.word}`) && flat(f) <= lastOk - 2);
+    const keep = new Set(settled);
+    const states = raw.states.map((st) => st);
+    for (const f of raw.flags) {
+      if (keep.has(f)) continue;
+      const l = layout.map.get(f.ayah);
+      if (!l) continue;
+      if (f.kind === 'skipped-ayah') for (let k = 0; k < l.count; k++) states[l.offset + k] = 'pending';
+      else states[l.offset + f.word] = 'pending';
+    }
+    return { ...raw, flags: settled, states };
+  }, [raw, previous, layout, listening]);
   const last = result?.last ?? -1;
   const active = listening || !!heard || hinted.length > 0 || hideText;
   useEffect(() => {

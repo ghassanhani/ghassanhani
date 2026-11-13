@@ -4,6 +4,7 @@ import { initWhisper, type WhisperContext } from 'whisper.rn/index';
 import LiveAudioStream from '@fugood/react-native-audio-pcm-stream';
 import type { Listening } from './listen';
 import { modelUri } from './model';
+import { lastPause } from './pause';
 
 /**
  * Microphone → on-device Whisper (SPEC §2.12, M10).
@@ -39,7 +40,7 @@ const BPS = RATE * 2;
 const MIN_BYTES = BPS * 0.5; // wait for half a second of sound before the first reading
 const CUT_AFTER = BPS * 6; // past 6 s, finished phrases are set aside and the window moves on
 const HARD_CUT = BPS * 14; // a phrase that never pauses is set aside whole at 14 s
-const OVERLAP_MS = 400; // audio kept before a cut, so the next phrase keeps its first word
+const OVERLAP_MS = 800; // audio kept before a cut, so the next phrase keeps its first word
 // whisper.cpp writes noise and silence as bracketed tags: never part of what was recited
 const tags = (t: string) => t.replace(/\[[^\]]*\]|\([^)]*\)|\*[^*]*\*/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -115,6 +116,18 @@ export async function startListening(onHeard?: (textSoFar: string) => void): Pro
     const segs = r.segments.map((g) => ({ ...g, text: tags(g.text) }));
     if (final) {
       kept.push(tags(r.result));
+      open = '';
+    } else if (audio.length >= CUT_AFTER && lastPause(audio) > BPS * 1.5) {
+      // cut in the middle of the reciter's last real pause: what came before is read once more on
+      // its own, whole, and kept; the window goes on from the pause
+      const cut = lastPause(audio);
+      const head = ctx.transcribeData(audio.slice(0, cut).buffer as ArrayBuffer, OPTIONS);
+      job = head;
+      const h = await head.promise;
+      job = null;
+      if (h.isAborted) return;
+      kept.push(tags(h.result));
+      drop(cut);
       open = '';
     } else if (audio.length >= CUT_AFTER && segs.length >= 2) {
       // keep every phrase but the last; the last one is read again with what follows
