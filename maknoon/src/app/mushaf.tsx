@@ -479,15 +479,15 @@ function MushafPage({ page }: { page: number }) {
           <Animated.View entering={fadeIn} exiting={fadeOut} style={[styles.topStrip, { paddingTop: insets.top + 8 }]}>
           <View style={styles.topBar}>
             <GlassRound label="رجوع" onPress={() => (router.canGoBack() ? router.back() : router.replace('/quran'))}>
-              <ThiqalIcon name="fwd" size={22} color={colors.ink} />
+              <ThiqalIcon name="fwd" size={22} color={colors.white} />
             </GlassRound>
-            <Squircle radius={24} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.pager}>
+            <Squircle radius={24} fill={SOLID} style={styles.pager}>
               <Pressable accessibilityRole="button" accessibilityLabel="الصفحة السابقة" hitSlop={8} disabled={page <= 1} onPress={() => goTo(page - 1)} style={styles.pagerBtn}>
-                <ThiqalIcon name="fwd" size={20} color={page <= 1 ? colors.muted : colors.ink} />
+                <ThiqalIcon name="fwd" size={20} color={page <= 1 ? 'rgba(255,255,255,0.35)' : colors.white} />
               </Pressable>
-              <Body size={15} weight="bold" lineHeight={20}>{`صفحة ${ar(page)}`}</Body>
+              <Body size={15} weight="bold" lineHeight={20} color={colors.white}>{`صفحة ${ar(page)}`}</Body>
               <Pressable accessibilityRole="button" accessibilityLabel="الصفحة التالية" hitSlop={8} disabled={page >= LAST_PAGE} onPress={() => goTo(page + 1)} style={styles.pagerBtn}>
-                <ThiqalIcon name="back" size={20} color={page >= LAST_PAGE ? colors.muted : colors.ink} />
+                <ThiqalIcon name="back" size={20} color={page >= LAST_PAGE ? 'rgba(255,255,255,0.35)' : colors.white} />
               </Pressable>
             </Squircle>
             <PressScale accessibilityRole="button" accessibilityLabel={listening ? 'إيقاف التلاوة' : 'استمع من هذه الصفحة'} onPress={listen} feedback="tap" scaleTo={0.92}>
@@ -507,15 +507,15 @@ function MushafPage({ page }: { page: number }) {
           <View style={[styles.controls, { bottom: insets.bottom + 24 }]} pointerEvents="box-none">
             <View style={styles.zoomRow}>
               <ZoomButton icon="minus" label="تصغير" onPress={() => setZoom((z) => Math.max(70, z - 10))} />
-              <Squircle radius={24} fill="rgba(255,255,255,0.75)" glow="glass" style={styles.zoomValue}>
-                <ThiqalIcon name="search" size={20} color={colors.ink} />
-                <Body size={16} weight="bold" lineHeight={22}>
+              <Squircle radius={24} fill={SOLID} style={styles.zoomValue}>
+                <ThiqalIcon name="search" size={20} color={colors.white} />
+                <Body size={16} weight="bold" lineHeight={22} color={colors.white}>
                   {ar(zoom)}
                 </Body>
               </Squircle>
               <ZoomButton icon="plus" label="تكبير" onPress={() => setZoom((z) => Math.min(160, z + 10))} />
               <GlassRound label={dark ? 'الوضع الفاتح' : 'الوضع الداكن'} onPress={() => setPrefs({ quranDark: !dark })}>
-                <Icon name={dark ? 'sun' : 'moon'} size={22} color={colors.ink} outline />
+                <Icon name={dark ? 'sun' : 'moon'} size={22} color={colors.white} />
               </GlassRound>
             </View>
             <Squircle radius={30} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.search}>
@@ -778,21 +778,23 @@ function Tool({ icon, label, onPress, on = false }: { icon: IconName; label: str
 function ZoomButton({ icon, label, onPress }: { icon: 'plus' | 'minus'; label: string; onPress: () => void }) {
   return (
     <GlassRound label={label} onPress={onPress}>
-      <ThiqalIcon name={icon} size={22} color={colors.ink} />
+      <ThiqalIcon name={icon} size={22} color={colors.white} />
     </GlassRound>
   );
 }
 
-/** 48pt round glass button holding a Thiqal icon. */
+/** 48pt round solid black button holding a white icon (over the page, always readable). */
 function GlassRound({ label, onPress, children }: { label: string; onPress: () => void; children: React.ReactNode }) {
   return (
     <PressScale accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={6} scaleTo={0.92}>
-      <Squircle radius={24} fill="rgba(255,255,255,0.75)" glow="glass" style={styles.zoomBtn}>
+      <Squircle radius={24} fill={SOLID} style={styles.zoomBtn}>
         {children}
       </Squircle>
     </PressScale>
   );
 }
+
+const SOLID = '#111114';
 
 const styles = StyleSheet.create({
   banner: { height: 61, alignItems: 'center', justifyContent: 'center' },
