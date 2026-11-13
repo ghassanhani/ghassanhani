@@ -28,8 +28,11 @@ export const PageCurl = memo(function PageCurl({
   leaf,
   under,
   fromRight = false,
+  paper = PAPER,
 }: {
   fromRight?: boolean;
+  /** colour of the paper's back (dark in the mushaf's dark mode) */
+  paper?: string;
   progress: SharedValue<number>;
   visible: SharedValue<number>;
   width: number;
@@ -111,7 +114,7 @@ export const PageCurl = memo(function PageCurl({
         />
       </Animated.View>
       {/* 4 · the back of the paper, lit across the top of the roll */}
-      <Animated.View style={[styles.abs, { height: H, backgroundColor: PAPER }, back]}>
+      <Animated.View style={[styles.abs, { height: H, backgroundColor: paper }, back]}>
         <LinearGradient
           colors={['rgba(70,55,40,0.32)', 'rgba(255,255,255,0.55)', 'rgba(255,255,255,0.15)', 'rgba(70,55,40,0.04)', 'rgba(70,55,40,0.10)']}
           locations={[0, 0.08, 0.2, 0.6, 1]}

@@ -34,6 +34,7 @@ export type Prefs = {
   reciter: number; // RATQ recitation id (assets/content/recitations.json)
   lastPage: number | null; // the mushaf page last open (reading position), on the device only
   bookmarks: string[]; // bookmarked ayat, "surah:ayah", newest last
+  quranDark: boolean; // the mushaf in dark mode (the rest of the app stays light)
 };
 
 // Defaults = the canvas's initial states.
@@ -63,6 +64,7 @@ export const DEFAULT_PREFS: Prefs = {
   reciter: 35, // إبراهيم الدوسري: complete ayah timings on RATQ
   lastPage: null,
   bookmarks: [],
+  quranDark: false,
 };
 
 const KEY = 'maknoon.prefs.v1';

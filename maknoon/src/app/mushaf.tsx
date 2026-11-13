@@ -1,6 +1,7 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
 import Animated, { Easing, runOnJS, useDerivedValue, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
@@ -70,6 +71,13 @@ export default function MushafScreen() {
 
 const PAGE_MARGIN = 10; // the side margin of the mushaf page (pt)
 const QURAN_INK = '#111114'; // the printed page's deep black: sharper than the app's body ink
+// Dark mode, for the mushaf only: a deep warm black page and soft warm-white ink (not pure white,
+// which glares at night).
+const DARK = { page: '#111214', ink: '#E9E4D8', number: '#E9E4D8', paper: '#1C1D21' };
+/** The page's background: the design's sand, or the dark page. */
+function PageBg({ dark }: { dark: boolean }) {
+  return dark ? <View style={[StyleSheet.absoluteFill, { backgroundColor: DARK.page }]} /> : <Backdrop name="sand" />;
+}
 // The widest line of each page in its font, in em (measured from the fonts, see the json):
 // each page's glyphs are drawn as large as its widest line allows.
 const LINE_EM: number[] = (require('../../assets/content/qcf4-line-em.json') as { em: number[] }).em;
@@ -92,6 +100,7 @@ function MushafPage({ page }: { page: number }) {
   const [controls, setControls] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [prefs] = usePrefs();
+  const dark = prefs.quranDark;
   // A long press on an ayah marks it and opens its actions (listen, translation, tafsir, bookmark,
   // copy, share) as a system sheet; the mark clears when the sheet closes.
   const [held, setHeld] = useState<string | null>(null);
@@ -240,29 +249,30 @@ function MushafPage({ page }: { page: number }) {
 
   return (
     <View style={{ flex: 1 }}>
-      <Backdrop name="sand" />
+      <PageBg dark={dark} />
       {/* the neighbouring pages, off screen, only while their still images are taken */}
       {shootNeighbours ? (
         <View style={styles.offscreen} pointerEvents="none">
           {needNext ? (
             <View ref={nextRef} collapsable={false} style={{ width: winW, height: winH }} onLayout={onNeighbourReady}>
-              <PageSheet page={page + 1} />
+              <PageSheet page={page + 1} dark={dark} />
             </View>
           ) : null}
           {needPrev ? (
             <View ref={prevRef} collapsable={false} style={{ width: winW, height: winH }} onLayout={needNext ? undefined : onNeighbourReady}>
-              <PageSheet page={page - 1} />
+              <PageSheet page={page - 1} dark={dark} />
             </View>
           ) : null}
         </View>
       ) : null}
+      <StatusBar style={dark ? 'light' : 'dark'} />
       <GestureDetector gesture={pan}>
       <Animated.View ref={pageRef} collapsable={false} style={StyleSheet.absoluteFill}>
-      <Backdrop name="sand" />
+      <PageBg dark={dark} />
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: PAGE_MARGIN, paddingBottom: insets.bottom + 150 }}>
         <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={toggleControls}>
           {qcf ? (
-            qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={pickSurah} held={held} onHold={onHold} onTap={toggleControls} /> : <View style={{ minHeight: 600 }} />
+            qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={pickSurah} held={held} onHold={onHold} onTap={toggleControls} dark={dark} /> : <View style={{ minHeight: 600 }} />
           ) : null}
           {qcf ? null : blocks.map((b, i) => (
             <View key={b.surah} style={i > 0 ? { marginTop: 18 } : null}>
@@ -310,7 +320,7 @@ function MushafPage({ page }: { page: number }) {
             <View style={styles.pageNo} accessibilityLabel={`صفحة ${ar(page)}`}>
               <Image source={require('../../assets/brand/page-frame.png')} style={StyleSheet.absoluteFill} contentFit="fill" />
               {/* Thmanyah Serif Display Black, about 18pt, as in the design */}
-              <Display size={18} lineHeight={22} color="#2E2F39">
+              <Display size={18} lineHeight={22} color={dark ? DARK.number : '#2E2F39'}>
                 {ar(page)}
               </Display>
             </View>
@@ -325,10 +335,10 @@ function MushafPage({ page }: { page: number }) {
       </Animated.View>
       </GestureDetector>
       {PAGE_FLIP && canNext ? (
-        <PageCurl fromRight progress={forward} visible={showForward} width={winW} height={winH} leaf={curImg ? shotView(curImg) : <PageSheet page={page} />} under={nextImg ? shotView(nextImg) : <PageSheet page={page + 1} />} />
+        <PageCurl paper={dark ? DARK.paper : undefined} fromRight progress={forward} visible={showForward} width={winW} height={winH} leaf={curImg ? shotView(curImg) : <PageSheet page={page} dark={dark} />} under={nextImg ? shotView(nextImg) : <PageSheet page={page + 1} dark={dark} />} />
       ) : null}
       {PAGE_FLIP && canPrev ? (
-        <PageCurl fromRight progress={backward} visible={showBackward} width={winW} height={winH} leaf={prevImg ? shotView(prevImg) : <PageSheet page={page - 1} />} under={curImg ? shotView(curImg) : <PageSheet page={page} />} />
+        <PageCurl paper={dark ? DARK.paper : undefined} fromRight progress={backward} visible={showBackward} width={winW} height={winH} leaf={prevImg ? shotView(prevImg) : <PageSheet page={page - 1} dark={dark} />} under={curImg ? shotView(curImg) : <PageSheet page={page} dark={dark} />} />
       ) : null}
 
 
@@ -428,6 +438,9 @@ function MushafPage({ page }: { page: number }) {
                 </Body>
               </Squircle>
               <ZoomButton icon="plus" label="تكبير" onPress={() => setZoom((z) => Math.min(160, z + 10))} />
+              <GlassRound label={dark ? 'الوضع الفاتح' : 'الوضع الداكن'} onPress={() => setPrefs({ quranDark: !dark })}>
+                <Icon name={dark ? 'sun' : 'moon'} size={22} color={colors.ink} outline />
+              </GlassRound>
             </View>
             <Squircle radius={30} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.search}>
               <ThiqalIcon name="search" size={22} color={colors.primary} />
@@ -446,17 +459,17 @@ function MushafPage({ page }: { page: number }) {
 }
 
 /** A still copy of a neighbouring page (beneath, or coming back over, the turning leaf). */
-const PageSheet = memo(function PageSheet({ page }: { page: number }) {
+const PageSheet = memo(function PageSheet({ page, dark = false }: { page: number; dark?: boolean }) {
   const insets = useSafeAreaInsets();
   const qcf = qcf4Available();
   const ready = useQcf4Fonts(page);
   const ayat = useMemo(() => ayatOnPage(page), [page]);
   return (
     <View style={StyleSheet.absoluteFill}>
-      <Backdrop name="sand" />
+      <PageBg dark={dark} />
       <View style={{ paddingTop: insets.top + 12, paddingHorizontal: PAGE_MARGIN }}>
         {qcf ? (
-          ready ? <QcfPageView page={page} zoom={100} current={null} onPickSurah={() => undefined} /> : null
+          ready ? <QcfPageView page={page} zoom={100} current={null} onPickSurah={() => undefined} dark={dark} /> : null
         ) : (
           <>
             <SurahBanner surah={ayat[0]?.surah ?? 1} onPress={() => undefined} />
@@ -476,7 +489,8 @@ const PageSheet = memo(function PageSheet({ page }: { page: number }) {
  * the widest line of the whole mushaf fits the width, so every page has the same size, as in print.
  * In the recitation check a hidden word keeps its place (transparent), exactly like the text mode.
  */
-function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, onHold, onTap }: { page: number; zoom: number; tasmee?: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void; held?: string | null; onHold?: (key: string) => void; onTap?: () => void }) {
+function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, onHold, onTap, dark = false }: { page: number; zoom: number; tasmee?: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void; held?: string | null; onHold?: (key: string) => void; onTap?: () => void; dark?: boolean }) {
+  const ink = dark ? DARK.ink : QURAN_INK;
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const pg = qcf4Page(page);
@@ -520,7 +534,7 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, on
       }
       return c;
     }).join('');
-  const glyphs = (l: Extract<Qcf4Line, { g: string }>, li: number) => <Glyphs key={`g${li}`} l={l} codes={codesOf(l)} font={pg.f} size={size} lineH={lineH} onHold={onHold} onTap={onTap} />;
+  const glyphs = (l: Extract<Qcf4Line, { g: string }>, li: number) => <Glyphs key={`g${li}`} l={l} codes={codesOf(l)} font={pg.f} size={size} lineH={lineH} ink={ink} onHold={onHold} onTap={onTap} />;
   // Rows of the page: headers and basmala as they are; word lines either kept line for line,
   // or (zoomed) joined into one flowing paragraph per run of lines.
   const rows: React.ReactNode[] = [];
@@ -536,7 +550,7 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, on
     }
     if ('b' in l) {
       rows.push(
-        <Text key={li} style={{ fontFamily: l.f, fontSize: size, lineHeight: lineH, color: QURAN_INK, textAlign: 'center' }}>
+        <Text key={li} style={{ fontFamily: l.f, fontSize: size, lineHeight: lineH, color: ink, textAlign: 'center' }}>
           {l.b}
         </Text>,
       );
@@ -571,8 +585,8 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, on
 }
 
 /** The glyphs of one mushaf line, drawn from their codes (see `codesOf`); redrawn only when those change. */
-const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH, onHold, onTap }: { l: Extract<Qcf4Line, { g: string }>; codes: string; font: string; size: number; lineH: number; onHold?: (key: string) => void; onTap?: () => void }) {
-  const base = { fontFamily: font, fontSize: size, lineHeight: lineH, color: QURAN_INK };
+const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH, ink, onHold, onTap }: { l: Extract<Qcf4Line, { g: string }>; codes: string; font: string; size: number; lineH: number; ink: string; onHold?: (key: string) => void; onTap?: () => void }) {
+  const base = { fontFamily: font, fontSize: size, lineHeight: lineH, color: ink };
   return (
     <>
       {Array.from(l.g, (ch, gi) => {
