@@ -17,6 +17,7 @@ import { RoundButton } from '@/components/ui';
 import { mushaf as m } from '@/content/design';
 import { ar, ayahPlaceholder, ayatLabel, ayatOnPage, getAyah } from '@/content/quran';
 import { stripTashkeel } from '@/content/text';
+import { SURAH_TITLES } from '@/content/surahTitles';
 import { ayahKey, pageOfAyah, qcf4Available, qcf4Em, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
 import { recitationCredit, togglePage, usePlayer } from '@/recitation/player';
 import { AyahMarker } from '@/components/AyahMarker';
@@ -455,11 +456,6 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: numbe
   );
 }
 
-// Calligraphic surah names drawn in the design. Others fall back to the display font until their artwork exists.
-const TITLE_ART: Record<number, number> = {
-  3: require('../../assets/brand/surah-titles/3.png'),
-};
-
 /**
  * The ornamented surah header from the design canvas (exported artwork, 354×61 with a soft edge).
  * Tapping it opens the surah picker.
@@ -470,8 +466,9 @@ function SurahBanner({ surah, onPress }: { surah: number; onPress: () => void })
     <PressScale accessibilityRole="button" accessibilityLabel={`سورة ${name} · تغيير السورة`} onPress={onPress} innerStyle={styles.banner} scaleTo={0.98} feedback="select">
       <Image source={require('../../assets/brand/surah-banner.png')} style={styles.bannerArt} contentFit="fill" />
       <View style={styles.bannerRow}>
-        {TITLE_ART[surah] ? (
-          <Image source={TITLE_ART[surah]} style={styles.bannerTitle} contentFit="contain" accessibilityLabel={`سورة ${name.replace(/[\u064B-\u0652\u0670]/g, '')}`} />
+        {SURAH_TITLES[surah] ? (
+          // the founder's calligraphy for every surah
+          <Image source={SURAH_TITLES[surah]} style={styles.bannerTitle} contentFit="contain" accessibilityLabel={`سورة ${name.replace(/[\u064B-\u0652\u0670]/g, '')}`} />
         ) : (
           // Free calligraphic fallback until each surah has its drawn title: Amiri Quran (SIL OFL).
           <Text style={styles.bannerName}>{`سورة ${name.replace(/[\u064B-\u0652\u0670]/g, '')}`}</Text>
@@ -594,7 +591,7 @@ const styles = StyleSheet.create({
   // The exported artwork carries a 4pt soft edge at the sides, 6pt above and 9pt below the 354×61 banner.
   bannerArt: { position: 'absolute', left: -4, right: -4, top: -6, bottom: -9 },
   bannerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  bannerTitle: { width: 122, height: 44 },
+  bannerTitle: { width: 140, height: 44 },
   bannerName: { fontFamily: F.display, fontSize: 24, lineHeight: 40, color: colors.white, textAlign: 'center' },
   bannerChevron: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.28)', alignItems: 'center', justifyContent: 'center' },
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 },
