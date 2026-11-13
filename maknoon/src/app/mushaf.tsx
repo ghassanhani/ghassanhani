@@ -1,7 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { ReduceMotion, SlideInDown, SlideOutDown } from 'react-native-reanimated';
+import Animated, { ReduceMotion, SlideInDown, SlideOutDown, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
+import { ThiqalIcon } from '@/components/ThiqalIcon';
 import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -38,6 +41,18 @@ import { usePrefs } from '@/store/prefs';
  * words keep their place, so the ayah marks stay where the mushaf has them.
  */
 const LAST_PAGE = 604;
+
+// The page-turn sound: one take generated with ElevenLabs (sound effects) and trimmed to the turn.
+let turnSound: AudioPlayer | null = null;
+function playTurn() {
+  try {
+    turnSound ??= createAudioPlayer(require('../../assets/sounds/page-turn.mp3'));
+    turnSound.seekTo(0).catch(() => undefined);
+    turnSound.play();
+  } catch {
+    // sound is a nicety; the page still turns
+  }
+}
 const DEFAULT_PAGE = 50; // the page the design shows
 
 export default function MushafScreen() {
@@ -94,8 +109,65 @@ function MushafPage({ page }: { page: number }) {
     togglePage(su, ay);
   };
 
+  // ── Turning the page like a printed mushaf: the binding is on the right. Swiping left → right lifts the
+  // page by its free (left) edge and turns it over the spine, showing the next page beneath; swiping
+  // right → left brings the previous page back over. Vertical scrolling and taps are left alone.
+  const { width: winW } = useWindowDimensions();
+  const flip = useSharedValue(0); // 0 rest · (0, 1] turning to the next page · [-1, 0) bringing back the previous
+  useQcf4Fonts(Math.min(LAST_PAGE, page + 1)); // the neighbours' fonts are ready before a turn
+  useQcf4Fonts(Math.max(1, page - 1));
+  const turned = (d: number) => {
+    haptic.soft();
+    goTo(page + d);
+  };
+  const canNext = page < LAST_PAGE;
+  const canPrev = page > 1;
+  const pan = Gesture.Pan()
+    .activeOffsetX([-16, 16])
+    .failOffsetY([-14, 14])
+    .onUpdate((e) => {
+      let v = e.translationX / winW;
+      if ((v > 0 && !canNext) || (v < 0 && !canPrev)) v *= 0.08; // first or last page: a little give, no turn
+      flip.set(Math.max(-1, Math.min(1, v)));
+    })
+    .onEnd((e) => {
+      const v = flip.get();
+      const d = v > 0 ? 1 : -1;
+      const allowed = d === 1 ? canNext : canPrev;
+      if (allowed && (Math.abs(v) > 0.3 || Math.abs(e.velocityX) > 700) && Math.sign(e.velocityX || v) === d) {
+        runOnJS(playTurn)();
+        flip.set(withTiming(d, { duration: 420 }, (done) => done && runOnJS(turned)(d)));
+      } else flip.set(withSpring(0, { damping: 20, stiffness: 220 }));
+    });
+  // The turning leaf: pivots on its right edge (the spine), shaded as it lifts off the page.
+  const leafCurrent = useAnimatedStyle(() => {
+    const v = Math.max(0, flip.get());
+    return { transform: [{ perspective: 1800 }, { rotateY: `${-180 * v}deg` }] };
+  });
+  const leafCurrentShade = useAnimatedStyle(() => ({ opacity: interpolate(Math.max(0, flip.get()), [0, 0.5], [0, 0.28]) }));
+  const leafBack = useAnimatedStyle(() => {
+    const v = Math.max(0, flip.get());
+    return { opacity: v > 0.5 ? 1 : 0, transform: [{ perspective: 1800 }, { rotateY: `${180 - 180 * v}deg` }] };
+  });
+  const leafPrev = useAnimatedStyle(() => {
+    const v = Math.min(0, flip.get());
+    return { opacity: v < 0 ? 1 : 0, transform: [{ perspective: 1800 }, { rotateY: `${-180 * (1 + v)}deg` }] };
+  });
+  const leafPrevShade = useAnimatedStyle(() => ({ opacity: interpolate(Math.min(0, flip.get()), [-1, -0.5], [0, 0.28]) }));
+  const under = useAnimatedStyle(() => ({ opacity: flip.get() > 0 ? 1 : 0 }));
+  // the shadow the lifted leaf casts on the page beneath, strongest near the fold
+  const underShade = useAnimatedStyle(() => ({ opacity: interpolate(Math.abs(flip.get()), [0, 0.15, 1], [0, 0.22, 0]) }));
+
   return (
     <View style={{ flex: 1 }}>
+      <Backdrop name="sand" />
+      {/* the next page, waiting beneath the leaf */}
+      <Animated.View style={[StyleSheet.absoluteFill, under]} pointerEvents="none">
+        {canNext ? <PageSheet page={page + 1} /> : null}
+        <Animated.View style={[StyleSheet.absoluteFill, styles.fold, underShade]} />
+      </Animated.View>
+      <GestureDetector gesture={pan}>
+      <Animated.View style={[StyleSheet.absoluteFill, styles.leaf, leafCurrent]}>
       <Backdrop name="sand" />
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 24, paddingBottom: insets.bottom + 150 }}>
         <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={() => setControls((v) => !v)}>
@@ -160,6 +232,16 @@ function MushafPage({ page }: { page: number }) {
           </View>
         </Pressable>
       </ScrollView>
+      <Animated.View style={[StyleSheet.absoluteFill, styles.dark, leafCurrentShade]} pointerEvents="none" />
+      </Animated.View>
+      </GestureDetector>
+      {/* the back of the leaf: plain paper, seen once it passes upright */}
+      <Animated.View style={[StyleSheet.absoluteFill, styles.leaf, styles.paperBack, leafBack]} pointerEvents="none" />
+      {/* the previous page, coming back over the spine */}
+      <Animated.View style={[StyleSheet.absoluteFill, styles.leaf, leafPrev]} pointerEvents="none">
+        {canPrev ? <PageSheet page={page - 1} /> : null}
+        <Animated.View style={[StyleSheet.absoluteFill, styles.dark, leafPrevShade]} />
+      </Animated.View>
 
       <SurahPicker
         visible={picking}
@@ -175,7 +257,7 @@ function MushafPage({ page }: { page: number }) {
         <View style={[styles.tasmee, { top: insets.top + 6 }]} pointerEvents="box-none">
           <PressScale accessibilityRole="button" accessibilityLabel="إيقاف التلاوة" onPress={listen} feedback="tap">
             <Squircle radius={22} fill="rgba(255,255,255,0.85)" glow="glass" style={styles.nowPlaying}>
-              <PlayPause playing size={16} color={colors.primary} />
+              <ThiqalIcon name="pause" size={18} color={colors.primary} />
               <Caption color={colors.primary}>{audio.reciter ? audio.reciter.name : ''}</Caption>
             </Squircle>
           </PressScale>
@@ -216,19 +298,12 @@ function MushafPage({ page }: { page: number }) {
           {/* Top: back (start) · page turner (centre) · listen (end) */}
           <Animated.View entering={fadeIn} exiting={fadeOut} style={[styles.topStrip, { paddingTop: insets.top + 8 }]}>
           <View style={styles.topBar}>
-            <RoundButton icon="chevronRight" label="رجوع" onPress={() => (router.canGoBack() ? router.back() : router.replace('/quran'))} size={48} iconSize={22} />
-            <Squircle radius={24} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.pager}>
-              <Pressable accessibilityRole="button" accessibilityLabel="الصفحة السابقة" hitSlop={8} onPress={() => goTo(page - 1)} style={styles.pagerBtn}>
-                <Icon name="chevronRight" size={20} color={colors.ink} />
-              </Pressable>
-              <Body size={15} weight="bold" lineHeight={20}>{`صفحة ${ar(page)}`}</Body>
-              <Pressable accessibilityRole="button" accessibilityLabel="الصفحة التالية" hitSlop={8} onPress={() => goTo(page + 1)} style={styles.pagerBtn}>
-                <Icon name="chevronLeft" size={20} color={colors.ink} />
-              </Pressable>
-            </Squircle>
+            <GlassRound label="رجوع" onPress={() => (router.canGoBack() ? router.back() : router.replace('/quran'))}>
+              <ThiqalIcon name="fwd" size={22} color={colors.ink} />
+            </GlassRound>
             <PressScale accessibilityRole="button" accessibilityLabel={listening ? 'إيقاف التلاوة' : 'استمع من هذه الصفحة'} onPress={listen} feedback="tap" scaleTo={0.92}>
               <Squircle radius={24} fill={colors.primary} glow="frost" noise={51.2} style={styles.listenBtn}>
-                <PlayPause playing={listening} size={20} color={colors.white} />
+                <ThiqalIcon name={listening ? 'pause' : 'play'} size={20} color={colors.white} />
               </Squircle>
             </PressScale>
           </View>
@@ -244,7 +319,7 @@ function MushafPage({ page }: { page: number }) {
             <View style={styles.zoomRow}>
               <ZoomButton icon="minus" label="تصغير" onPress={() => setZoom((z) => Math.max(70, z - 10))} />
               <Squircle radius={24} fill="rgba(255,255,255,0.75)" glow="glass" style={styles.zoomValue}>
-                <Icon name="search" size={20} color={colors.ink} />
+                <ThiqalIcon name="search" size={20} color={colors.ink} />
                 <Body size={16} weight="bold" lineHeight={22}>
                   {ar(zoom)}
                 </Body>
@@ -252,7 +327,7 @@ function MushafPage({ page }: { page: number }) {
               <ZoomButton icon="plus" label="تكبير" onPress={() => setZoom((z) => Math.min(160, z + 10))} />
             </View>
             <Squircle radius={30} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.search}>
-              <Icon name="search" size={22} color={colors.primary} />
+              <ThiqalIcon name="search" size={22} color={colors.primary} />
               <TextInput
                 placeholder={m.searchPlaceholder}
                 placeholderTextColor={colors.primary}
@@ -267,13 +342,38 @@ function MushafPage({ page }: { page: number }) {
   );
 }
 
+/** A still copy of a neighbouring page (beneath, or coming back over, the turning leaf). */
+function PageSheet({ page }: { page: number }) {
+  const insets = useSafeAreaInsets();
+  const qcf = qcf4Available();
+  const ready = useQcf4Fonts(page);
+  const ayat = useMemo(() => ayatOnPage(page), [page]);
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <Backdrop name="sand" />
+      <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 24 }}>
+        {qcf ? (
+          ready ? <QcfPageView page={page} zoom={100} current={null} onPickSurah={() => undefined} /> : null
+        ) : (
+          <>
+            <SurahBanner surah={ayat[0]?.surah ?? 1} onPress={() => undefined} />
+            <AyahText size={21} lineHeight={41} style={{ textAlign: 'justify', marginTop: 6 }}>
+              {ayat.map((x) => getAyah(x.surah, x.ayah)?.text ?? '').join(' ')}
+            </AyahText>
+          </>
+        )}
+      </View>
+    </View>
+  );
+}
+
 /**
  * One Madinah Mushaf page from the QCF4 data: the surah banner from the design where the page
  * has a surah header, the basmala glyph, and 15 justified lines of glyphs. Glyph size is set so
  * the widest line of the whole mushaf fits the width, so every page has the same size, as in print.
  * In the recitation check a hidden word keeps its place (transparent), exactly like the text mode.
  */
-function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: number; zoom: number; tasmee: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void }) {
+function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: number; zoom: number; tasmee?: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void }) {
   const { width } = useWindowDimensions();
   const pg = qcf4Page(page);
   // Zoom scales the whole page; past 100% it scrolls sideways, lines never re-wrap (the page stays the printed page).
@@ -328,7 +428,7 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: numbe
               let style = null;
               // the ayah being recited reads in teal
               if (current && ai && ayahKey(ai) === current) style = styles.wListen;
-              if (tasmee.active && ai && wi >= 0) {
+              if (tasmee?.active && ai && wi >= 0) {
                 const key = ayahKey(ai);
                 const { state, current } = tasmee.wordState(key, wi, wordCount(key));
                 style = current ? styles.wCurrent : state === 'pending' ? styles.wHidden : state === 'ok' ? null : styles.wCheck;
@@ -467,25 +567,23 @@ function Orb({ colors: c, icon, label, onPress, size = 68, live = false }: { col
   );
 }
 
-/** Play, or a solid pause (two rounded bars). */
-function PlayPause({ playing, size, color }: { playing: boolean; size: number; color: string }) {
-  if (!playing) return <Icon name="play" size={size} color={color} />;
-  const bar = { width: size * 0.22, height: size * 0.72, backgroundColor: color };
-  return (
-    <View style={{ width: size, height: size, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: size * 0.18 }}>
-      <View style={[styles.pauseBar, bar]} />
-      <View style={[styles.pauseBar, bar]} />
-    </View>
-  );
-}
 
 function ZoomButton({ icon, label, onPress }: { icon: 'plus' | 'minus'; label: string; onPress: () => void }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress}>
+    <GlassRound label={label} onPress={onPress}>
+      <ThiqalIcon name={icon} size={22} color={colors.ink} />
+    </GlassRound>
+  );
+}
+
+/** 48pt round glass button holding a Thiqal icon. */
+function GlassRound({ label, onPress, children }: { label: string; onPress: () => void; children: React.ReactNode }) {
+  return (
+    <PressScale accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={6} scaleTo={0.92}>
       <Squircle radius={24} fill="rgba(255,255,255,0.75)" glow="glass" style={styles.zoomBtn}>
-        <Icon name={icon} size={20} color={colors.ink} />
+        {children}
       </Squircle>
-    </Pressable>
+    </PressScale>
   );
 }
 
@@ -515,12 +613,14 @@ const styles = StyleSheet.create({
   wListen: { color: colors.primary },
   nowPlaying: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16 },
   // frosted strip so the bar reads as its own layer above the page (and never sits on the surah banner)
+  // a leaf of the mushaf turns on its right edge (the binding)
+  leaf: { transformOrigin: 'right', backfaceVisibility: 'hidden', overflow: 'hidden' },
+  paperBack: { backgroundColor: '#E9E2D7' },
+  dark: { backgroundColor: '#000' },
+  fold: { backgroundColor: '#000' },
   topStrip: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: 'rgba(237,232,225,0.96)', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(39,40,51,0.08)' },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  pager: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6 },
-  pagerBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   listenBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-  pauseBar: { borderRadius: 2 },
   wCurrent: { color: '#1F7A33', backgroundColor: '#CDE9C3' },
   wCheck: { color: '#A8862B' },
   controls: { position: 'absolute', start: 20, end: 20, gap: 14, alignItems: 'center' },

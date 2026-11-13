@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { I18nManager, Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { hydratePrefs } from '@/store/prefs';
 import { fontAssets } from '@/theme/fonts';
@@ -36,15 +37,18 @@ export default function RootLayout() {
   if ((!loaded && !error) || !prefsReady) return null;
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <SafeAreaProvider>
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#E2E2E2' } }}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="mushaf" options={{ animation: 'fade' }} />
+        {/* the page turns with a horizontal swipe, so the edge back-swipe stays off here */}
+        <Stack.Screen name="mushaf" options={{ animation: 'fade', gestureEnabled: false }} />
         <Stack.Screen name="ayah/[id]" />
         <Stack.Screen name="hadith/[id]" />
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
       </Stack>
     </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
