@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/components/Icon';
 import { haptic } from '@/components/motion';
@@ -18,13 +18,16 @@ import { colors } from '@/theme/tokens';
  */
 export default function SurahPicker() {
   const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
   const { current: c } = useLocalSearchParams<{ current?: string }>();
   const current = Number(c) || 1;
   const [q, setQ] = useState('');
   const needle = stripTashkeel(q.trim());
   const list = needle ? quranIndex.surahs.filter((x) => stripTashkeel(x.name).includes(needle) || String(x.n) === needle || ar(x.n) === needle) : quranIndex.surahs;
   return (
-    <View style={styles.sheet}>
+    // An explicit height: inside the iOS form sheet a flex-1 root can be laid out with no height
+    // (the list then drew over its header, then not at all). The sheet's tallest detent is 0.92.
+    <View style={[styles.sheet, { height: Math.round(height * 0.92) }]}>
       <FlatList
         data={list}
         keyExtractor={(x) => String(x.n)}
@@ -53,7 +56,8 @@ export default function SurahPicker() {
           </View>
         }
         stickyHeaderIndices={[0]}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 12 }}
+        // room at the end, so the last surah is reachable with the sheet at its lower height (0.72)
+        contentContainerStyle={{ paddingBottom: insets.bottom + 12 + Math.round(height * 0.2) }}
         renderItem={({ item: x }) => (
           <Pressable
             accessibilityRole="button"
@@ -85,7 +89,7 @@ export default function SurahPicker() {
 const HEAD = 22 + 44 + 52; // pinned header: top room + title row + search
 
 const styles = StyleSheet.create({
-  sheet: { flex: 1, backgroundColor: '#F7F4F1' },
+  sheet: { backgroundColor: '#F7F4F1' },
   top: { height: HEAD, paddingTop: 22, backgroundColor: '#F7F4F1' },
   head: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 10 },
   search: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, marginHorizontal: 20, marginBottom: 8, paddingHorizontal: 14, borderRadius: 22, borderCurve: 'continuous', backgroundColor: '#FFFFFF' },
