@@ -6,6 +6,10 @@ import { space } from '@/theme/tokens';
 import { Backdrop, type BackdropName } from './Backdrop';
 import { enterAt } from './motion';
 
+// Reanimated's web build briefly lifts entering cards out of the layout (they overlap mid-animation),
+// so the staggered entrance runs on iOS/Android only.
+const WEB = Platform.OS === 'web';
+
 export const TAB_BAR_SPACE = 24 + 64 + 24; // bottom inset + bar + breathing room
 
 /** Fixed backdrop + scrolling content column with the 24pt gutter. */
@@ -66,7 +70,7 @@ export function Screen({
         {Children.toArray(children).map((child, i) => {
           const key = isValidElement(child) && child.key != null ? child.key : i;
           return (
-            <Animated.View key={key} entering={enterAt(i)}>
+            <Animated.View key={key} entering={WEB ? undefined : enterAt(i)}>
               {child}
             </Animated.View>
           );

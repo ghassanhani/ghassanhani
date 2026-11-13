@@ -53,6 +53,14 @@ export const haptic = {
 /** RTL as the screen is laid out (native forces RTL; the web build sets dir="rtl"). */
 export const isRTL = (): boolean => I18nManager.isRTL || (Platform.OS === 'web' && typeof document !== 'undefined' && document.documentElement.dir === 'rtl');
 
+/**
+ * Pin something to the reading-start edge (the right in RTL) on every platform.
+ * Native RTL flips `start`; react-native-web does not (it maps `start` to the left), so the web
+ * build uses the physical side instead.
+ */
+export const atStart = (offset: number): { start?: number; right?: number; left?: number } =>
+  Platform.OS === 'web' ? (isRTL() ? { right: offset } : { left: offset }) : { start: offset };
+
 /** Layout changes (a pill growing, a row appearing) glide instead of jumping. */
 export const glide = LinearTransition.springify().damping(22).stiffness(260).reduceMotion(ReduceMotion.System);
 

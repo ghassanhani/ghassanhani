@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { Pressable, type PressableProps, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { interpolateColor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
-import { haptic, isRTL, motion, PressScale } from './motion';
+import { atStart, haptic, isRTL, motion, PressScale } from './motion';
 import { F } from '@/theme/fonts';
 import { colors, heroes, type HeroName, radius, space, tints, type TintName } from '@/theme/tokens';
 import { Icon, type IconName } from './Icon';
@@ -142,7 +142,7 @@ export function Segments({ segments }: { segments: readonly ('on' | 'off' | 'par
     <View style={styles.segRow}>
       {segments.map((s, i) => (
         <View key={i} style={[styles.seg, s === 'on' ? styles.segOn : styles.segOff]}>
-          {s === 'part' ? <View style={styles.segPart} /> : null}
+          {s === 'part' ? <View style={[styles.segPart, atStart(0)]} /> : null}
         </View>
       ))}
     </View>
@@ -175,12 +175,11 @@ const styles = StyleSheet.create({
   seg: { flex: 1, height: 12, borderRadius: 30, overflow: 'hidden' },
   segOn: { backgroundColor: colors.sky, boxShadow: 'inset 0 -4px 4px rgba(255,255,255,0.35)' },
   segOff: { backgroundColor: colors.track, boxShadow: 'inset 4px 4px 4px -1px rgba(0,0,0,0.25)' },
-  segPart: { position: 'absolute', end: 0, top: 0, bottom: 0, width: '66%', backgroundColor: '#B8975A', borderRadius: 30 },
+  segPart: { position: 'absolute', top: 0, bottom: 0, width: '66%', backgroundColor: '#B8975A', borderRadius: 30 },
   sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   segTrack: { flexDirection: 'row', gap: 6, padding: 4, borderRadius: 30, backgroundColor: 'rgba(129,130,144,0.12)' },
   segBtn: { minHeight: 42, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
-  // placed by translateX from the physical left edge (start/end would not flip on web)
-  segPill: { position: 'absolute', top: 4, bottom: 4, left: 0, backgroundColor: colors.white, boxShadow: '0 2px 6px rgba(39,40,51,0.08)', borderRadius: 22 },
+  segPill: { position: 'absolute', top: 4, bottom: 4, backgroundColor: colors.white, boxShadow: '0 2px 6px rgba(39,40,51,0.08)', borderRadius: 22 },
   switch: { width: 50, height: 30, borderRadius: 15, padding: 3, justifyContent: 'center' },
   switchOnShadow: { boxShadow: 'inset 0 3px 4px rgba(255,255,255,0.35)' },
   switchOffShadow: { boxShadow: 'inset 3px 3px 4px -1px rgba(0,0,0,0.25)' },
@@ -201,16 +200,16 @@ export function Segmented<T extends string | number>({ options, value, onChange 
   const reduced = useReducedMotion();
   const rtl = isRTL();
   useEffect(() => {
-    // Physical x of the chosen option (the first option sits on the right in RTL).
+    // The pill sits at the start edge; it moves toward the end by one option per step.
     const step = index * (itemW + 6);
-    const to = rtl ? w - 4 - itemW - step : 4 + step;
+    const to = rtl ? -step : step;
     x.set(reduced || !w ? to : withSpring(to, motion.settleSpring));
   }, [index, itemW, rtl, reduced, w, x]);
   const pill = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
   return (
     <View accessibilityRole="radiogroup" style={styles.segTrack} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
       {w ? (
-        <Animated.View pointerEvents="none" style={[styles.segPill, { width: itemW }, pill]} />
+        <Animated.View pointerEvents="none" style={[styles.segPill, atStart(4), { width: itemW }, pill]} />
       ) : null}
       {options.map((o) => {
         const on = o.value === value;

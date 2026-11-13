@@ -12,7 +12,7 @@ import { Body } from './Typography';
 export const TABS: Record<string, { label: string; icon: IconName }> = {
   index: { label: 'الرئيسية', icon: 'home' },
   quran: { label: 'القرآن', icon: 'quran' },
-  library: { label: 'المكتبة', icon: 'books' },
+  library: { label: 'المكتبة', icon: 'booksSolid' },
   search: { label: 'البحث', icon: 'search' },
   me: { label: 'أنا', icon: 'user' },
 };

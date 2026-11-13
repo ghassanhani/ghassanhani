@@ -100,7 +100,7 @@ export default function HomeScreen() {
         <GlassCard soft tint="neutral" style={{ minHeight: 189 }}>
           <View style={styles.between}>
             <Display size={20}>{a.title}</Display>
-            <IconBubble name="play" iconSize={16} color={colors.white} fill={colors.primary} glow={false} />
+            <IconBubble name="play" iconSize={16} color={colors.white} fill={colors.primary} />
           </View>
           <AyahText size={21} lineHeight={38} style={[{ marginTop: 6 }, ayah && { fontFamily: ayah.fontFamily }]}>
             {ayah ? ayah.text : ayahPlaceholder(a.surahName, a.ayah)}
@@ -116,7 +116,7 @@ export default function HomeScreen() {
             <Body size={14} weight="medium">
               {home.wird.label}
             </Body>
-            <IconBubble name="quran2" iconSize={20} color="#5B5FB0" />
+            <IconBubble name="quran2" iconSize={21} color={colors.white} fill="#4246B7" />
           </View>
           <Display size={22} style={{ marginTop: 10 }}>
             {home.wird.title}
@@ -132,7 +132,7 @@ export default function HomeScreen() {
             <Body size={14} weight="medium">
               {home.adhkarCard.label}
             </Body>
-            <IconBubble name="moonCloud" iconSize={20} color="#3E8A3A" />
+            <IconBubble name="moonCloud" iconSize={21} color={colors.white} fill="#0D8E14" />
           </View>
           <Display size={22} style={{ marginTop: 10 }}>
             {home.adhkarCard.title}
@@ -155,7 +155,7 @@ export default function HomeScreen() {
           <Body size={15} weight="medium">
             {home.hifzReview.label}
           </Body>
-          <IconBubble name="mic" iconSize={22} color={colors.white} fill="#E08A5B" glow={false} />
+          <IconBubble name="mic" iconSize={24} color={colors.white} fill="#DA753A" />
         </View>
         <Display size={22}>{home.hifzReview.title}</Display>
         <View style={[styles.row, { gap: 8, marginTop: 10 }]}>
@@ -188,7 +188,7 @@ export default function HomeScreen() {
           <Body size={12} weight="medium">
             {home.learn.label}
           </Body>
-          <IconBubble name="books" iconSize={22} color={colors.white} fill={colors.sky} glow={false} />
+          <IconBubble name="books" iconSize={24} color={colors.white} fill="#3AAADA" />
         </View>
         <Display size={20}>{home.learn.title}</Display>
         <View style={{ marginVertical: 14 }}>
@@ -205,8 +205,8 @@ export default function HomeScreen() {
           <Body size={12} weight="medium" color="rgba(255,255,255,0.85)">
             {home.topic.label}
           </Body>
-          <Squircle radius={20} fill="#9ACD6A" glow="button" style={styles.arrowBubble}>
-            <View style={{ transform: [{ rotate: '-45deg' }] }}>
+          <Squircle radius={20} fill="#75AF3E" glow="glass" style={styles.arrowBubble}>
+            <View style={{ transform: [{ rotate: '-135deg' }] }}>
               <Icon name="arrowRight" size={22} color={colors.white} />
             </View>
           </Squircle>

@@ -35,6 +35,8 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { View } from 'react-native';
+import { SvgXml } from 'react-native-svg';
+import { CANVAS_ICONS } from './canvasIcons';
 import { colors } from '@/theme/tokens';
 
 // The canvas uses the Hugeicons set (layer names: home-04, quran-01, books-01 …).
@@ -72,15 +74,27 @@ const icons = {
   note: Note01Icon,
   sparkle: SparklesIcon,
   list: TaskDone01Icon,
+  hizb: SparklesIcon, // drawn from the canvas (rub-el-hizb)
+  translation: SparklesIcon, // drawn from the canvas
+  booksSolid: Books01Icon, // the tab bar's solid variant, drawn from the canvas
 } as const;
 
 export type IconName = keyof typeof icons;
 
-export function Icon({ name, size = 24, color = colors.ink, strokeWidth = 1.5 }: { name: IconName; size?: number; color?: string; strokeWidth?: number }) {
+/**
+ * Icons are the design canvas's own glyphs where it has them (exact Figma vectors: solid and
+ * glossy styles); the rest fall back to Hugeicons stroke-rounded. `outline` forces the fallback.
+ */
+export function Icon({ name, size = 24, color = colors.ink, strokeWidth = 1.5, outline }: { name: IconName; size?: number; color?: string; strokeWidth?: number; outline?: boolean }) {
+  const glyph = outline ? undefined : CANVAS_ICONS[name];
   // Fixed-size, non-shrinking box so flex rows never squeeze the glyph.
   return (
     <View style={{ width: size, height: size, flexShrink: 0 }}>
-      <HugeiconsIcon icon={icons[name]} size={size} color={color} strokeWidth={strokeWidth} />
+      {glyph ? (
+        <SvgXml xml={glyph.xml} width={size} height={size} color={color} />
+      ) : (
+        <HugeiconsIcon icon={icons[name]} size={size} color={color} strokeWidth={strokeWidth} />
+      )}
     </View>
   );
 }
