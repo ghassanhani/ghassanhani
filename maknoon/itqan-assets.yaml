@@ -23,3 +23,7 @@ assets:
   # KFGQPC Uthmanic Hafs font + full Hafs text with page/line data — CC BY-NC-ND (free app only)
   unicode-uthmanic-font-hafs-narration:
     version: "^1.0.0"
+
+  # French translation of the meanings — Rachid Maach, IslamHouse via RATQ (cms-10), CC BY-ND (SPEC §4: cleared)
+  french-translation:
+    version: "^1.0.0"

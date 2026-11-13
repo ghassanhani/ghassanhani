@@ -14,6 +14,7 @@ import { ayahToday, home } from '@/content/design';
 import { ar, ayahPlaceholder, getAyah, quranSource } from '@/content/quran';
 import { packsSupported } from '@/content/packs';
 import { useTafsir, type TafsirEntry } from '@/content/tafsir';
+import { translationOf } from '@/content/translation';
 import { quranIndex } from '@/content/worship';
 import { colors } from '@/theme/tokens';
 
@@ -27,6 +28,7 @@ export default function AyahScreen() {
   const all = useTafsir(s, a);
   const tafsir = (all ?? []).filter((t) => t.text);
   const missing = (all ?? []).filter((t) => !t.installed);
+  const tr = translationOf(s, a);
 
   return (
     <Screen backdrop="sky" withTabBar={false} header={<DetailHeader title={ayahToday.title} />}>
@@ -71,6 +73,24 @@ export default function AyahScreen() {
           </Pressable>
         ) : null}
       </Drawer>
+
+      {tr ? (
+        <Drawer title="ترجمة المعاني">
+          <InnerCard>
+            <Caption color={colors.primary}>{tr.label}</Caption>
+            {/* French reads left to right */}
+            <Body size={15} lineHeight={24} style={styles.ltr}>
+              {tr.text}
+            </Body>
+            {tr.note ? (
+              <Body size={12} lineHeight={19} color={colors.muted} style={[styles.ltr, { marginTop: 8 }]}>
+                {tr.note}
+              </Body>
+            ) : null}
+            <Caption style={{ marginTop: 8 }}>{tr.credit}</Caption>
+          </InnerCard>
+        </Drawer>
+      ) : null}
 
       <Drawer title={ayahToday.hadithTitle}>
         <Caption>لا توجد بعد روابط أحاديث مُراجَعة لهذه الآية.</Caption>
@@ -195,6 +215,7 @@ function Chevron({ open }: { open: boolean }) {
 }
 
 const styles = StyleSheet.create({
+  ltr: { writingDirection: 'ltr', textAlign: 'left', fontFamily: undefined },
   row: { flexDirection: 'row', alignItems: 'center' },
   between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   glassIcon: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
