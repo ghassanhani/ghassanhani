@@ -5,8 +5,7 @@ import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@/theme/tokens';
 import { Icon, type IconName } from './Icon';
-import { fadeIn, glide, haptic, PressScale } from './motion';
-import { Squircle } from './Squircle';
+import { fadeIn, haptic, PressScale, tabGlide as glide } from './motion';
 import { Body } from './Typography';
 
 export const TABS: Record<string, { label: string; icon: IconName }> = {
@@ -44,14 +43,14 @@ export function TabBar({ state, navigateToTab }: BottomTabBarProps) {
               <Animated.View key={route.key} layout={glide}>
                 <PressScale accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={meta.label} onPress={onPress} style={styles.item} scaleTo={0.9}>
                   {focused ? (
-                    <Animated.View entering={fadeIn}>
-                      <Squircle radius={24} fill={colors.primary} glow="button" style={styles.active}>
-                        <Icon name={meta.icon} size={24} color={colors.goldWarm} />
-                        <Body size={14} weight="bold" color={colors.white} lineHeight={20}>
+                    <View style={styles.active}>
+                      <Icon name={meta.icon} size={24} color={colors.goldWarm} />
+                      <Animated.View entering={fadeIn}>
+                        <Body size={14} weight="bold" color={colors.goldWarm} lineHeight={20}>
                           {meta.label}
                         </Body>
-                      </Squircle>
-                    </Animated.View>
+                      </Animated.View>
+                    </View>
                   ) : (
                     <View style={styles.icon}>
                       <Icon name={meta.icon} size={24} color={colors.primary} />
@@ -79,5 +78,16 @@ const styles = StyleSheet.create({
   row: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingStart: 8, paddingEnd: 20 },
   item: { minWidth: 44, height: 48, alignItems: 'center', justifyContent: 'center' },
   icon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  active: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 13 },
+  // a plain native pill (no SVG): it is redrawn on every tab change, so it must cost nothing
+  active: {
+    height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 13,
+    borderRadius: 24,
+    borderCurve: 'continuous',
+    backgroundColor: colors.primary,
+    boxShadow: 'inset 0 2px 6px rgba(255,255,255,0.35), inset 0 -3px 6px rgba(0,0,0,0.18), 0 6px 14px rgba(3,90,95,0.25)',
+  },
 });

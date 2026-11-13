@@ -33,9 +33,9 @@ import Animated, {
 export const motion = {
   pressSpring: { damping: 18, stiffness: 420, mass: 0.6 },
   settleSpring: { damping: 20, stiffness: 240, mass: 0.8 },
-  enter: 380,
-  stagger: 45,
-  maxStagger: 8,
+  enter: 300,
+  stagger: 35,
+  maxStagger: 6,
   fade: 220,
   breathe: 1600,
 } as const;
@@ -62,6 +62,9 @@ export const atStart = (offset: number): { start?: number; right?: number; left?
   Platform.OS === 'web' ? (isRTL() ? { right: offset } : { left: offset }) : { start: offset };
 
 /** Layout changes (a pill growing, a row appearing) glide instead of jumping. */
+/** The tab bar: a critically damped glide (no wobble), quick enough to follow the finger. */
+export const tabGlide = LinearTransition.duration(260).easing(Easing.out(Easing.cubic)).reduceMotion(ReduceMotion.System);
+
 export const glide = LinearTransition.springify().damping(22).stiffness(260).reduceMotion(ReduceMotion.System);
 
 /**

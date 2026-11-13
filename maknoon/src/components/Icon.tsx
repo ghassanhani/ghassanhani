@@ -35,6 +35,7 @@ import {
   PauseIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
+import { useMemo } from 'react';
 import { View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { CANVAS_ICONS } from './canvasIcons';
@@ -90,14 +91,34 @@ export type IconName = keyof typeof icons;
  */
 export function Icon({ name, size = 24, color = colors.ink, strokeWidth = 1.5, outline }: { name: IconName; size?: number; color?: string; strokeWidth?: number; outline?: boolean }) {
   const glyph = outline ? undefined : CANVAS_ICONS[name];
+  // A glossy glyph is drawn for white-on-colour; asked for any other colour (a dark icon on a light
+  // bubble, an inactive tab) it is shown as one solid shape in that colour, as the canvas does there.
+  const mono = !!glyph?.glossy && !isWhite(color);
+  const xml = useMemo(() => (glyph ? (mono ? solidOf(glyph.xml) : glyph.xml) : ''), [glyph, mono]);
   // Fixed-size, non-shrinking box so flex rows never squeeze the glyph.
   return (
     <View style={{ width: size, height: size, flexShrink: 0 }}>
       {glyph ? (
-        <SvgXml xml={glyph.xml} width={size} height={size} color={color} />
+        <SvgXml xml={xml} width={size} height={size} color={color} />
       ) : (
         <HugeiconsIcon icon={icons[name]} size={size} color={color} strokeWidth={strokeWidth} />
       )}
     </View>
   );
+}
+
+const isWhite = (c: string) => /^(#fff(fff)?|white|rgba?\(\s*255\s*,\s*255\s*,\s*255)/i.test(c.trim());
+
+/** Every white or gradient paint becomes the icon colour; dark details stay as drawn. */
+const SOLID = new Map<string, string>();
+function solidOf(xml: string) {
+  let out = SOLID.get(xml);
+  if (!out) {
+    out = xml
+      .replace(/(fill|stroke)="url\(#[^)]*\)"/g, '$1="currentColor"')
+      .replace(/(fill|stroke)="rgba\(255,\s*255,\s*255,\s*1\)"/g, '$1="currentColor"')
+      .replace(/stop-color="[^"]*"/g, 'stop-color="currentColor"');
+    SOLID.set(xml, out);
+  }
+  return out;
 }

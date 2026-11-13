@@ -42,7 +42,7 @@ export default function AyahScreen() {
             {ayahToday.title}
           </Display>
           <View style={[styles.row, { gap: 8 }]}>
-            <GlassIcon name="image" label="صورة للمشاركة" />
+            <GlassIcon name="translation" label="الترجمة" />
             <GlassIcon name={here ? 'pause' : 'play'} label={here ? 'إيقاف التلاوة' : 'استماع'} onPress={() => toggleAyah(s, a)} />
           </View>
         </View>
@@ -176,12 +176,12 @@ function TafsirCard({ entry }: { entry: TafsirEntry & { text: string } }) {
   );
 }
 
-function GlassIcon({ name, label, onPress }: { name: 'play' | 'pause' | 'image'; label: string; onPress?: () => void }) {
+function GlassIcon({ name, label, onPress }: { name: 'play' | 'pause' | 'translation'; label: string; onPress?: () => void }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={6}>
-      <Squircle radius={18} fill="rgba(255,255,255,0.2)" glow="button" style={styles.glassIcon}>
+      <View style={styles.glassIcon}>
         <Icon name={name} size={16} color={colors.white} />
-      </Squircle>
+      </View>
     </Pressable>
   );
 }
@@ -227,7 +227,16 @@ const styles = StyleSheet.create({
   ltr: { writingDirection: 'ltr', textAlign: 'left', fontFamily: undefined },
   row: { flexDirection: 'row', alignItems: 'center' },
   between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  glassIcon: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  // teal glass bubble, as on the canvas: a plain native shape, cheap to draw
+  glassIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.35), inset 0 -2px 4px rgba(0,0,0,0.2), 0 4px 10px rgba(0,30,40,0.25)',
+  },
   more: { minHeight: 46, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
   ring: { width: 37, height: 37, borderRadius: 18.5, borderWidth: 1, borderColor: colors.ring, alignItems: 'center', justifyContent: 'center' },
 });
