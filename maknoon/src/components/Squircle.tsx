@@ -69,8 +69,8 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
     return getSvgPath({ width: size.w, height: size.h, cornerRadius: r, cornerSmoothing: isPill ? 0 : CORNER_SMOOTHING });
   }, [size, radius]);
 
-  // On small shapes (icon bubbles) the canvas glow is a thin rim; the card-sized band would wash the colour out.
-  const small = !!size && Math.min(size.w, size.h) < 64;
+  // On small round shapes (icon bubbles) the canvas glow is a thin rim; the card-sized band would wash the colour out.
+  const small = !!size && Math.max(size.w, size.h) < 64;
   const g = glow === 'glass' || glow === 'frost' ? { wide: 0.65, top: 0.95, bottom: 0.65 } : glow === 'button' ? { wide: 0.35, top: 0.6, bottom: 0.35 } : null;
 
   return (

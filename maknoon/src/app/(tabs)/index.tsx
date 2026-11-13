@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Icon, type IconName } from '@/components/Icon';
+import { atStart } from '@/components/motion';
 import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
 import { AyahText, Body, Caption, Display } from '@/components/Typography';
@@ -114,6 +115,7 @@ export default function HomeScreen() {
 
       {/* Wird + adhkar */}
       <View style={[styles.row, { gap: 12, alignItems: 'stretch' }]}>
+        <View style={styles.halfSlot}>
         <GlassCard soft tint="lavender" style={styles.half}>
           <View style={styles.between}>
             <Body size={14} weight="medium">
@@ -121,31 +123,30 @@ export default function HomeScreen() {
             </Body>
             <IconBubble name="quran2" iconSize={21} color={colors.white} fill="#4246B7" />
           </View>
-          <Display size={22} style={{ marginTop: 10 }}>
+          <Display size={22} style={{ marginTop: 20 }}>
             {home.wird.title}
           </Display>
           <Caption>{home.wird.meta}</Caption>
-          <View style={styles.thickTrack}>
-            <View style={[styles.thickFill, { width: `${home.wird.progress * 100}%` }]} />
-          </View>
+          <WirdProgress value={home.wird.progress} />
         </GlassCard>
-        <Pressable accessibilityRole="button" style={{ flex: 1 }} onPress={() => router.push('/adhkar')}>
-        <GlassCard soft tint="mint" style={[styles.half, { flex: undefined }]}>
+        </View>
+        <Pressable accessibilityRole="button" style={styles.halfSlot} onPress={() => router.push('/adhkar')}>
+        <GlassCard soft tint="mint" style={styles.half}>
           <View style={styles.between}>
             <Body size={14} weight="medium">
               {home.adhkarCard.label}
             </Body>
             <IconBubble name="moonCloud" iconSize={21} color={colors.white} fill="#0D8E14" />
           </View>
-          <Display size={22} style={{ marginTop: 10 }}>
+          <Display size={22} style={{ marginTop: 20 }}>
             {home.adhkarCard.title}
           </Display>
           <Caption>{home.adhkarCard.meta}</Caption>
           <View style={[styles.row, { gap: 4, marginTop: 'auto' }]}>
-            <Display size={14} color={colors.primary}>
+            <Display size={14} color="#141B34">
               {home.adhkarCard.cta}
             </Display>
-            <Icon name="arrowLeft" size={20} color={colors.primary} />
+            <Icon name="arrowLeft" size={20} color="#141B34" outline />
           </View>
         </GlassCard>
         </Pressable>
@@ -224,6 +225,16 @@ export default function HomeScreen() {
   );
 }
 
+/** Canvas «وردي اليوم» bar: grey 30% track with a soft inner shadow, indigo glass fill from the start side. */
+function WirdProgress({ value }: { value: number }) {
+  return (
+    <View style={styles.thick} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(value * 100) }}>
+      <View style={styles.thickTrack} />
+      <Squircle radius={15} fill="#4246B7" glow="frost" noise={51.2} style={[styles.thickFill, atStart(0), { width: `${value * 100}%` }]} />
+    </View>
+  );
+}
+
 function MiniCard({ title, icon }: { title: string; icon: IconName }) {
   return (
     <GlassCard soft tint="neutral" style={styles.mini}>
@@ -242,9 +253,12 @@ const styles = StyleSheet.create({
   avatar: { width: 53, height: 53, alignItems: 'center', justifyContent: 'center', marginEnd: 12 },
   dot: { position: 'absolute', top: 16, end: 12, width: 11, height: 11, borderRadius: 6, backgroundColor: '#D9BC85' },
   prayerChip: { flex: 1, height: 48, alignItems: 'center', justifyContent: 'center' },
-  half: { flex: 1, minHeight: 189, padding: 16 },
-  thickTrack: { height: 30, borderRadius: 15, backgroundColor: 'rgba(129,130,144,0.3)', marginTop: 'auto', overflow: 'hidden', flexDirection: 'row', boxShadow: 'inset 4px 4px 4px -1px rgba(0,0,0,0.15)' },
-  thickFill: { borderRadius: 15, backgroundColor: '#8C8FE0', boxShadow: 'inset 0 -4px 4px rgba(255,255,255,0.35)' },
+  // both cards 171 × 189 in the canvas: equal slots, the card fills its slot
+  halfSlot: { flex: 1, flexBasis: 0 },
+  half: { height: 189, padding: 16 },
+  thick: { height: 30, marginTop: 'auto' },
+  thickTrack: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, borderRadius: 15, backgroundColor: '#818290', opacity: 0.3, boxShadow: 'inset 4px 4px 4px rgba(0,0,0,0.25)' },
+  thickFill: { position: 'absolute', top: 0, bottom: 0 },
   smallChip: { height: 25, paddingHorizontal: 8, justifyContent: 'center' },
   rail: { marginHorizontal: -space.gutter, flexGrow: 0 },
   railContent: { paddingHorizontal: space.gutter, gap: 9 },
