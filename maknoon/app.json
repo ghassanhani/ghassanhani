@@ -44,6 +44,12 @@
         }
       ],
       [
+        "expo-notifications",
+        {
+          "sounds": []
+        }
+      ],
+      [
         "expo-location",
         {
           "locationWhenInUsePermission": "يستخدم المكنون بوصلة الهاتف ليريك اتجاه القبلة. يبقى ذلك على جهازك ولا يُرسل إلى أي مكان.",

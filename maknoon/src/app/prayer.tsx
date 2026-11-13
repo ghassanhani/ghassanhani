@@ -12,6 +12,7 @@ import { type AsrRule, CITIES, METHODS, type MethodKey, cityByKey, fmtDates, fmt
 import { ar } from '@/content/quran';
 import { prayerScreen as P } from '@/content/worship';
 import { usePrefs } from '@/store/prefs';
+import { askAlertPermission, previewAdhan, syncPrayerAlerts } from '@/worship/prayerAlerts';
 import { F } from '@/theme/fonts';
 import { Breathe, haptic } from '@/components/motion';
 import { colors, space } from '@/theme/tokens';
@@ -96,6 +97,8 @@ export default function PrayerScreen() {
                 onPress={() => {
                   haptic.select();
                   setAlerts((a) => ({ ...a, [t.key]: !a[t.key] }));
+                  // turning a bell on asks, once, to allow notifications (the times stay on the device)
+                  if (!on) void askAlertPermission().then(() => syncPrayerAlerts());
                 }}
                 style={[styles.bell, on && { backgroundColor: isNext ? 'rgba(255,255,255,0.14)' : 'rgba(3,90,95,0.08)' }]}
               >
@@ -104,6 +107,7 @@ export default function PrayerScreen() {
             </InnerCard>
           );
         })}
+        {Platform.OS !== 'web' ? <SoftButton label="جرّب التنبيه" onPress={() => void previewAdhan()} /> : null}
       </GlassCard>
 
       <GlassCard style={{ gap: 12, alignItems: 'center' }}>

@@ -8,7 +8,8 @@ import { I18nManager, Platform, StyleSheet } from 'react-native';
 import Animated, { FadeOut } from 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { hydratePrefs } from '@/store/prefs';
+import { hydratePrefs, usePrefs } from '@/store/prefs';
+import { syncPrayerAlerts } from '@/worship/prayerAlerts';
 import { fontAssets } from '@/theme/fonts';
 
 // Arabic-first: the whole app is right-to-left.
@@ -40,6 +41,12 @@ export default function RootLayout() {
   // The design's splash, drawn full screen: the system shows it at launch, then the same picture
   // stays above the app (which loads underneath it) until 8 s have passed, and fades away.
   const [splash, setSplash] = useState(true);
+  // Prayer alerts are rebuilt on the device whenever the app opens or a prayer setting changes.
+  const [prefs] = usePrefs();
+  const alertKey = JSON.stringify([prefs.prayerAlerts, prefs.city, prefs.asr, prefs.prayerMethod]);
+  useEffect(() => {
+    if (prefsReady) void syncPrayerAlerts();
+  }, [prefsReady, alertKey]);
   const ready = (loaded || !!error) && prefsReady;
   useEffect(() => {
     if (!ready) return;
