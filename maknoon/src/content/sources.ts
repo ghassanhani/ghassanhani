@@ -3,6 +3,7 @@
  * Licence and publisher are read from the Ratq catalogue — never hand-typed.
  */
 import { usingThmanyah } from '@/theme/fonts';
+import { qcf4Available } from './qcf4';
 import { quranSource } from './quran';
 import { licenseGate, ratqAttribution, ratqResource } from './ratq';
 
@@ -55,6 +56,9 @@ export function credits(): { name: string; terms: string }[] {
     { name: 'نموذج التسميع · Tarteel whisper-base-ar-quran', terms: 'Apache-2.0 · محوَّل للهاتف دون إعادة تدريب' },
     { name: 'الخطوط · Amiri · Amiri Quran · IBM Plex Sans Arabic', terms: 'SIL OFL' },
     ...(usingThmanyah ? [{ name: 'خط ثمانية', terms: 'بترخيص ثمانية · مضمّن في التطبيق' }] : []),
+    ...(qcf4Available()
+      ? [{ name: 'صفحات المصحف · خط مصحف المدينة ١٤٤١ (QCF4) · مجمع الملك فهد، بخط عثمان طه، تجهيز أحمد الغريب', terms: 'دون تعديل · بيانات الصفحات MIT' }]
+      : []),
     { name: 'مصادر الحديث والتفسير', terms: '[بحسب الإذن المكتوب]' },
   ];
 }

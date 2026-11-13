@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { ReduceMotion, SlideInDown, SlideOutDown } from 'react-native-reanimated';
 import { useMemo, useState } from 'react';
-import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Backdrop } from '@/components/Backdrop';
 import { Icon } from '@/components/Icon';
@@ -13,17 +13,19 @@ import { RoundButton } from '@/components/ui';
 import { mushaf as m } from '@/content/design';
 import { ar, ayahPlaceholder, ayatLabel, ayatOnPage, getAyah } from '@/content/quran';
 import { stripTashkeel } from '@/content/text';
+import { ayahKey, qcf4Available, qcf4Em, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
 import { quranIndex } from '@/content/worship';
-import { Breathe, haptic, PressScale, Ripple, fadeIn, fadeOut } from '@/components/motion';
+import { Breathe, haptic, isRTL, PressScale, Ripple, fadeIn, fadeOut } from '@/components/motion';
 import { type TasmeeNote, useTasmee } from '@/recitation/useTasmee';
 import { usePrefs } from '@/store/prefs';
 
 /**
  * Mushaf reading (page ٥٠, آل عمران ١–٩ in the design).
- * Text is reflowed from the verbatim Tanzil text with Amiri Quran. A page-faithful
- * Madani layout needs the QCF V2 glyph fonts and a licence (plan §4.1 / §5).
+ * On iOS/Android with the QCF4 fonts imported, each page is the Madinah Mushaf (1441) page itself:
+ * 15 lines, line for line and glyph for glyph (founder decision 2026-11-13; see src/content/qcf4.ts).
+ * Otherwise (web, or before the import) the verified Unicode text is reflowed.
  * Tap the page to show the reading controls.
  *
  * Recitation check (تسميع, experimental): the microphone button hides the page's words;
@@ -53,7 +55,16 @@ function MushafPage({ page }: { page: number }) {
 
   // A page of the Madinah mushaf from the page data. Without ?page= it is the design's page ٥٠ (آل عمران ١–٩).
   const onPage = useMemo(() => ayatOnPage(page), [page]);
-  const keys = useMemo(() => onPage.map((x) => `${x.surah}:${x.ayah}`), [onPage]);
+  const qcf = qcf4Available();
+  const qcfReady = useQcf4Fonts(page);
+  // The Madinah page can begin or end mid-ayah: the recitation check covers every ayah it shows.
+  const keys = useMemo(
+    () =>
+      qcf
+        ? [...new Set(qcf4Page(page).l.flatMap((l) => ('a' in l ? l.a.filter(Boolean).map(ayahKey) : [])))]
+        : onPage.map((x) => `${x.surah}:${x.ayah}`),
+    [qcf, page, onPage],
+  );
   const tasmee = useTasmee(keys);
   // One block per surah on the page (the last juz has several surahs on one page).
   const blocks: { surah: number; starts: boolean; ayat: { key: string; text: string }[]; fontFamily?: string }[] = [];
@@ -71,7 +82,10 @@ function MushafPage({ page }: { page: number }) {
       <Backdrop name="sand" />
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 24, paddingBottom: insets.bottom + 150 }}>
         <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={() => setControls((v) => !v)}>
-          {blocks.map((b, i) => (
+          {qcf ? (
+            qcfReady ? <QcfPageView page={page} tasmee={tasmee} onPickSurah={() => setPicking(true)} /> : <View style={{ minHeight: 600 }} />
+          ) : null}
+          {qcf ? null : blocks.map((b, i) => (
             <View key={b.surah} style={i > 0 ? { marginTop: 18 } : null}>
               {/* Surah banner: at the top of the page, and wherever a surah begins */}
               {i === 0 || b.starts ? (
@@ -197,6 +211,80 @@ function MushafPage({ page }: { page: number }) {
           </View>
         </>
       ) : null}
+    </View>
+  );
+}
+
+/**
+ * One Madinah Mushaf page from the QCF4 data: the surah banner from the design where the page
+ * has a surah header, the basmala glyph, and 15 justified lines of glyphs. Glyph size is set so
+ * the widest line of the whole mushaf fits the width, so every page has the same size, as in print.
+ * In the recitation check a hidden word keeps its place (transparent), exactly like the text mode.
+ */
+function QcfPageView({ page, tasmee, onPickSurah }: { page: number; tasmee: ReturnType<typeof useTasmee>; onPickSurah: () => void }) {
+  const { width } = useWindowDimensions();
+  const pg = qcf4Page(page);
+  const w = Math.min(width, 520) - 48;
+  const size = w / qcf4Em.line;
+  const lineH = size * 2.05;
+  const centred = page <= 2; // the first two pages are set in a narrow block, centred
+  const row = isRTL() ? 'row' : 'row-reverse';
+  // Words counted per ayah the same way the recitation check counts them.
+  const wordCount = (key: string) => {
+    const [s, a] = key.split(':').map(Number);
+    return (getAyah(s, a)?.text ?? '').split(/[\s\u00a0]+/).filter(isWord).length;
+  };
+  const firstIsHeader = 'h' in (pg.l[0] ?? {});
+  const firstSurah = (() => {
+    for (const l of pg.l) {
+      if ('h' in l) return l.h;
+      if ('a' in l) {
+        const n = l.a.find(Boolean);
+        if (n) return Number(ayahKey(n).split(':')[0]);
+      }
+    }
+    return 1;
+  })();
+  return (
+    <View>
+      {/* The design keeps the banner at the top of every page (it opens the surah list) */}
+      {firstIsHeader ? null : <SurahBanner surah={firstSurah} onPress={onPickSurah} />}
+      {pg.l.map((l, li) => {
+        if ('h' in l) {
+          return (
+            <View key={li} style={{ marginTop: li ? 10 : 0, marginBottom: 4 }}>
+              <SurahBanner surah={l.h} onPress={onPickSurah} />
+            </View>
+          );
+        }
+        if ('b' in l) {
+          return (
+            <Text key={li} style={{ fontFamily: l.f, fontSize: size, lineHeight: lineH, color: colors.ink, textAlign: 'center' }}>
+              {l.b}
+            </Text>
+          );
+        }
+        const glyphs = Array.from(l.g);
+        return (
+          <View key={li} style={{ flexDirection: row, justifyContent: centred ? 'center' : 'space-between', gap: centred ? size * 0.3 : 0, height: lineH, alignItems: 'center' }}>
+            {glyphs.map((ch, gi) => {
+              const ai = l.a[gi];
+              const wi = l.i[gi];
+              let style = null;
+              if (tasmee.active && ai && wi >= 0) {
+                const key = ayahKey(ai);
+                const { state, current } = tasmee.wordState(key, wi, wordCount(key));
+                style = current ? styles.wCurrent : state === 'pending' ? styles.wHidden : state === 'ok' ? null : styles.wCheck;
+              }
+              return (
+                <Text key={gi} style={[{ fontFamily: pg.f, fontSize: size, lineHeight: lineH, color: colors.ink }, style]}>
+                  {ch}
+                </Text>
+              );
+            })}
+          </View>
+        );
+      })}
     </View>
   );
 }

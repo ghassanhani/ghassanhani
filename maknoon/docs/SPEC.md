@@ -117,6 +117,7 @@ Status **cleared** means ingest freely. Anything else: ask the founder first.
 | Other translations | QuranEnc | ask | Conditions apply |
 | Recitation audio | undecided | **blocked** | |
 | Quran display font | Amiri Quran (OFL) | cleared as default | KFGQPC fonts wait for written permission |
+| Mushaf page layout and font: QCF4 (Madinah Mushaf 1441, King Fahd Complex, Uthman Taha; files by Ahmad ElGharib) via npm `quran-qcf4` | founder decision 2026-11-13, on the founder's own responsibility | **used by founder decision** | Font files are not committed or served to the web; bundled in the iOS/Android app only. Importer `pipeline/importers/qcf4` ties every glyph to the KFGQPC Hafs text before writing. A written permission request to KFGQPC is still recommended |
 | Word morphology | Quranic Arabic Corpus | ask | Licence is GPL with conditions |
 | Fiqh, usul, aqidah, seerah, tazkiyah, grammar texts | undecided | ask | Check RATQ first for each |
 
