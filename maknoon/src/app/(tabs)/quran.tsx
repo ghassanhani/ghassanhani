@@ -84,25 +84,27 @@ export default function QuranHubScreen() {
         ))}
       </ScrollView>
 
-      {/* Listen */}
-      <GlassCard>
-        <View style={styles.between}>
-          <View style={{ flex: 1 }}>
-            <Display size={24}>{q.listen.title}</Display>
-            <Body size={15} weight="medium">
-              {`سورة ${r.surahName}`}
-            </Body>
-            <Body size={13} color={colors.primary}>
-              {`${recitationById(prefs.reciter).name} · من الآية ${ar(r.ayah)}`}
-            </Body>
+      {/* Listen: the card opens the listening hub; its button plays from the reading position */}
+      <Pressable accessibilityRole="link" accessibilityLabel="مركز الاستماع" onPress={() => router.push('/listen')}>
+        <GlassCard>
+          <View style={styles.between}>
+            <View style={{ flex: 1 }}>
+              <Display size={24}>{q.listen.title}</Display>
+              <Body size={15} weight="medium">
+                {`سورة ${r.surahName}`}
+              </Body>
+              <Body size={13} color={colors.primary}>
+                {`${recitationById(prefs.reciter).name} · من الآية ${ar(r.ayah)}`}
+              </Body>
+            </View>
+            <Pressable accessibilityRole="button" accessibilityLabel={listening ? 'إيقاف التلاوة' : 'استماع'} onPress={() => togglePage(r.surah, r.ayah)}>
+              <Squircle radius={25} fill={colors.primary} glow="button" style={[styles.center, { width: 50, height: 50, alignSelf: 'flex-end' }]}>
+                <Icon name={listening ? 'pause' : 'play'} size={20} color={colors.white} />
+              </Squircle>
+            </Pressable>
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel={listening ? 'إيقاف التلاوة' : 'استماع'} onPress={() => togglePage(r.surah, r.ayah)}>
-            <Squircle radius={25} fill={colors.primary} glow="button" style={[styles.center, { width: 50, height: 50, alignSelf: 'flex-end' }]}>
-              <Icon name={listening ? 'pause' : 'play'} size={20} color={colors.white} />
-            </Squircle>
-          </Pressable>
-        </View>
-      </GlassCard>
+        </GlassCard>
+      </Pressable>
 
       {/* Memorise */}
       <Pressable accessibilityRole="link" onPress={() => router.push('/hifz')}>

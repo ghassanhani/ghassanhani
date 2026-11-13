@@ -40,8 +40,8 @@ const FIRST: number[] = [];
 }
 
 /** `playing`: "s:a" (one ayah), "surah:s", or "page" (continuous from a page); `ayah`: the ayah being recited now, when timings allow */
-type State = { playing: string | null; loading: boolean; reciter: Recitation | null; ayah: string | null };
-let state: State = { playing: null, loading: false, reciter: null, ayah: null };
+type State = { playing: string | null; loading: boolean; reciter: Recitation | null; ayah: string | null; paused: boolean; rate: number };
+let state: State = { playing: null, loading: false, reciter: null, ayah: null, paused: false, rate: 1 };
 const subs = new Set<() => void>();
 const set = (s: Partial<State>) => {
   state = { ...state, ...s };
@@ -54,6 +54,24 @@ export const usePlayer = () =>
       return () => subs.delete(f);
     },
     () => state,
+  );
+
+// Position in the file, kept apart from `state` so only the screens that show it redraw (10×/s).
+type Progress = { time: number; duration: number };
+let progress: Progress = { time: 0, duration: 0 };
+const psubs = new Set<() => void>();
+const setProgress = (p: Progress) => {
+  if (Math.abs(p.time - progress.time) < 0.2 && p.duration === progress.duration) return;
+  progress = p;
+  psubs.forEach((f) => f());
+};
+export const useProgress = () =>
+  useSyncExternalStore(
+    (f) => {
+      psubs.add(f);
+      return () => psubs.delete(f);
+    },
+    () => progress,
   );
 
 let player: AudioPlayer | null = null;
@@ -73,13 +91,15 @@ function ayahAt(r: Recitation, surah: number, ms: number) {
 
 function ensure() {
   if (player) return player;
-  setAudioModeAsync({ playsInSilentMode: true }).catch(() => undefined);
+  // keeps playing with the screen locked or the app in the background (UIBackgroundModes: audio)
+  setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: 'doNotMix' }).catch(() => undefined);
   player = createAudioPlayer(null, { updateInterval: 100 });
   player.addListener('playbackStatusUpdate', (st: AudioStatus) => {
     if (st.isLoaded && loaded) {
       loaded();
       loaded = null;
     }
+    if (st.isLoaded) setProgress({ time: st.currentTime, duration: st.duration || 0 });
     if (follow?.r.t && st.isLoaded) {
       const k = ayahAt(follow.r, follow.surah, st.currentTime * 1000);
       if (k !== state.ayah) set({ ayah: k });
@@ -95,6 +115,9 @@ function ensure() {
         follow = { surah: next, r: follow.r };
         set({ ayah: follow.r.t ? `${next}:1` : null });
         load(follow.r.urls[next - 1]).then((p) => p.play());
+      } else if (state.playing?.startsWith('surah:') && Number(state.playing.slice(6)) < 114) {
+        // the listening hub goes on to the next surah
+        playSurah(Number(state.playing.slice(6)) + 1).catch(() => stop());
       } else {
         follow = null;
         set({ playing: null, ayah: null });
@@ -128,8 +151,50 @@ export function stop() {
   stopAt = null;
   follow = null;
   player?.pause();
-  set({ playing: null, loading: false, ayah: null });
+  try {
+    player?.clearLockScreenControls();
+  } catch {
+    // not shown
+  }
+  set({ playing: null, loading: false, ayah: null, paused: false });
 }
+
+/** Pause or carry on, keeping the place. */
+export function pauseResume() {
+  if (!player || !state.playing) return;
+  if (state.paused) player.play();
+  else player.pause();
+  set({ paused: !state.paused });
+}
+
+/** Jump to a second in the current file. */
+export function seek(sec: number) {
+  player?.seekTo(Math.max(0, sec)).catch(() => undefined);
+}
+
+/** Playback speed (0.75 – 1.5). */
+export function setRate(rate: number) {
+  player?.setPlaybackRate(rate);
+  set({ rate });
+}
+
+/** The surah before or after the one playing in the listening hub. */
+export function skipSurah(delta: number) {
+  const n = state.playing?.startsWith('surah:') ? Number(state.playing.slice(6)) : null;
+  if (n === null) return;
+  const next = Math.min(114, Math.max(1, n + delta));
+  if (next !== n) playSurah(next).catch(() => stop());
+}
+
+/** «سورة …» and the reciter on the lock screen and in Control Centre. */
+function showOnLockScreen(p: AudioPlayer, surah: number, r: Recitation) {
+  try {
+    p.setActiveForLockScreen(true, { title: `سورة ${plainName(surah)}`, artist: r.name, albumTitle: 'المكنون' });
+  } catch {
+    // lock screen controls are optional
+  }
+}
+const plainName = (n: number) => (quranIndex.surahs[n - 1]?.name ?? '').replace(/[\u064B-\u0652\u0670]/g, '');
 
 /** Timed recitation to use: the chosen one, or the default timed one when the chosen has no ayah timings. */
 const timedReciter = () => {
@@ -150,7 +215,10 @@ export async function playFrom(surah: number, ayah: number) {
   try {
     const p = await load(r.urls[surah - 1]);
     await p.seekTo(r.t ? r.t[2 * (FIRST[surah] + ayah - 1)] / 1000 : 0);
+    p.setPlaybackRate(state.rate);
     p.play();
+    set({ paused: false });
+    showOnLockScreen(p, surah, r);
   } finally {
     set({ loading: false });
   }
@@ -164,7 +232,7 @@ export async function playAyah(surah: number, ayah: number) {
   const start = r.t![2 * i] / 1000;
   const end = r.t![2 * i + 1] / 1000;
   follow = null;
-  set({ playing: `${surah}:${ayah}`, loading: true, reciter: r, ayah: null });
+  set({ playing: `${surah}:${ayah}`, loading: true, reciter: r, ayah: null, paused: false });
   try {
     // just this ayah's bytes, fetched ahead or now (see ayahClip); else stream the surah and seek
     const clip = await ayahClip(r.urls[surah - 1], `${r.id}-${surah}-${ayah}`, start * 1000, end * 1000);
@@ -196,12 +264,14 @@ export function prefetchAyah(surah: number, ayah: number) {
 export async function playSurah(surah: number) {
   const r = recitationById(getPrefs().reciter);
   follow = null;
-  set({ playing: `surah:${surah}`, loading: true, reciter: r, ayah: null });
+  set({ playing: `surah:${surah}`, loading: true, reciter: r, ayah: null, paused: false });
   try {
     const p = await load(r.urls[surah - 1]);
     stopAt = null;
     await p.seekTo(0);
+    p.setPlaybackRate(state.rate);
     p.play();
+    showOnLockScreen(p, surah, r);
   } finally {
     set({ loading: false });
   }
