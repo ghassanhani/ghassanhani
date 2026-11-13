@@ -101,7 +101,7 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke,
             {g ? (
               <>
                 <Filter id={`g${uid}`} x="-20%" y="-20%" width="140%" height="140%">
-                  <FeGaussianBlur stdDeviation={small ? 3 : 7} />
+                  <FeGaussianBlur stdDeviation={small ? 5 : 7} />
                 </Filter>
                 <Filter id={`h${uid}`} x="-10%" y="-10%" width="120%" height="120%">
                   <FeGaussianBlur stdDeviation={2} />
@@ -111,14 +111,21 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke,
                 </Filter>
               </>
             ) : null}
-            {glow === 'frost' ? (
+            {g && small && fill ? (
+              <RadialGradient id={`e${uid}`} cx="50%" cy="50%" rx="50%" ry="50%">
+                <Stop offset="0" stopColor={fill} stopOpacity={0.92} />
+                <Stop offset="0.72" stopColor={fill} stopOpacity={0.88} />
+                <Stop offset="1" stopColor={fill} stopOpacity={0.45} />
+              </RadialGradient>
+            ) : null}
+            {glow === 'frost' || (g && small) ? (
               <Pattern id={`n${uid}`} patternUnits="userSpaceOnUse" width={38} height={38}>
                 <SvgImage href={NOISE} width={38} height={38} preserveAspectRatio="none" />
               </Pattern>
             ) : null}
           </Defs>
           <G clipPath={`url(#c${uid})`}>
-            {fill || gradient ? <Path d={d} fill={gradient ? `url(#f${uid})` : fill} /> : null}
+            {fill || gradient ? <Path d={d} fill={gradient ? `url(#f${uid})` : g && small && fill ? `url(#e${uid})` : fill} /> : null}
             {blobs?.map((b, i) => (
               <Ellipse
                 key={i}
@@ -137,14 +144,16 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke,
                   <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={0.2} strokeWidth={120} filter={`url(#w${uid})`} transform="translate(0 4)" />
                 ) : null}
                 {/* wide soft inner light, offset 4 down */}
-                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={g.wide} strokeWidth={small ? 8 : 20} filter={`url(#g${uid})`} transform="translate(0 4)" />
+                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={small ? 0.18 : g.wide} strokeWidth={small ? 12 : 20} filter={`url(#g${uid})`} transform="translate(0 4)" />
                 {/* crisp top highlight */}
-                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={g.top} strokeWidth={6} filter={`url(#h${uid})`} transform="translate(0 4)" />
+                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={small ? 0.5 : g.top} strokeWidth={6} filter={`url(#h${uid})`} transform="translate(0 4)" />
                 {/* bottom lip */}
-                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={g.bottom} strokeWidth={6} filter={`url(#h${uid})`} transform="translate(0 -4)" />
+                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={small ? 0.3 : g.bottom} strokeWidth={6} filter={`url(#h${uid})`} transform="translate(0 -4)" />
               </>
             ) : null}
-            {glow === 'frost' ? <Rect x={0} y={0} width={size.w} height={size.h} fill={`url(#n${uid})`} opacity={0.5} /> : null}
+            {/* icon bubbles in the canvas: the colour is softly veiled and grained, never a dark disc */}
+            {g && small ? <Rect x={0} y={0} width={size.w} height={size.h} fill="#FFFFFF" opacity={0.08} /> : null}
+            {glow === 'frost' || (g && small) ? <Rect x={0} y={0} width={size.w} height={size.h} fill={`url(#n${uid})`} opacity={0.5} /> : null}
           </G>
           {stroke ? (
             <G clipPath={`url(#c${uid})`}>
