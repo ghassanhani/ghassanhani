@@ -103,7 +103,7 @@ function Chips({ options, isOn, onPick, multi }: { options: readonly Opt[]; isOn
         const on = isOn(k);
         return (
           <Pressable key={k} accessibilityRole={multi ? 'checkbox' : 'radio'} accessibilityState={{ checked: on }} onPress={() => onPick(k)}>
-            <Squircle radius={21} fill={on ? colors.primary : 'rgba(255,255,255,0.7)'} glow={on ? 'none' : 'glass'} stroke={on ? undefined : '#FFFFFF'} style={styles.chip}>
+            <Squircle radius={21} fill={on ? colors.primary : 'rgba(255,255,255,0.7)'} glow={on ? 'button' : 'glass'} stroke={on ? undefined : '#FFFFFF'} style={styles.chip}>
               <Body size={14} weight={on ? 'bold' : 'medium'} color={on ? colors.white : colors.ink} lineHeight={20}>
                 {label}
               </Body>

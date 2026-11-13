@@ -28,7 +28,7 @@ export default function SeerahScreen() {
           const on = x.id === f;
           return (
             <Pressable key={x.id} accessibilityRole="tab" accessibilityState={{ selected: on }} onPress={() => setF(x.id)}>
-              <Squircle radius={21} fill={on ? colors.primary : 'rgba(255,255,255,0.7)'} glow={on ? 'none' : 'glass'} stroke={on ? undefined : '#FFFFFF'} style={styles.chip}>
+              <Squircle radius={21} fill={on ? colors.primary : 'rgba(255,255,255,0.7)'} glow={on ? 'button' : 'glass'} stroke={on ? undefined : '#FFFFFF'} style={styles.chip}>
                 <Body size={14} weight={on ? 'bold' : 'medium'} color={on ? colors.white : colors.ink} lineHeight={20}>
                   {x.label}
                 </Body>

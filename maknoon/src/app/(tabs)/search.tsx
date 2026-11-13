@@ -106,7 +106,7 @@ export default function SearchScreen() {
           const on = f.id === filter;
           return (
             <Pressable key={f.id} accessibilityRole="tab" accessibilityState={{ selected: on }} onPress={() => setFilter(f.id)}>
-              <Squircle radius={21} fill={on ? colors.primary : 'rgba(255,255,255,0.7)'} glow={on ? 'none' : 'glass'} stroke={on ? undefined : '#FFFFFF'} style={styles.filter}>
+              <Squircle radius={21} fill={on ? colors.primary : 'rgba(255,255,255,0.7)'} glow={on ? 'button' : 'glass'} stroke={on ? undefined : '#FFFFFF'} style={styles.filter}>
                 <Body size={14} weight={on ? 'bold' : 'medium'} color={on ? colors.white : colors.ink} lineHeight={20}>
                   {f.label}
                 </Body>
