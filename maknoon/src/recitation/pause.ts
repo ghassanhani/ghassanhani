@@ -37,3 +37,32 @@ export function lastPause(audio: Uint8Array): number {
   return -1;
 }
 
+
+/**
+ * The sound as the model gets it, cleaned on the phone: the steady offset and low hum below about
+ * 80 Hz removed (a one-pole high-pass), and the level brought up when the voice is quiet (a phone
+ * held far away) to a common loudness, never above full scale. Returns a new buffer.
+ */
+export function clean(audio: Uint8Array): Uint8Array {
+  const n = Math.floor(audio.length / 2);
+  const src = new Int16Array(audio.buffer, audio.byteOffset, n);
+  const out = new Float32Array(n);
+  const a = Math.exp((-2 * Math.PI * 80) / RATE);
+  let px = 0;
+  let py = 0;
+  let peak = 0;
+  for (let i = 0; i < n; i++) {
+    const x = src[i];
+    const y = a * (py + x - px);
+    px = x;
+    py = y;
+    out[i] = y;
+    const m = Math.abs(y);
+    if (m > peak) peak = m;
+  }
+  // quiet voice: lift it so its loudest part reaches about half of full scale (at most ×8)
+  const gain = peak > 0 ? Math.min(8, Math.max(1, 16000 / peak)) : 1;
+  const res = new Int16Array(n);
+  for (let i = 0; i < n; i++) res[i] = Math.max(-32768, Math.min(32767, Math.round(out[i] * gain)));
+  return new Uint8Array(res.buffer);
+}

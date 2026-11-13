@@ -19,7 +19,8 @@ import { fold } from '../search/arabic.ts';
 export type ExpectedAyah = { key: string; text: string }; // text = plain spelling, used for matching only
 export type Flag =
   | { kind: 'missing'; ayah: string; word: number; expected: string }
-  | { kind: 'changed'; ayah: string; word: number; expected: string; heard: string }
+  /** `unsure`: the only difference is one letter the model is known to mix up (see CLOSE) */
+  | { kind: 'changed'; ayah: string; word: number; expected: string; heard: string; unsure?: boolean }
   | { kind: 'skipped-ayah'; ayah: string };
 export type Result = {
   flags: Flag[];
@@ -71,6 +72,23 @@ function expectedWords(ayat: ExpectedAyah[]): Word[] {
     }
   });
   return out;
+}
+
+/**
+ * Letters that sound close and that the speech model mixes up. A word whose only difference from
+ * the text is one such letter is reported as «unsure» (to look at), not as a slip; any other
+ * difference — another letter, a word added, dropped or changed — stays a slip.
+ */
+const CLOSE = ['سث', 'سص', 'زذ', 'زظ', 'ذظ', 'دض', 'ضظ', 'تط', 'كق', 'هح', 'عا', 'اه'];
+const close = (a: string, b: string) => CLOSE.some((p) => (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a));
+export function closeOnly(expected: string, heard: string): boolean {
+  if (expected.length !== heard.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) {
+    if (expected[i] === heard[i]) continue;
+    if (++diff > 1 || !close(expected[i], heard[i])) return false;
+  }
+  return diff === 1;
 }
 
 const SKIPPED_SHARE = 0.8; // an ayah with this share of its words missing counts as skipped
@@ -191,7 +209,7 @@ export function check(ayat: ExpectedAyah[], heardText: string, opts: Options = {
       const st = state[k];
       if (st === 'ok') continue;
       if (st === 'missing') flags.push({ kind: 'missing', ayah: ayat[ai].key, word: E[k].index, expected: E[k].raw });
-      else flags.push({ kind: 'changed', ayah: ayat[ai].key, word: E[k].index, expected: E[k].raw, heard: st.heard });
+      else flags.push({ kind: 'changed', ayah: ayat[ai].key, word: E[k].index, expected: E[k].raw, heard: st.heard, unsure: closeOnly(E[k].full, st.heard) || undefined });
     }
   }
   const states: WordState[] = E.map((_, k) => {

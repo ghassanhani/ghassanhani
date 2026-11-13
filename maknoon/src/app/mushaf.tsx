@@ -376,7 +376,7 @@ function MushafPage({ page }: { page: number }) {
                             w++;
                             const { state, current } = tasmee.wordState(a.key, w, shown);
                             return (
-                              <Text key={i} style={current ? styles.wCurrent : state === 'pending' ? styles.wHidden : state === 'ok' ? null : styles.wCheck}>
+                              <Text key={i} style={current ? styles.wCurrent : state === 'pending' ? styles.wHidden : state === 'ok' ? null : state === 'unsure' ? styles.wUnsure : styles.wCheck}>
                                 {p}
                               </Text>
                             );
@@ -703,7 +703,7 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, on
       if (tasmee?.active && ai && wi >= 0) {
         const key = ayahKey(ai);
         const { state, current: now } = tasmee.wordState(key, wi, wordCount(key));
-        c = now ? 'c' : state === 'pending' ? 'h' : state === 'ok' ? 'n' : 'x';
+        c = now ? 'c' : state === 'pending' ? 'h' : state === 'ok' ? 'n' : state === 'unsure' ? 'u' : 'x';
       }
       return c;
     }).join('');
@@ -775,10 +775,10 @@ const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH, ink, onHold, 
               <AyahMarker n={Number(ayahKey(l.a[gi]).split(':')[1])} scale={(size / 21) * 0.86} />
             </View>
           );
-        const style = c === 'y' ? styles.wMarked : c === 'k' ? styles.wHeld : c === 'l' ? styles.wListen : c === 'c' ? styles.wCurrent : c === 'h' ? styles.wHidden : c === 'x' ? styles.wCheck : null;
+        const style = c === 'y' ? styles.wMarked : c === 'k' ? styles.wHeld : c === 'l' ? styles.wListen : c === 'c' ? styles.wCurrent : c === 'h' ? styles.wHidden : c === 'x' ? styles.wCheck : c === 'u' ? styles.wUnsure : null;
         const ai = l.a[gi];
         return (
-          <Text key={k} style={[base, style]} onPress={c === 'x' && onFlag && ai ? () => onFlag(ayahKey(ai), l.i[gi]) : onHold && ai && onTap ? () => onTap(ayahKey(ai)) : undefined} onLongPress={onHold && ai ? () => onHold(ayahKey(ai)) : undefined} suppressHighlighting>
+          <Text key={k} style={[base, style]} onPress={(c === 'x' || c === 'u') && onFlag && ai ? () => onFlag(ayahKey(ai), l.i[gi]) : onHold && ai && onTap ? () => onTap(ayahKey(ai)) : undefined} onLongPress={onHold && ai ? () => onHold(ayahKey(ai)) : undefined} suppressHighlighting>
             {ch}
           </Text>
         );
@@ -938,6 +938,8 @@ const styles = StyleSheet.create({
   listenBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   wCurrent: { color: '#1F7A33', backgroundColor: '#CDE9C3' },
   // a word to re-check: clearly marked, as a teacher's red pencil would
+  // one close-sounding letter the listening model may have misheard: to look at, not a slip
+  wUnsure: { color: '#8A5A00', backgroundColor: '#FCEFD2' },
   wCheck: { color: '#B3261E', backgroundColor: '#F9DEDC', textDecorationLine: 'underline', textDecorationColor: '#B3261E' },
   alert: { alignSelf: 'center', alignItems: 'center', gap: 2, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 18, borderCurve: 'continuous', backgroundColor: '#B3261E', boxShadow: '0 6px 18px rgba(120,20,20,0.3)' },
   controls: { position: 'absolute', start: 20, end: 20, gap: 14, alignItems: 'center' },

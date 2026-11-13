@@ -2,9 +2,9 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import { initWhisper, type WhisperContext } from 'whisper.rn/index';
 // @ts-expect-error: the package ships its typings under another module name
 import LiveAudioStream from '@fugood/react-native-audio-pcm-stream';
-import type { Listening } from './listen';
+import type { Heard, Listening } from './listen';
 import { modelUri } from './model';
-import { lastPause } from './pause';
+import { clean, lastPause } from './pause';
 
 /**
  * Microphone → on-device Whisper (SPEC §2.12, M10).
@@ -13,7 +13,7 @@ import { lastPause } from './pause';
  * The stream is opened with no file (`wavFile: ''`), so no recording is ever written; nothing
  * here opens a network connection.
  */
-export type { Listening } from './listen';
+export type { Heard, Listening } from './listen';
 export const listeningSupported = true;
 
 let context: Promise<WhisperContext> | null = null;
@@ -57,7 +57,7 @@ const decode = (b64: string) => {
  * finishes; once the window is long enough, every phrase before the last pause the model found is
  * kept and its audio dropped. Nothing is cut mid-word, and no reading waits in a queue.
  */
-export async function startListening(onHeard?: (textSoFar: string) => void): Promise<Listening> {
+export async function startListening(onHeard?: (soFar: Heard) => void): Promise<Listening> {
   if (!(await microphoneAllowed())) throw new Error('Microphone permission denied');
   // The microphone opens at once and keeps every sample while the model loads (a second or two
   // the first time): the reciter who starts straight away loses nothing.
@@ -65,7 +65,8 @@ export async function startListening(onHeard?: (textSoFar: string) => void): Pro
 
   let chunks: Uint8Array[] = [];
   let size = 0;
-  const kept: string[] = []; // finished phrases, in order
+  const kept: string[] = []; // finished phrases, in order: the careful reading
+  const keptAlt: string[] = []; // the same phrases, the quick reading (an independent second opinion)
   let open = ''; // the latest reading of the phrase still being recited
   let live = true;
   let job: { stop: () => Promise<void> } | null = null;
@@ -87,6 +88,16 @@ export async function startListening(onHeard?: (textSoFar: string) => void): Pro
     size = all.length - cut;
   };
   const text = () => [...kept, open].filter(Boolean).join(' ');
+  const alt = () => [...keptAlt, open].filter(Boolean).join(' ');
+  const heard = (): Heard => ({ text: text(), alt: alt() });
+  /** One reading of `audio` (cleaned first); `careful` searches five readings instead of taking the first. */
+  const transcribe = async (audio: Uint8Array, careful: boolean) => {
+    const t = ctx.transcribeData(clean(audio).buffer as ArrayBuffer, careful ? CAREFUL : OPTIONS);
+    job = t;
+    const r = await t.promise;
+    job = null;
+    return r;
+  };
 
   LiveAudioStream.init({ sampleRate: RATE, channels: 1, bitsPerSample: 16, audioSource: 6, bufferSize: 4096, wavFile: '' });
   const sub = LiveAudioStream.on('data', (b64: string) => {
@@ -108,41 +119,45 @@ export async function startListening(onHeard?: (textSoFar: string) => void): Pro
 
   const read = async (final: boolean) => {
     const audio = window();
-    const t = ctx.transcribeData(audio.buffer as ArrayBuffer, OPTIONS);
-    job = t;
-    const r = await t.promise;
-    job = null;
+    const r = await transcribe(audio, false);
     if (r.isAborted) return;
     const segs = r.segments.map((g) => ({ ...g, text: tags(g.text) }));
     if (final) {
-      kept.push(tags(r.result));
+      // the last words: the quick reading is the second opinion, then read carefully
+      const c = await transcribe(audio, true);
+      keptAlt.push(tags(r.result));
+      kept.push(tags(c.isAborted ? r.result : c.result));
       open = '';
     } else if (audio.length >= CUT_AFTER && lastPause(audio) > BPS * 1.5) {
-      // cut in the middle of the reciter's last real pause: what came before is read once more on
-      // its own, whole, and kept; the window goes on from the pause
+      // cut in the middle of the reciter's last real pause: what came before is read once more,
+      // carefully and whole, and kept; the quick reading of the same stretch is kept beside it
       const cut = lastPause(audio);
-      const head = ctx.transcribeData(audio.slice(0, cut).buffer as ArrayBuffer, OPTIONS);
-      job = head;
-      const h = await head.promise;
-      job = null;
-      if (h.isAborted) return;
-      kept.push(tags(h.result));
+      const cutMs = (cut / BPS) * 1000;
+      const quick = segs.filter((g) => g.t1 * 10 <= cutMs + 150).map((g) => g.text).filter(Boolean).join(' ');
+      const c = await transcribe(audio.slice(0, cut), true);
+      if (c.isAborted) return;
+      kept.push(tags(c.result));
+      keptAlt.push(quick || tags(c.result));
       drop(cut);
       open = '';
     } else if (audio.length >= CUT_AFTER && segs.length >= 2) {
       // keep every phrase but the last; the last one is read again with what follows
       const last = segs[segs.length - 1];
-      kept.push(...segs.slice(0, -1).map((g) => g.text).filter(Boolean));
+      const done = segs.slice(0, -1).map((g) => g.text).filter(Boolean);
+      kept.push(...done);
+      keptAlt.push(...done);
       open = last.text;
       // t0 is in 10 ms steps and can come a little late: keep OVERLAP_MS before it, so the phrase's
       // first word is read again rather than lost (a word heard twice is not a mistake)
       drop(Math.max(0, Math.round((last.t0 * 10 - OVERLAP_MS) * (BPS / 1000))));
     } else if (audio.length >= HARD_CUT) {
-      kept.push(tags(r.result));
+      const c = await transcribe(audio, true);
+      keptAlt.push(tags(r.result));
+      kept.push(tags(c.isAborted ? r.result : c.result));
       open = '';
       drop(audio.length);
     } else open = tags(r.result);
-    onHeard?.(text());
+    onHeard?.(heard());
   };
 
   const loop = (async () => {
@@ -172,13 +187,14 @@ export async function startListening(onHeard?: (textSoFar: string) => void): Pro
       if (size >= BPS * 0.3) await read(true).catch(() => undefined); // the last words
       chunks = [];
       size = 0;
-      return text();
+      return heard();
     },
     async cancel() {
       await end();
       chunks = [];
       size = 0;
       kept.length = 0;
+      keptAlt.length = 0;
     },
   };
 }
@@ -194,3 +210,6 @@ const OPTIONS = {
   beamSize: 1,
   maxThreads: 4,
 };
+// A finished phrase is read once more with a beam search over five readings (slower, more
+// accurate); the phrase still being recited keeps the quick reading so the page keeps pace.
+const CAREFUL = { ...OPTIONS, beamSize: 5, bestOf: 5 };

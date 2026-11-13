@@ -30,3 +30,19 @@ test('no cut inside the last second, and none without a pause', () => {
 test('a breath shorter than a pause is not a cut', () => {
   assert.equal(lastPause(make([['tone', 3], ['quiet', 0.12], ['tone', 3]])), -1);
 });
+
+test('cleaning removes hum and lifts a quiet voice, never clipping', async () => {
+  const { clean } = await import('../src/recitation/pause.ts');
+  const n = RATE;
+  const pcm = new Int16Array(n);
+  // a quiet 300 Hz voice over a strong 30 Hz hum and an offset
+  for (let i = 0; i < n; i++) pcm[i] = Math.round(500 * Math.sin((2 * Math.PI * 300 * i) / RATE) + 3000 * Math.sin((2 * Math.PI * 30 * i) / RATE) + 1000);
+  const out = new Int16Array(clean(new Uint8Array(pcm.buffer)).buffer);
+  let mean = 0;
+  for (let i = n / 2; i < n; i++) mean += out[i];
+  mean /= n / 2;
+  assert.ok(Math.abs(mean) < 300, `offset left: ${mean}`);
+  let peak = 0;
+  for (let i = n / 2; i < n; i++) peak = Math.max(peak, Math.abs(out[i]));
+  assert.ok(peak > 1500 && peak <= 32767, `peak ${peak}`);
+});

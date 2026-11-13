@@ -189,3 +189,12 @@ test('a vowel the model writes at a pause (و or ي after the last word) is not 
     }
   }
 });
+
+test('one close-sounding letter is «unsure», any other difference is a slip', async () => {
+  const { closeOnly } = await import('../src/recitation/match.ts');
+  // letters only (no religious text): one close pair, one distant pair, two close pairs
+  assert.equal(closeOnly('سمر', 'ثمر'), true);
+  assert.equal(closeOnly('تمر', 'يمر'), false);
+  assert.equal(closeOnly('سدر', 'ثضر'), false);
+  assert.equal(closeOnly('سمر', 'سمرا'), false);
+});
