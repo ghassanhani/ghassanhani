@@ -17,7 +17,7 @@ import { AyahText, Body, Caption, Display } from '@/components/Typography';
 import { mushaf as m } from '@/content/design';
 import { ar, ayahPlaceholder, ayatOnPage, getAyah } from '@/content/quran';
 import { SURAH_TITLES } from '@/content/surahTitles';
-import { ayahKey, pageOfAyah, qcf4Available, qcf4Em, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
+import { ayahKey, pageOfAyah, type Qcf4Line, qcf4Available, qcf4Em, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
 import { recitationCredit, togglePage, usePlayer } from '@/recitation/player';
 import { AyahMarker } from '@/components/AyahMarker';
 import { F } from '@/theme/fonts';
@@ -448,9 +448,11 @@ const PageSheet = memo(function PageSheet({ page }: { page: number }) {
 function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: number; zoom: number; tasmee?: ReturnType<typeof useTasmee>; current: string | null; onPickSurah: () => void }) {
   const { width } = useWindowDimensions();
   const pg = qcf4Page(page);
-  // Zoom scales the whole page; past 100% it scrolls sideways, lines never re-wrap (the page stays the printed page).
-  const w = ((Math.min(width, 520) - 48) * zoom) / 100;
-  const size = w / qcf4Em.line;
+  // At 100% the page is the printed page, line for line. Zoomed in, the same words in the same order
+  // flow onto as many lines as the screen needs (no sideways scrolling, nothing cut off).
+  const reflow = zoom > 100;
+  const w = Math.min(width, 520) - 48;
+  const size = (w / qcf4Em.line) * (zoom / 100);
   const lineH = size * 2.05;
   const centred = page <= 2; // the first two pages are set in a narrow block, centred
   const row = isRTL() ? 'row' : 'row-reverse';
@@ -470,58 +472,72 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: numbe
     }
     return 1;
   })();
-  const body = (
+  const glyph = (l: Extract<Qcf4Line, { g: string }>, ch: string, gi: number) => {
+    const ai = l.a[gi];
+    const wi = l.i[gi];
+    const k = `${l.a.join('.')}-${gi}-${ch}`;
+    // The ayah end: the design's teal medallion with the ayah number, in place of the font's mark
+    if (wi === -1 && ai) return <AyahMarker key={k} n={Number(ayahKey(ai).split(':')[1])} scale={size / 21} />;
+    let style = null;
+    // the ayah being recited reads in teal
+    if (current && ai && ayahKey(ai) === current) style = styles.wListen;
+    if (tasmee?.active && ai && wi >= 0) {
+      const key = ayahKey(ai);
+      const { state, current: now } = tasmee.wordState(key, wi, wordCount(key));
+      style = now ? styles.wCurrent : state === 'pending' ? styles.wHidden : state === 'ok' ? null : styles.wCheck;
+    }
+    return (
+      <Text key={k} style={[{ fontFamily: pg.f, fontSize: size, lineHeight: lineH, color: colors.ink }, style]}>
+        {ch}
+      </Text>
+    );
+  };
+  // Rows of the page: headers and basmala as they are; word lines either kept line for line,
+  // or (zoomed) joined into one flowing paragraph per run of lines.
+  const rows: React.ReactNode[] = [];
+  let flow: React.ReactNode[] = [];
+  pg.l.forEach((l, li) => {
+    if ('h' in l) {
+      rows.push(
+        <View key={li} style={{ marginTop: li ? 10 : 0, marginBottom: 4 }}>
+          <SurahBanner surah={l.h} onPress={onPickSurah} />
+        </View>,
+      );
+      return;
+    }
+    if ('b' in l) {
+      rows.push(
+        <Text key={li} style={{ fontFamily: l.f, fontSize: size, lineHeight: lineH, color: colors.ink, textAlign: 'center' }}>
+          {l.b}
+        </Text>,
+      );
+      return;
+    }
+    const glyphs = Array.from(l.g).map((ch, gi) => glyph(l, ch, gi));
+    if (!reflow) {
+      rows.push(
+        <View key={li} style={{ flexDirection: row, justifyContent: centred ? 'center' : 'space-between', gap: centred ? size * 0.3 : 0, height: lineH, alignItems: 'center' }}>
+          {glyphs}
+        </View>,
+      );
+      return;
+    }
+    flow = [...flow, ...glyphs];
+    const next = pg.l[li + 1];
+    if (next && 'a' in next) return; // the paragraph goes on
+    rows.push(
+      <View key={li} style={{ flexDirection: row, flexWrap: 'wrap', columnGap: size * 0.28, alignItems: 'center' }}>
+        {flow}
+      </View>,
+    );
+    flow = [];
+  });
+  return (
     <View style={{ width: w, alignSelf: 'center' }}>
       {/* The design keeps the banner at the top of every page (it opens the surah list) */}
       {firstIsHeader ? null : <SurahBanner surah={firstSurah} onPress={onPickSurah} />}
-      {pg.l.map((l, li) => {
-        if ('h' in l) {
-          return (
-            <View key={li} style={{ marginTop: li ? 10 : 0, marginBottom: 4 }}>
-              <SurahBanner surah={l.h} onPress={onPickSurah} />
-            </View>
-          );
-        }
-        if ('b' in l) {
-          return (
-            <Text key={li} style={{ fontFamily: l.f, fontSize: size, lineHeight: lineH, color: colors.ink, textAlign: 'center' }}>
-              {l.b}
-            </Text>
-          );
-        }
-        const glyphs = Array.from(l.g);
-        return (
-          <View key={li} style={{ flexDirection: row, justifyContent: centred ? 'center' : 'space-between', gap: centred ? size * 0.3 : 0, height: lineH, alignItems: 'center' }}>
-            {glyphs.map((ch, gi) => {
-              const ai = l.a[gi];
-              const wi = l.i[gi];
-              // The ayah end: the design's teal medallion with the ayah number, in place of the font's mark
-              if (wi === -1 && ai) return <AyahMarker key={gi} n={Number(ayahKey(ai).split(':')[1])} scale={size / 21} />;
-              let style = null;
-              // the ayah being recited reads in teal
-              if (current && ai && ayahKey(ai) === current) style = styles.wListen;
-              if (tasmee?.active && ai && wi >= 0) {
-                const key = ayahKey(ai);
-                const { state, current } = tasmee.wordState(key, wi, wordCount(key));
-                style = current ? styles.wCurrent : state === 'pending' ? styles.wHidden : state === 'ok' ? null : styles.wCheck;
-              }
-              return (
-                <Text key={gi} style={[{ fontFamily: pg.f, fontSize: size, lineHeight: lineH, color: colors.ink }, style]}>
-                  {ch}
-                </Text>
-              );
-            })}
-          </View>
-        );
-      })}
+      {rows}
     </View>
-  );
-  return zoom > 100 ? (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-      {body}
-    </ScrollView>
-  ) : (
-    body
   );
 }
 
