@@ -41,6 +41,8 @@ import { usePrefs } from '@/store/prefs';
  * words keep their place, so the ayah marks stay where the mushaf has them.
  */
 const LAST_PAGE = 604;
+/** The physical page turn (swipe, leaf animation, sound) is built but off until the founder defines the experience. */
+const PAGE_FLIP = false;
 
 // The page-turn sound: one take generated with ElevenLabs (sound effects) and trimmed to the turn.
 let turnSound: AudioPlayer | null = null;
@@ -123,6 +125,7 @@ function MushafPage({ page }: { page: number }) {
   const canNext = page < LAST_PAGE;
   const canPrev = page > 1;
   const pan = Gesture.Pan()
+    .enabled(PAGE_FLIP)
     .activeOffsetX([-16, 16])
     .failOffsetY([-14, 14])
     .onUpdate((e) => {
@@ -163,7 +166,7 @@ function MushafPage({ page }: { page: number }) {
       <Backdrop name="sand" />
       {/* the next page, waiting beneath the leaf */}
       <Animated.View style={[StyleSheet.absoluteFill, under]} pointerEvents="none">
-        {canNext ? <PageSheet page={page + 1} /> : null}
+        {PAGE_FLIP && canNext ? <PageSheet page={page + 1} /> : null}
         <Animated.View style={[StyleSheet.absoluteFill, styles.fold, underShade]} />
       </Animated.View>
       <GestureDetector gesture={pan}>
@@ -239,7 +242,7 @@ function MushafPage({ page }: { page: number }) {
       <Animated.View style={[StyleSheet.absoluteFill, styles.leaf, styles.paperBack, leafBack]} pointerEvents="none" />
       {/* the previous page, coming back over the spine */}
       <Animated.View style={[StyleSheet.absoluteFill, styles.leaf, leafPrev]} pointerEvents="none">
-        {canPrev ? <PageSheet page={page - 1} /> : null}
+        {PAGE_FLIP && canPrev ? <PageSheet page={page - 1} /> : null}
         <Animated.View style={[StyleSheet.absoluteFill, styles.dark, leafPrevShade]} />
       </Animated.View>
 
@@ -301,6 +304,15 @@ function MushafPage({ page }: { page: number }) {
             <GlassRound label="رجوع" onPress={() => (router.canGoBack() ? router.back() : router.replace('/quran'))}>
               <ThiqalIcon name="fwd" size={22} color={colors.ink} />
             </GlassRound>
+            <Squircle radius={24} fill="rgba(255,255,255,0.8)" glow="glass" style={styles.pager}>
+              <Pressable accessibilityRole="button" accessibilityLabel="الصفحة السابقة" hitSlop={8} disabled={page <= 1} onPress={() => goTo(page - 1)} style={styles.pagerBtn}>
+                <ThiqalIcon name="fwd" size={20} color={page <= 1 ? colors.muted : colors.ink} />
+              </Pressable>
+              <Body size={15} weight="bold" lineHeight={20}>{`صفحة ${ar(page)}`}</Body>
+              <Pressable accessibilityRole="button" accessibilityLabel="الصفحة التالية" hitSlop={8} disabled={page >= LAST_PAGE} onPress={() => goTo(page + 1)} style={styles.pagerBtn}>
+                <ThiqalIcon name="back" size={20} color={page >= LAST_PAGE ? colors.muted : colors.ink} />
+              </Pressable>
+            </Squircle>
             <PressScale accessibilityRole="button" accessibilityLabel={listening ? 'إيقاف التلاوة' : 'استمع من هذه الصفحة'} onPress={listen} feedback="tap" scaleTo={0.92}>
               <Squircle radius={24} fill={colors.primary} glow="frost" noise={51.2} style={styles.listenBtn}>
                 <ThiqalIcon name={listening ? 'pause' : 'play'} size={20} color={colors.white} />
@@ -620,6 +632,8 @@ const styles = StyleSheet.create({
   fold: { backgroundColor: '#000' },
   topStrip: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: 'rgba(237,232,225,0.96)', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(39,40,51,0.08)' },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  pager: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6 },
+  pagerBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   listenBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   wCurrent: { color: '#1F7A33', backgroundColor: '#CDE9C3' },
   wCheck: { color: '#A8862B' },
