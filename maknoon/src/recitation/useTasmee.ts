@@ -37,6 +37,11 @@ export function useTasmee(ayahKeys: string[]) {
   }, [expected]);
 
   const [heard, setHeard] = useState(''); // everything heard so far on this page
+  // Reader's choices in the check: keep unrecited words hidden (recite from memory), and mark slips.
+  const [hideText, setHideText] = useState(true);
+  const [showMarks, setShowMarks] = useState(true);
+  // Time spent listening on this page (seconds), shown beside the recording dot.
+  const [elapsed, setElapsed] = useState(0);
   const [listening, setListening] = useState(false);
   const [hinted, setHinted] = useState<number[]>([]);
   const [note, setNote] = useState<TasmeeNote>(null);
@@ -47,11 +52,32 @@ export function useTasmee(ayahKeys: string[]) {
   const result = useMemo(() => (heard ? check(expected, heard) : null), [expected, heard]);
   const last = result?.last ?? -1;
   const active = listening || !!heard || hinted.length > 0;
+  useEffect(() => {
+    if (!listening) return;
+    const t = setInterval(() => setElapsed((e) => e + 1), 1000);
+    return () => clearInterval(t);
+  }, [listening]);
+  // Where the reciter is: the ayah of the last word recited correctly.
+  const position = useMemo(() => {
+    if (last < 0) return expected[0]?.key ?? null;
+    for (const [key, l] of layout.map) if (last >= l.offset && last < l.offset + l.count) return key;
+    return null;
+  }, [last, layout, expected]);
 
   // A word to re-check is announced (vibration + a note naming it) as soon as it is certain: the
   // reciter has gone on past it and a later word matched. Each word is announced once.
   const [alert, setAlert] = useState<{ word: string; kind: 'missing' | 'changed' | 'skipped-ayah' } | null>(null);
   const announced = useRef(new Set<string>());
+  // Slips that are certain (the reciter has gone on past them): counted on the red badge.
+  const confirmed = useMemo(
+    () =>
+      (result?.flags ?? []).filter((f) => {
+        const l = layout.map.get(f.ayah);
+        if (!l) return false;
+        return (f.kind === 'skipped-ayah' ? l.offset + l.count - 1 : l.offset + f.word) < last;
+      }),
+    [result, layout, last],
+  );
   useEffect(() => {
     if (!result) return;
     const fresh = result.flags.filter((f) => {
@@ -144,6 +170,7 @@ export function useTasmee(ayahKeys: string[]) {
     kept.current = '';
     announced.current.clear();
     setAlert(null);
+    setElapsed(0);
     setHeard('');
     setHinted([]);
     setListening(false);
@@ -161,8 +188,11 @@ export function useTasmee(ayahKeys: string[]) {
     const current = st === 'ok' && flat === last;
     // A word shown by the hint button stays marked, even once it is recited.
     if (hinted.includes(flat) && !current) return { state: 'hinted', current: false };
+    // with the text shown, words not yet recited read normally; with marks off, slips read normally
+    if (st === 'pending' && !hideText) return { state: 'ok', current: false };
+    if ((st === 'missing' || st === 'changed') && !showMarks) return { state: 'ok', current };
     return { state: st, current };
   };
 
-  return { active, listening, note, alert, start, stop, hint, reset, wordState, done: !!result?.complete };
+  return { active, listening, note, alert, start, stop, hint, reset, wordState, done: !!result?.complete, errors: confirmed.length, position, elapsed, hideText, setHideText, showMarks, setShowMarks };
 }

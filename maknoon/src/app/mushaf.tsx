@@ -12,11 +12,11 @@ import { type ShotTarget, pageShot, shotsSupported, takePageShot } from '@/conte
 import { Image as RNImage, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Backdrop } from '@/components/Backdrop';
-import { Icon } from '@/components/Icon';
+import { Icon, type IconName } from '@/components/Icon';
 import { Squircle } from '@/components/Squircle';
 import { AyahText, Body, Caption, Display } from '@/components/Typography';
 import { mushaf as m } from '@/content/design';
-import { ar, ayahPlaceholder, ayatOnPage, getAyah } from '@/content/quran';
+import { ar, ayahPlaceholder, ayatOnPage, basmala, getAyah } from '@/content/quran';
 import { SURAH_TITLES } from '@/content/surahTitles';
 import { ayahKey, pageOfAyah, type Qcf4Line, qcf4Available, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
 import { recitationCredit, togglePage, usePlayer } from '@/recitation/player';
@@ -101,6 +101,8 @@ function MushafPage({ page }: { page: number }) {
   const [zoom, setZoom] = useState(100);
   const [prefs] = usePrefs();
   const dark = prefs.quranDark;
+  // the Madinah page line for line, or the flowing text (switched from the recitation bar)
+  const view = prefs.mushafView;
   // A long press on an ayah marks it and opens its actions (listen, translation, tafsir, bookmark,
   // copy, share) as a system sheet; the mark clears when the sheet closes.
   const [held, setHeld] = useState<string | null>(null);
@@ -120,6 +122,7 @@ function MushafPage({ page }: { page: number }) {
   // A page of the Madinah mushaf from the page data. Without ?page= it is the design's page ٥٠ (آل عمران ١–٩).
   const onPage = useMemo(() => ayatOnPage(page), [page]);
   const qcf = qcf4Available();
+  const pageView = qcf && view === 'page';
   const qcfReady = useQcf4Fonts(page);
   // The Madinah page can begin or end mid-ayah: the recitation check covers every ayah it shows.
   const keys = useMemo(
@@ -255,12 +258,12 @@ function MushafPage({ page }: { page: number }) {
         <View style={styles.offscreen} pointerEvents="none">
           {needNext ? (
             <View ref={nextRef} collapsable={false} style={{ width: winW, height: winH }} onLayout={onNeighbourReady}>
-              <PageSheet page={page + 1} dark={dark} />
+              <PageSheet page={page + 1} dark={dark} text={!pageView} />
             </View>
           ) : null}
           {needPrev ? (
             <View ref={prevRef} collapsable={false} style={{ width: winW, height: winH }} onLayout={needNext ? undefined : onNeighbourReady}>
-              <PageSheet page={page - 1} dark={dark} />
+              <PageSheet page={page - 1} dark={dark} text={!pageView} />
             </View>
           ) : null}
         </View>
@@ -271,10 +274,10 @@ function MushafPage({ page }: { page: number }) {
       <PageBg dark={dark} />
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: PAGE_MARGIN, paddingBottom: insets.bottom + 150 }}>
         <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={toggleControls}>
-          {qcf ? (
+          {pageView ? (
             qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={pickSurah} held={held} onHold={onHold} onTap={toggleControls} dark={dark} /> : <View style={{ minHeight: 600 }} />
           ) : null}
-          {qcf ? null : blocks.map((b, i) => (
+          {pageView ? null : blocks.map((b, i) => (
             <View key={b.surah} style={i > 0 ? { marginTop: 18 } : null}>
               {/* Surah banner: at the top of the page, and wherever a surah begins */}
               {i === 0 || b.starts ? (
@@ -282,11 +285,11 @@ function MushafPage({ page }: { page: number }) {
               ) : null}
               {/* الفاتحة counts the basmala as its first ayah; التوبة has none */}
               {b.starts && b.surah !== 1 && b.surah !== 9 ? (
-                <AyahText size={26} lineHeight={52} style={{ textAlign: 'center', marginTop: 10 }}>
-                  {m.basmala}
+                <AyahText size={26} lineHeight={52} color={dark ? DARK.ink : undefined} style={[{ textAlign: 'center', marginTop: 10 }, basmala() ? { fontFamily: basmala()!.fontFamily } : null]}>
+                  {basmala()?.text ?? ''}
                 </AyahText>
               ) : null}
-              <AyahText size={size} lineHeight={size * 1.95} style={[{ textAlign: 'justify', marginTop: 6 }, b.fontFamily ? { fontFamily: b.fontFamily } : null]}>
+              <AyahText size={size} lineHeight={size * 1.95} color={dark ? DARK.ink : undefined} style={[{ textAlign: 'justify', marginTop: 6 }, b.fontFamily ? { fontFamily: b.fontFamily } : null]}>
                 {tasmee.active
                   ? b.ayat.map((a, ai) => {
                       // Same characters as the plain page, split into words so each can be hidden or marked.
@@ -335,10 +338,10 @@ function MushafPage({ page }: { page: number }) {
       </Animated.View>
       </GestureDetector>
       {PAGE_FLIP && canNext ? (
-        <PageCurl paper={dark ? DARK.paper : undefined} fromRight progress={forward} visible={showForward} width={winW} height={winH} leaf={curImg ? shotView(curImg) : <PageSheet page={page} dark={dark} />} under={nextImg ? shotView(nextImg) : <PageSheet page={page + 1} dark={dark} />} />
+        <PageCurl paper={dark ? DARK.paper : undefined} fromRight progress={forward} visible={showForward} width={winW} height={winH} leaf={curImg ? shotView(curImg) : <PageSheet page={page} dark={dark} text={!pageView} />} under={nextImg ? shotView(nextImg) : <PageSheet page={page + 1} dark={dark} text={!pageView} />} />
       ) : null}
       {PAGE_FLIP && canPrev ? (
-        <PageCurl paper={dark ? DARK.paper : undefined} fromRight progress={backward} visible={showBackward} width={winW} height={winH} leaf={prevImg ? shotView(prevImg) : <PageSheet page={page - 1} dark={dark} />} under={curImg ? shotView(curImg) : <PageSheet page={page} dark={dark} />} />
+        <PageCurl paper={dark ? DARK.paper : undefined} fromRight progress={backward} visible={showBackward} width={winW} height={winH} leaf={prevImg ? shotView(prevImg) : <PageSheet page={page - 1} dark={dark} text={!pageView} />} under={curImg ? shotView(curImg) : <PageSheet page={page} dark={dark} text={!pageView} />} />
       ) : null}
 
 
@@ -384,15 +387,48 @@ function MushafPage({ page }: { page: number }) {
       ) : null}
 
       {!controls ? (
-        <View style={[styles.tasmee, { bottom: insets.bottom + 20 }]} pointerEvents="box-none">
-          <View style={styles.tasmeeRow}>
-            <Orb colors={['#B5514F', '#6E2424']} icon="clean" label="إخفاء الكل والبدء من جديد" onPress={tasmee.reset} />
+        <View style={[styles.tasmee, { bottom: insets.bottom + 14 }]} pointerEvents="box-none">
+          <View style={styles.bar}>
+            {/* the main button: start listening, or stop (a square) while listening */}
             {tasmee.listening ? (
-              <Orb colors={['#3C8C96', '#1F5C66']} icon="wave" label="إيقاف الاستماع" onPress={tasmee.stop} size={84} live />
+              <Orb colors={['#62C26A', '#2F8A3A']} icon="stop" label="إيقاف الاستماع" onPress={tasmee.stop} size={76} live />
             ) : (
-              <Orb colors={['#4B6FB3', '#243F78']} icon="mic" label="ابدأ التسميع" onPress={tasmee.start} />
+              <Orb colors={['#4B6FB3', '#243F78']} icon="mic" label="ابدأ التسميع" onPress={tasmee.start} size={76} />
             )}
-            <Orb colors={['#4F9A63', '#245C36']} icon="help" label="أظهر الكلمة التالية" onPress={tasmee.hint} />
+            <View style={{ flex: 1, gap: 10 }}>
+              {tasmee.active ? (
+                <View style={styles.chips}>
+                  {/* slips found so far · where you are · time listening */}
+                  <View style={[styles.chip, { backgroundColor: tasmee.errors ? '#C0392B' : 'rgba(192,57,43,0.55)' }]} accessibilityLabel={`${ar(tasmee.errors)} مواضع للمراجعة`}>
+                    <Icon name="alert" size={14} color="#FFFFFF" outline />
+                    <Body size={13} weight="bold" color="#FFFFFF" lineHeight={18}>
+                      {ar(tasmee.errors)}
+                    </Body>
+                  </View>
+                  {tasmee.position ? (
+                    <View style={[styles.chip, { backgroundColor: '#7CB342' }]}>
+                      <Body size={13} weight="bold" color="#FFFFFF" lineHeight={18}>
+                        {posLabel(tasmee.position)}
+                      </Body>
+                    </View>
+                  ) : null}
+                  <View style={[styles.chip, { backgroundColor: 'rgba(255,255,255,0.85)' }]}>
+                    <View style={[styles.recDot, { opacity: tasmee.listening ? 1 : 0.35 }]} />
+                    <Body size={13} weight="bold" lineHeight={18}>
+                      {clock(tasmee.elapsed)}
+                    </Body>
+                  </View>
+                </View>
+              ) : null}
+              <View style={styles.tools}>
+                <Tool icon="bookOpen" label="اختر السورة" onPress={pickSurah} />
+                <Tool icon={tasmee.hideText ? 'eyeOff' : 'eye'} label={tasmee.hideText ? 'أظهر النص' : 'أخفِ النص'} on={tasmee.hideText} onPress={() => tasmee.setHideText((v) => !v)} />
+                <Tool icon="highlighter" label={tasmee.showMarks ? 'أخفِ تمييز الأخطاء' : 'ميّز الأخطاء'} on={tasmee.showMarks} onPress={() => tasmee.setShowMarks((v) => !v)} />
+                <Tool icon="layers" label={view === 'page' ? 'عرض النص المتصل' : 'عرض صفحة المصحف'} on={view === 'text'} onPress={() => setPrefs({ mushafView: view === 'page' ? 'text' : 'page' })} />
+                <Tool icon="help" label="أظهر الكلمة التالية" onPress={tasmee.hint} />
+                {tasmee.active && !tasmee.listening ? <Tool icon="clean" label="إخفاء الكل والبدء من جديد" onPress={tasmee.reset} /> : null}
+              </View>
+            </View>
           </View>
         </View>
       ) : null}
@@ -459,9 +495,9 @@ function MushafPage({ page }: { page: number }) {
 }
 
 /** A still copy of a neighbouring page (beneath, or coming back over, the turning leaf). */
-const PageSheet = memo(function PageSheet({ page, dark = false }: { page: number; dark?: boolean }) {
+const PageSheet = memo(function PageSheet({ page, dark = false, text = false }: { page: number; dark?: boolean; text?: boolean }) {
   const insets = useSafeAreaInsets();
-  const qcf = qcf4Available();
+  const qcf = qcf4Available() && !text;
   const ready = useQcf4Fonts(page);
   const ayat = useMemo(() => ayatOnPage(page), [page]);
   return (
@@ -473,7 +509,7 @@ const PageSheet = memo(function PageSheet({ page, dark = false }: { page: number
         ) : (
           <>
             <SurahBanner surah={ayat[0]?.surah ?? 1} onPress={() => undefined} />
-            <AyahText size={21} lineHeight={41} style={{ textAlign: 'justify', marginTop: 6 }}>
+            <AyahText size={21} lineHeight={41} color={dark ? DARK.ink : undefined} style={{ textAlign: 'justify', marginTop: 6 }}>
               {ayat.map((x) => getAyah(x.surah, x.ayah)?.text ?? '').join(' ')}
             </AyahText>
           </>
@@ -646,12 +682,12 @@ const NOTES: Record<Exclude<TasmeeNote, null>, string> = {
 };
 
 /** Round glossy button of the recitation check. */
-function Orb({ colors: c, icon, label, onPress, size = 68, live = false }: { colors: [string, string]; icon: 'clean' | 'mic' | 'help' | 'wave'; label: string; onPress: () => void; size?: number; live?: boolean }) {
+function Orb({ colors: c, icon, label, onPress, size = 68, live = false }: { colors: [string, string]; icon: 'clean' | 'mic' | 'help' | 'wave' | 'stop'; label: string; onPress: () => void; size?: number; live?: boolean }) {
   return (
     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
       {/* While listening, soft rings spread from the button: the app is hearing you. */}
       <Ripple size={size} color={c[0]} active={live} />
-      <PressScale accessibilityRole="button" accessibilityLabel={label} onPress={onPress} scaleTo={0.9} feedback={icon === 'mic' || icon === 'wave' ? 'soft' : 'select'}>
+      <PressScale accessibilityRole="button" accessibilityLabel={label} onPress={onPress} scaleTo={0.9} feedback={icon === 'mic' || icon === 'wave' || icon === 'stop' ? 'soft' : 'select'}>
         <Breathe active={live} scale={1.04}>
           <LinearGradient colors={c} start={{ x: 0.3, y: 0 }} end={{ x: 0.7, y: 1 }} style={[styles.orb, { width: size, height: size, borderRadius: size / 2 }]}>
             <Icon name={icon} size={size * 0.44} color="#FFFFFF" />
@@ -662,6 +698,25 @@ function Orb({ colors: c, icon, label, onPress, size = 68, live = false }: { col
   );
 }
 
+
+/** «البقرة ٢٥٥» for an ayah key (no middle dot: beside Arabic digits it reads as a zero). */
+function posLabel(key: string) {
+  const [su, a] = key.split(':').map(Number);
+  return `${(quranIndex.surahs[su - 1]?.name ?? '').replace(/[\u064B-\u0652\u0670\u0640]/g, '')} ${ar(a)}`;
+}
+/** ٠٠:١٢ */
+const clock = (sec: number) => ar(`${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`);
+
+/** A small round tool of the recitation bar; `on` fills it when its option is active. */
+function Tool({ icon, label, onPress, on = false }: { icon: IconName; label: string; onPress: () => void; on?: boolean }) {
+  return (
+    <PressScale accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ selected: on }} onPress={onPress} hitSlop={4} scaleTo={0.9} feedback="select">
+      <View style={[styles.tool, on && { backgroundColor: colors.primary }]}>
+        <Icon name={icon} size={20} color={on ? '#FFFFFF' : colors.ink} outline />
+      </View>
+    </PressScale>
+  );
+}
 
 function ZoomButton({ icon, label, onPress }: { icon: 'plus' | 'minus'; label: string; onPress: () => void }) {
   return (
@@ -694,6 +749,12 @@ const styles = StyleSheet.create({
   pageNo: { width: 52.49, height: 32.157, alignItems: 'center', justifyContent: 'center' },
   tasmee: { position: 'absolute', start: 20, end: 20, alignItems: 'center', gap: 10 },
   tasmeeRow: { flexDirection: 'row', alignItems: 'center', gap: 18 },
+  bar: { alignSelf: 'stretch', flexDirection: 'row', alignItems: 'flex-end', gap: 14 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 28, paddingHorizontal: 10, borderRadius: 14, borderCurve: 'continuous' },
+  recDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: '#E53935' },
+  tools: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tool: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.85)', boxShadow: '0 2px 8px rgba(20,24,40,0.12)' },
   note: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 14 },
   orb: { alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.65)', boxShadow: '0 6px 14px rgba(0,0,0,0.22)' },
   // Word states of the recitation check. Hidden words keep their width so the line layout does not move.

@@ -35,6 +35,7 @@ export type Prefs = {
   lastPage: number | null; // the mushaf page last open (reading position), on the device only
   bookmarks: string[]; // bookmarked ayat, "surah:ayah", newest last
   quranDark: boolean; // the mushaf in dark mode (the rest of the app stays light)
+  mushafView: 'page' | 'text'; // the Madinah page line for line, or the flowing text
 };
 
 // Defaults = the canvas's initial states.
@@ -65,6 +66,7 @@ export const DEFAULT_PREFS: Prefs = {
   lastPage: null,
   bookmarks: [],
   quranDark: false,
+  mushafView: 'page',
 };
 
 const KEY = 'maknoon.prefs.v1';
