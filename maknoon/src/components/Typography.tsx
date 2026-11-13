@@ -16,8 +16,32 @@ export function Body({ size = 14, color = colors.ink, lineHeight, weight = 'regu
 }
 
 /** Amiri Quran — ayat only. Generous line-height for tashkeel. */
-export function AyahText({ size = 22, color = colors.ink, lineHeight, style, ...rest }: Props) {
-  return <Text {...rest} style={[{ fontFamily: F.quran, fontSize: size, color, lineHeight: lineHeight ?? Math.round(size * 2.0), writingDirection: 'rtl' }, style]} />;
+// Ayah-end marks: the KFGQPC numbered medallions (U+FC00–U+FDFF in its font) and ۝ + digits (Tanzil).
+const AYAH_MARK = /([\uFC00-\uFDFF]|\u06DD[\u0660-\u0669]+)/;
+
+/**
+ * Quran text. The ayah-end medallions are drawn in the brand teal as in the canvas; the
+ * characters themselves are untouched (only their colour differs). Light text keeps its colour.
+ */
+export function AyahText({ size = 22, color = colors.ink, lineHeight, style, children, markColor, ...rest }: Props & { markColor?: string }) {
+  const mark = markColor ?? (color === colors.ink ? colors.primary : color);
+  const content =
+    typeof children === 'string' && AYAH_MARK.test(children)
+      ? children.split(AYAH_MARK).map((part, i) =>
+          AYAH_MARK.test(part) ? (
+            <Text key={i} style={{ color: mark }}>
+              {part}
+            </Text>
+          ) : (
+            part
+          ),
+        )
+      : children;
+  return (
+    <Text {...rest} style={[{ fontFamily: F.quran, fontSize: size, color, lineHeight: lineHeight ?? Math.round(size * 2.0), writingDirection: 'rtl' }, style]}>
+      {content}
+    </Text>
+  );
 }
 
 /** Caption — 12px muted. */

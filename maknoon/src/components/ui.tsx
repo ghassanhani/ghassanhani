@@ -17,7 +17,7 @@ export function GlassCard({ style, children, tint, soft }: Box & { tint?: TintNa
       radius={radius.card}
       fill={soft ? colors.glassSoft : colors.glass}
       blobs={tint ? tints[tint] : undefined}
-      glow="glass"
+      glow="frost"
       style={[{ padding: space.cardPad }, style]}
     >
       {children}

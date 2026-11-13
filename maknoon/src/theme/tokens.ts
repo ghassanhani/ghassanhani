@@ -48,7 +48,7 @@ export const space = {
 
 export const FRAME_WIDTH = 402; // iPhone 17
 
-/** Coloured blobs that tint the inside of glass cards (blur 50 in Figma). */
+/** Coloured blobs that tint the inside of glass cards (blur 50, 20% in the canvas: soft, never saturated). */
 export type Blob = {
   color: string;
   opacity?: number;
@@ -68,16 +68,16 @@ export const tints = {
     { color: '#C57D7E', opacity: 0.2, cx: 0.6, cy: 1.3, rx: 0.8, ry: 0.8 },
   ],
   lavender: [
-    { color: '#7D7FC5', opacity: 0.35, cx: 0.5, cy: 1.0, rx: 0.8, ry: 0.5 },
-    { color: '#7DB3C5', opacity: 0.25, cx: 1.0, cy: 0.6, rx: 0.6, ry: 0.8 },
+    { color: '#7D7FC5', opacity: 0.2, cx: 0.5, cy: 1.0, rx: 0.8, ry: 0.5 },
+    { color: '#7DB3C5', opacity: 0.15, cx: 1.0, cy: 0.6, rx: 0.6, ry: 0.8 },
   ],
   mint: [
-    { color: '#7FC57D', opacity: 0.35, cx: 0.9, cy: 0.2, rx: 0.7, ry: 0.7 },
-    { color: '#BADA47', opacity: 0.25, cx: 0.1, cy: 1.0, rx: 0.8, ry: 0.6 },
+    { color: '#7FC57D', opacity: 0.2, cx: 0.9, cy: 0.9, rx: 0.7, ry: 0.7 },
+    { color: '#BADA47', opacity: 0.12, cx: 0.1, cy: 1.0, rx: 0.8, ry: 0.6 },
   ],
   peach: [
-    { color: '#C57D7E', opacity: 0.22, cx: 0.0, cy: 1.0, rx: 0.8, ry: 0.8 },
-    { color: '#E8CF9A', opacity: 0.3, cx: 0.2, cy: 0.2, rx: 0.5, ry: 0.6 },
+    { color: '#C57D7E', opacity: 0.18, cx: 0.0, cy: 1.0, rx: 0.8, ry: 0.8 },
+    { color: '#E8CF9A', opacity: 0.18, cx: 0.2, cy: 0.2, rx: 0.5, ry: 0.6 },
   ],
 } satisfies Record<string, Blob[]>;
 
@@ -86,9 +86,9 @@ export const heroes = {
   night: {
     fill: '#0C1140',
     blobs: [
-      { color: '#7D7FC5', opacity: 0.9, cx: 0.25, cy: 1.0, rx: 0.6, ry: 0.45 },
-      { color: '#7DB3C5', opacity: 0.55, cx: 1.0, cy: 0.55, rx: 0.45, ry: 0.7 },
-      { color: '#C57D7E', opacity: 0.45, cx: 0.55, cy: 1.25, rx: 0.7, ry: 0.5 },
+      { color: '#7D7FC5', opacity: 0.95, cx: 0.2, cy: 1.0, rx: 0.65, ry: 0.5 },
+      { color: '#7DB3C5', opacity: 0.85, cx: 1.02, cy: 0.5, rx: 0.5, ry: 0.85 },
+      { color: '#C57D7E', opacity: 0.55, cx: 0.55, cy: 1.2, rx: 0.75, ry: 0.5 },
     ] as Blob[],
   },
   teal: {

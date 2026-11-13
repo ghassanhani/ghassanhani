@@ -8,14 +8,21 @@ import Svg, {
   FeGaussianBlur,
   Filter,
   G,
+  Image as SvgImage,
   LinearGradient,
   Path,
+  Pattern,
   RadialGradient,
+  Rect,
   Stop,
 } from 'react-native-svg';
 import { type Blob, CORNER_SMOOTHING } from '@/theme/tokens';
 
-export type GlowStrength = 'none' | 'glass' | 'button';
+/** frost = glass + the wide faint light + grain: large glass cards only (icon bubbles stay glass). */
+export type GlowStrength = 'none' | 'glass' | 'frost' | 'button';
+
+// The canvas's frosted grain: a 256px noise tile drawn at 38px, 50% opacity, over every glass surface.
+const NOISE = require('../../assets/brand/glass-noise.png');
 
 export type SquircleProps = ViewProps & {
   radius: number;
@@ -59,7 +66,9 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke,
     return getSvgPath({ width: size.w, height: size.h, cornerRadius: r, cornerSmoothing: isPill ? 0 : CORNER_SMOOTHING });
   }, [size, radius]);
 
-  const g = glow === 'glass' ? { wide: 0.65, top: 0.95, bottom: 0.65 } : glow === 'button' ? { wide: 0.35, top: 0.6, bottom: 0.35 } : null;
+  // On small shapes (icon bubbles) the canvas glow is a thin rim; the card-sized band would wash the colour out.
+  const small = !!size && Math.min(size.w, size.h) < 64;
+  const g = glow === 'glass' || glow === 'frost' ? { wide: 0.65, top: 0.95, bottom: 0.65 } : glow === 'button' ? { wide: 0.35, top: 0.6, bottom: 0.35 } : null;
 
   return (
     <View
@@ -84,19 +93,28 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke,
             {blobs?.map((b, i) => (
               <RadialGradient key={i} id={`b${uid}${i}`} cx="50%" cy="50%" rx="50%" ry="50%">
                 <Stop offset="0" stopColor={b.color} stopOpacity={b.opacity ?? 1} />
-                <Stop offset="0.55" stopColor={b.color} stopOpacity={(b.opacity ?? 1) * 0.55} />
+                {/* a long, even falloff stands in for Figma's 50px blur */}
+                <Stop offset="0.45" stopColor={b.color} stopOpacity={(b.opacity ?? 1) * 0.45} />
                 <Stop offset="1" stopColor={b.color} stopOpacity={0} />
               </RadialGradient>
             ))}
             {g ? (
               <>
                 <Filter id={`g${uid}`} x="-20%" y="-20%" width="140%" height="140%">
-                  <FeGaussianBlur stdDeviation={7} />
+                  <FeGaussianBlur stdDeviation={small ? 3 : 7} />
                 </Filter>
                 <Filter id={`h${uid}`} x="-10%" y="-10%" width="120%" height="120%">
                   <FeGaussianBlur stdDeviation={2} />
                 </Filter>
+                <Filter id={`w${uid}`} x="-30%" y="-30%" width="160%" height="160%">
+                  <FeGaussianBlur stdDeviation={30} />
+                </Filter>
               </>
+            ) : null}
+            {glow === 'frost' ? (
+              <Pattern id={`n${uid}`} patternUnits="userSpaceOnUse" width={38} height={38}>
+                <SvgImage href={NOISE} width={38} height={38} preserveAspectRatio="none" />
+              </Pattern>
             ) : null}
           </Defs>
           <G clipPath={`url(#c${uid})`}>
@@ -113,14 +131,20 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', stroke,
             ))}
             {g ? (
               <>
+                {/* very wide, faint light that brightens the surface from every edge inward (inset 0 4 87 6 #fff/.2):
+                    it is what makes the canvas glass look smooth and icy instead of bevelled */}
+                {glow === 'frost' ? (
+                  <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={0.2} strokeWidth={120} filter={`url(#w${uid})`} transform="translate(0 4)" />
+                ) : null}
                 {/* wide soft inner light, offset 4 down */}
-                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={g.wide} strokeWidth={20} filter={`url(#g${uid})`} transform="translate(0 4)" />
+                <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={g.wide} strokeWidth={small ? 8 : 20} filter={`url(#g${uid})`} transform="translate(0 4)" />
                 {/* crisp top highlight */}
                 <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={g.top} strokeWidth={6} filter={`url(#h${uid})`} transform="translate(0 4)" />
                 {/* bottom lip */}
                 <Path d={d} fill="none" stroke="#FFFFFF" strokeOpacity={g.bottom} strokeWidth={6} filter={`url(#h${uid})`} transform="translate(0 -4)" />
               </>
             ) : null}
+            {glow === 'frost' ? <Rect x={0} y={0} width={size.w} height={size.h} fill={`url(#n${uid})`} opacity={0.5} /> : null}
           </G>
           {stroke ? (
             <G clipPath={`url(#c${uid})`}>
