@@ -1,6 +1,6 @@
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Image, Linking, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, G, Line, Polygon, Text as SvgText } from 'react-native-svg';
 import { Icon } from '@/components/Icon';
@@ -233,7 +233,8 @@ function QiblaCompass({ bearing }: { bearing: number }) {
   }, [facing]);
 
   const dial = useAnimatedStyle(() => ({ transform: [{ rotate: `${-turn.get()}deg` }] }));
-  const upright = useAnimatedStyle(() => ({ transform: [{ rotate: `${turn.get() - bearing}deg` }] }));
+  // the dial turns by −heading; turning the Kaaba back by +heading keeps it upright on screen
+  const upright = useAnimatedStyle(() => ({ transform: [{ rotate: `${turn.get()}deg` }] }));
   const r = c - 6; // the Kaaba sits on the dial's edge, over the ring of ticks
 
   return (
@@ -269,7 +270,7 @@ function QiblaCompass({ bearing }: { bearing: number }) {
           </Svg>
           {/* the Kaaba at the needle's tip, kept upright */}
           <Animated.View style={[styles.kaaba, { left: c + r * Math.sin((bearing * Math.PI) / 180) - 22, top: c - r * Math.cos((bearing * Math.PI) / 180) - 22 }, upright, facing && { borderColor: '#2E8B57' }]}>
-            <Icon name="kaaba" size={26} color="#1B1C22" outline />
+            <Image source={require('../../assets/brand/kaaba.png')} style={{ width: 30, height: 30 }} accessibilityLabel="الكعبة" />
           </Animated.View>
         </Animated.View>
       </View>
