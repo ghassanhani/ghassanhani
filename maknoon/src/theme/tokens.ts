@@ -116,8 +116,9 @@ export const heroes = {
   teal: {
     fill: '#035A5F',
     blobs: [
-      { color: '#BADA47', opacity: 0.55, cx: 0.1, cy: 1.05, rx: 0.7, ry: 0.5 },
-      { color: '#7FC57D', opacity: 0.5, cx: 0.95, cy: 0.95, rx: 0.6, ry: 0.5 },
+      // the canvas: teal above, a wide soft green light rising from the bottom
+      { color: '#BADA47', opacity: 0.6, cx: 0.05, cy: 1.05, rx: 1.1, ry: 0.9 },
+      { color: '#7FC57D', opacity: 0.9, cx: 0.95, cy: 1.05, rx: 1.1, ry: 0.9 },
     ] as Blob[],
   },
   ocean: {

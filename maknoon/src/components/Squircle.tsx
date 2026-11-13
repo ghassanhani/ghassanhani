@@ -143,23 +143,6 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
               />
               );
             })}
-            {g && !small ? (
-              <>
-                {/* The canvas inner shadows, reproduced exactly: each one is the area outside the shape
-                    (grown inward by `erode`), shifted, blurred and filled white. Ordered as in the canvas. */}
-                {glow === 'frost' ? <SoftInset d={d} erode={6} sigma={43.5} dy={4} opacity={0.2} /> : null}
-                <SoftInset d={d} erode={3} sigma={7} dy={4} opacity={g.wide} />
-                <SoftInset d={d} erode={0} sigma={2} dy={4} opacity={g.top} />
-                <SoftInset d={d} erode={0} sigma={2} dy={-4} opacity={g.bottom} />
-              </>
-            ) : null}
-            {g && small ? (
-              <>
-                <SoftInset d={d} erode={6} sigma={5} dy={4} opacity={0.18} />
-                <SoftInset d={d} erode={3} sigma={2} dy={4} opacity={0.5} />
-                <SoftInset d={d} erode={3} sigma={2} dy={-4} opacity={0.3} />
-              </>
-            ) : null}
             {/* icon bubbles in the canvas: the colour is softly veiled and grained, never a dark disc */}
             {g && small ? <Rect x={0} y={0} width={size.w} height={size.h} fill="#FFFFFF" opacity={0.08} /> : null}
           </G>
@@ -169,8 +152,13 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
             </G>
           ) : null}
         </Svg>
+        {g ? (
+          // The canvas inner shadows, as the canvas writes them (CSS inset box-shadows): drawn natively,
+          // a true smooth Gaussian on the GPU, with no bands and no cost per frame.
+          <View style={[StyleSheet.absoluteFill, { borderRadius: Math.min(radius, Math.min(size.w, size.h) / 2), borderCurve: 'continuous', boxShadow: insetOf(glow, small) }]} />
+        ) : null}
         {glow === 'frost' || (g && small) ? (
-          <Image source={noiseTile(noise)} resizeMode="repeat" style={[StyleSheet.absoluteFill, { opacity: 0.5, borderRadius: Math.min(radius, Math.min(size.w, size.h) / 2), borderCurve: 'continuous', overflow: 'hidden' }]} />
+          <Image source={noiseTile(noise)} resizeMode="repeat" style={{ position: 'absolute', top: 0, left: 0, width: size.w, height: size.h, opacity: 0.5, borderRadius: Math.min(radius, Math.min(size.w, size.h) / 2), borderCurve: 'continuous', overflow: 'hidden' }} />
         ) : null}
         </View>
       ) : null}
@@ -179,34 +167,13 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
   );
 }
 
-/**
- * An inset shadow without an SVG filter (filters are re-computed on the CPU on phones, which made
- * every card slow): white light coming in from the edge, as the canvas's blurred inner shadow, drawn
- * as a few stacked strokes clipped to the shape. Each stroke's opacity is solved so the stack follows
- * the Gaussian falloff of the original (`erode` px solid, then blur `sigma`), shifted `dy` px.
- */
-const BANDS = 7;
-function SoftInset({ d, erode, sigma, dy, opacity }: { d: string; erode: number; sigma: number; dy: number; opacity: number }) {
-  const bands = useMemo(() => {
-    const q = (x: number) => 0.5 * (1 - erf((x - erode) / (sigma * Math.SQRT2))); // light left at depth x
-    const max = erode + 2.6 * sigma;
-    const out: { r: number; a: number }[] = [];
-    let prev = 0;
-    for (let k = 1; k <= BANDS; k++) {
-      const r = max * (1 - (k - 1) / BANDS); // outermost first
-      const mid = max * (1 - (k - 0.5) / BANDS);
-      const t = Math.min(0.999, opacity * q(mid));
-      const a = Math.max(0, 1 - (1 - t) / (1 - prev));
-      out.push({ r, a });
-      prev = Math.max(prev, t);
-    }
-    return out;
-  }, [erode, sigma, opacity]);
-  return (
-    <G transform={`translate(0 ${dy})`}>
-      {bands.map((b, i) => (b.a > 0.002 ? <Path key={i} d={d} fill="none" stroke="#FFFFFF" strokeOpacity={b.a} strokeWidth={b.r * 2} /> : null))}
-    </G>
-  );
+const W = (a: number) => `rgba(255,255,255,${a})`;
+/** The canvas's inner light per glow (blur = 2σ of the Figma inner shadows, spread = how far it starts inside). */
+function insetOf(glow: GlowStrength, small: boolean) {
+  if (small) return `inset 0 4px 10px 6px ${W(0.18)}, inset 0 4px 4px 3px ${W(0.5)}, inset 0 -4px 4px 3px ${W(0.3)}`;
+  const g = glow === 'button' ? { wide: 0.35, top: 0.6, bottom: 0.35 } : { wide: 0.65, top: 0.95, bottom: 0.65 };
+  const frost = glow === 'frost' ? `inset 0 4px 87px 6px ${W(0.2)}, ` : '';
+  return `${frost}inset 0 4px 14px 3px ${W(g.wide)}, inset 0 4px 4px 0 ${W(g.top)}, inset 0 -4px 4px 0 ${W(g.bottom)}`;
 }
 
 /** erf, Abramowitz–Stegun 7.1.26 (|error| < 1.5e-7) */
