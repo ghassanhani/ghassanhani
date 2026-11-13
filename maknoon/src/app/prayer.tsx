@@ -2,7 +2,7 @@ import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, Linking, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import Svg, { Circle, G, Line, Polygon, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, Defs, G, Line, LinearGradient, Polygon, RadialGradient, Stop, Text as SvgText } from 'react-native-svg';
 import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
@@ -200,6 +200,7 @@ function QiblaCompass({ bearing }: { bearing: number }) {
   const c = size / 2;
   const [mode, setMode] = useState<'off' | 'on' | 'denied' | 'none'>(Platform.OS === 'web' ? 'none' : 'off');
   const [facing, setFacing] = useState(false);
+  const [deg, setDeg] = useState<number | null>(null); // the phone's heading, whole degrees, for the centre reading
   const turn = useSharedValue(0); // the phone's heading, unwrapped (no jump between 359° and 0°)
   const last = useRef(0);
   const sub = useRef<{ remove: () => void } | null>(null);
@@ -218,6 +219,7 @@ function QiblaCompass({ bearing }: { bearing: number }) {
         last.current += d;
         turn.set(withTiming(last.current, { duration: 200, easing: Easing.out(Easing.quad) }));
         setFacing(Math.abs(((bearing - v + 540) % 360) - 180) < 4);
+        setDeg((d0) => (d0 === Math.round(v) % 360 ? d0 : Math.round(v) % 360));
       });
       setMode('on');
     } catch {
@@ -239,44 +241,79 @@ function QiblaCompass({ bearing }: { bearing: number }) {
   const dial = useAnimatedStyle(() => ({ transform: [{ rotate: `${-turn.get()}deg` }] }));
   // the dial turns by −heading; turning the Kaaba back by +heading keeps it upright on screen
   const upright = useAnimatedStyle(() => ({ transform: [{ rotate: `${turn.get()}deg` }] }));
-  const r = c - 6; // the Kaaba sits on the dial's edge, over the ring of ticks
+  const ring = c - 14; // the dial ring, inside the bezel
+  const inner = c * 0.56; // the raised centre disc
+  const r = ring - 16; // the Kaaba sits on the dial ring
 
   return (
     <View style={{ alignItems: 'center', gap: 10 }}>
-      <View style={{ width: size, height: size + 14, alignItems: 'center' }}>
-        {/* where the phone points */}
-        <View style={[styles.lubber, { borderTopColor: facing ? '#2E8B57' : colors.ink }]} />
-        <Animated.View style={[{ width: size, height: size, marginTop: 4 }, dial]} accessibilityLabel={`اتجاه القبلة ${Math.round(bearing)} درجة من الشمال`}>
-          <Svg width={size} height={size}>
-            <Circle cx={c} cy={c} r={c - 2} fill="#FFFFFF" fillOpacity={0.92} stroke={facing ? '#2E8B57' : 'rgba(3,90,95,0.15)'} strokeWidth={facing ? 3 : 1} />
-            {Array.from({ length: 72 }, (_, i) => (
-              <Line key={i} x1={c} y1={8} x2={c} y2={i % 18 === 0 ? 22 : i % 2 === 0 ? 16 : 12} stroke={i % 18 === 0 ? colors.primary : i % 2 === 0 ? 'rgba(3,90,95,0.55)' : '#B9BAC4'} strokeWidth={i % 18 === 0 ? 3 : i % 2 === 0 ? 1.6 : 1} transform={`rotate(${i * 5} ${c} ${c})`} />
-            ))}
-            {[['ش', 0], ['ق', 90], ['ج', 180], ['غ', 270]].map(([t, a]) => {
-              const rad = ((a as number) * Math.PI) / 180;
-              return (
-                <G key={t as string}>
-                  <SvgText x={c + (c - 36) * Math.sin(rad)} y={c - (c - 36) * Math.cos(rad) + 6} fontSize={t === 'ش' ? 17 : 14} fill={t === 'ش' ? '#B3261E' : colors.ink} textAnchor="middle" fontFamily={F.sansBold}>
-                    {t as string}
-                  </SvgText>
-                  <SvgText x={c + (c - 58) * Math.sin(rad)} y={c - (c - 58) * Math.cos(rad) + 4} fontSize={10} fill="#8A8B96" textAnchor="middle" fontFamily={F.sans}>
-                    {ar(a as number)}
-                  </SvgText>
-                </G>
-              );
-            })}
-            {/* the arrow to the qibla: amber, green once the phone faces it; a short red tail behind */}
-            <G transform={`rotate(${bearing} ${c} ${c})`}>
-              <Polygon points={`${c},${c - r + 24} ${c - 11},${c} ${c + 11},${c}`} fill={facing ? '#2E8B57' : '#F2A516'} />
-              <Polygon points={`${c - 11},${c} ${c + 11},${c} ${c},${c + 34}`} fill={facing ? '#1E6B42' : '#E2483A'} />
-            </G>
-            <Circle cx={c} cy={c} r={6} fill="#FFFFFF" stroke={facing ? '#2E8B57' : colors.ink} strokeWidth={2.5} />
-          </Svg>
-          {/* the Kaaba at the needle's tip, kept upright */}
-          <Animated.View style={[styles.kaaba, { left: c + r * Math.sin((bearing * Math.PI) / 180) - 22, top: c - r * Math.cos((bearing * Math.PI) / 180) - 22 }, upright]}>
-            <Image source={require('../../assets/brand/kaaba.png')} style={{ width: 40, height: 40 }} accessibilityLabel="الكعبة" />
+      <View style={{ width: size, height: size + 26, alignItems: 'center' }}>
+        {/* where the phone points: a raised red arrow (two faces) */}
+        <Svg width={22} height={22}>
+          <Polygon points="11,0 0,22 11,17" fill={facing ? '#3FA36B' : '#F0464B'} />
+          <Polygon points="11,0 22,22 11,17" fill={facing ? '#24774A' : '#B8262B'} />
+        </Svg>
+        <View style={[styles.bezel, { width: size, height: size, borderRadius: size / 2, marginTop: 4 }]}>
+          <Animated.View style={[{ width: size, height: size }, dial]} accessibilityLabel={`اتجاه القبلة ${Math.round(bearing)} درجة من الشمال`}>
+            <Svg width={size} height={size}>
+              <Defs>
+                <RadialGradient id="bez" cx="50%" cy="38%" r="62%">
+                  <Stop offset="0" stopColor="#FFFFFF" />
+                  <Stop offset="1" stopColor="#D5D7DF" />
+                </RadialGradient>
+                <LinearGradient id="ring" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0" stopColor="#F7F8FA" />
+                  <Stop offset="1" stopColor="#E3E5EB" />
+                </LinearGradient>
+                <LinearGradient id="disc" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0" stopColor="#FFFFFF" />
+                  <Stop offset="1" stopColor="#EEF0F4" />
+                </LinearGradient>
+              </Defs>
+              {/* outer bezel, then the recessed dial ring */}
+              <Circle cx={c} cy={c} r={c - 1} fill="url(#bez)" />
+              <Circle cx={c} cy={c} r={ring} fill="url(#ring)" stroke="rgba(20,24,40,0.10)" strokeWidth={1.5} />
+              <Circle cx={c} cy={c + 1.5} r={ring - 1.5} fill="none" stroke="rgba(20,24,40,0.06)" strokeWidth={3} />
+              {Array.from({ length: 72 }, (_, i) => (
+                <Line key={i} x1={c} y1={c - ring + 6} x2={c} y2={c - ring + (i % 9 === 0 ? 20 : i % 2 === 0 ? 14 : 11)} stroke={i === 0 ? '#E0393E' : i % 9 === 0 ? colors.ink : i % 2 === 0 ? 'rgba(3,90,95,0.55)' : '#B9BAC4'} strokeWidth={i % 9 === 0 ? 2.2 : 1} transform={`rotate(${i * 5} ${c} ${c})`} />
+              ))}
+              {/* degree numbers, set along the ring */}
+              {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
+                <SvgText key={a} x={c} y={c - ring + 34} fontSize={11} fill="#8A8B96" textAnchor="middle" fontFamily={F.sans} transform={`rotate(${a} ${c} ${c})`}>
+                  {ar(a)}
+                </SvgText>
+              ))}
+              {/* the raised centre disc and its shadow */}
+              <Circle cx={c} cy={c + 4} r={inner + 2} fill="rgba(20,24,40,0.10)" />
+              <Circle cx={c} cy={c} r={inner} fill="url(#disc)" stroke="rgba(20,24,40,0.08)" strokeWidth={1} />
+              {[['ش', 0], ['ق', 90], ['ج', 180], ['غ', 270]].map(([t, a]) => {
+                const rad = ((a as number) * Math.PI) / 180;
+                return (
+                  <G key={t as string}>
+                    <SvgText x={c + (inner - 22) * Math.sin(rad)} y={c - (inner - 22) * Math.cos(rad) + 6} fontSize={t === 'ش' ? 18 : 15} fill={t === 'ش' ? '#E0393E' : colors.ink} textAnchor="middle" fontFamily={F.sansBold}>
+                      {t as string}
+                    </SvgText>
+                    {t !== 'ش' ? <Circle cx={c + inner * Math.sin(rad)} cy={c - inner * Math.cos(rad)} r={3.5} fill="#C9A646" /> : null}
+                  </G>
+                );
+              })}
+              {/* the arrow to the qibla, raised (two faces): from the disc's edge to the Kaaba */}
+              <G transform={`rotate(${bearing} ${c} ${c})`}>
+                <Polygon points={`${c},${c - r + 20} ${c - 13},${c - inner + 30} ${c},${c - inner + 38}`} fill={facing ? '#3FA36B' : '#F7B733'} />
+                <Polygon points={`${c},${c - r + 20} ${c + 13},${c - inner + 30} ${c},${c - inner + 38}`} fill={facing ? '#24774A' : '#D98A0B'} />
+              </G>
+            </Svg>
+            {/* the Kaaba at the arrow's tip, kept upright */}
+            <Animated.View style={[styles.kaaba, { left: c + r * Math.sin((bearing * Math.PI) / 180) - 22, top: c - r * Math.cos((bearing * Math.PI) / 180) - 22 }, upright]}>
+              <Image source={require('../../assets/brand/kaaba.png')} style={{ width: 40, height: 40 }} accessibilityLabel="الكعبة" />
+            </Animated.View>
           </Animated.View>
-        </Animated.View>
+          {/* the reading in the middle stays still: where the phone points now */}
+          <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]} pointerEvents="none">
+            <Display size={34} lineHeight={44} color={facing ? '#24774A' : colors.ink}>{deg === null ? `${ar(Math.round(bearing))}°` : `${ar(deg)}°`}</Display>
+            <Caption>{deg === null ? 'القبلة' : 'اتجاهك'}</Caption>
+          </View>
+        </View>
       </View>
       <Display size={30} lineHeight={40}>{`${ar(Math.round(bearing))}° ${P.qibla.from}`}</Display>
       {mode === 'on' ? (
@@ -293,7 +330,8 @@ function QiblaCompass({ bearing }: { bearing: number }) {
 }
 
 const styles = StyleSheet.create({
-  lubber: { width: 0, height: 0, borderLeftWidth: 9, borderRightWidth: 9, borderTopWidth: 12, borderLeftColor: 'transparent', borderRightColor: 'transparent' },
+  // the compass sits on the card like an object: a soft shadow under the bezel
+  bezel: { boxShadow: '0 10px 24px rgba(20,24,40,0.18), 0 2px 4px rgba(20,24,40,0.08)' },
   // the Kaaba on its own, no ring around it
   kaaba: { position: 'absolute', width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center' },
