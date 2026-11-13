@@ -208,15 +208,16 @@ function MushafPage({ page }: { page: number }) {
   const nextImg = shotsSupported ? pageShot(page + 1) : null;
   const prevImg = shotsSupported ? pageShot(page - 1) : null;
   void shots;
-  const canCurlNext = !shotsSupported || (!!curImg && !!nextImg);
-  const canCurlPrev = !shotsSupported || (!!curImg && !!prevImg);
+  // The still images only make the turn lighter: a page without one turns all the same, drawn live
+  // (a shot that failed, or not taken yet, must never lock the page in place).
+  const canCurlNext = true;
+  const canCurlPrev = true;
   const shotView = (uri: string) => <RNImage source={{ uri }} style={{ width: winW, height: winH }} />;
   useQcf4Fonts(Math.min(LAST_PAGE, page + 1)); // the neighbours' fonts are ready before a turn
   useQcf4Fonts(Math.max(1, page - 1));
   useEffect(loadTurn, []);
   const turned = (d: number) => {
     haptic.land();
-    haptic.soft();
     goTo(page + d);
   };
   const canNext = page < LAST_PAGE && canCurlNext;
