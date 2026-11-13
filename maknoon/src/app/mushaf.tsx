@@ -20,7 +20,7 @@ import { mushaf as m } from '@/content/design';
 import { ar, ayahPlaceholder, ayatOnPage, basmala, getAyah } from '@/content/quran';
 import { SURAH_TITLES } from '@/content/surahTitles';
 import { ayahKey, pageOfAyah, type Qcf4Line, qcf4Available, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
-import { recitationCredit, togglePage, usePlayer } from '@/recitation/player';
+import { recitationCredit, stop as stopAudio, togglePage, usePlayer } from '@/recitation/player';
 import { AyahMarker } from '@/components/AyahMarker';
 import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
@@ -159,6 +159,8 @@ function MushafPage({ page }: { page: number }) {
 
   // Listening from this page: the recitation follows the mushaf, turning the page when it moves on.
   const audio = usePlayer();
+  // leaving the Mushaf ends the recitation started in it
+  useEffect(() => () => stopAudio(), []);
   const listening = audio.playing === 'page';
   const firstKey = keys[0] ?? '1:1';
   const nowPage = listening && audio.ayah ? (qcf ? pageOfAyah(audio.ayah) : null) : null;
