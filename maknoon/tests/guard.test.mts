@@ -36,3 +36,8 @@ test('ignores a thinking block and keeps at most three sentences', () => {
   const s = Array.from({ length: 5 }, (_, i) => `جملة رقم ${i + 1} عن الموضوع [1].`).join(' ');
   assert.equal(guardSummary(`<think>تفكير [1].</think>${s}`, 1, quoted).length, 3);
 });
+
+test('accepts the citation styles small models drift into', () => {
+  const out = guardSummary('يذكر المصدر الأول هذا المعنى (1). ويضيف الثاني جانبًا آخر [المصدر 2]. ويجمعهما معًا قول واضح [1، 2].', 2, quoted);
+  assert.deepEqual(out.map((l) => l.cites), [[1], [2], [1, 2]]);
+});

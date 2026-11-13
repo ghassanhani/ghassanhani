@@ -34,12 +34,18 @@ export function quoteCheck(texts: Iterable<string>) {
 }
 
 const toLatin = (s: string) => s.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
+/** Citation styles small models drift into — (1), [المصدر 1], 【1】, [1، 2] — written as [1] [2]. */
+const citations = (s: string) =>
+  s
+    .replace(/[(（【]\s*(\d{1,2})\s*[)）】]/g, '[$1]')
+    .replace(/\[\s*(?:ال)?مصدر\s*(?:رقم\s*)?(\d{1,2})\s*\]/g, '[$1]')
+    .replace(/\[(\d{1,2}(?:\s*[،,و]\s*\d{1,2})+)\]/g, (_, list: string) => list.split(/\s*[،,و]\s*/).map((n) => `[${n}]`).join(' '));
 
 export function guardSummary(raw: string, sources: number, quoted: (sentence: string) => boolean, max = 3): Line[] {
   const text = raw.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim();
   const out: Line[] = [];
   for (const piece of text.split(/(?<=[.!؟?])\s+|\n+/)) {
-    const s = toLatin(piece.trim());
+    const s = citations(toLatin(piece.trim()));
     if (!s) continue;
     const cites = [...new Set([...s.matchAll(/\[(\d{1,2})\]/g)].map((m) => Number(m[1])))].filter((n) => n >= 1 && n <= sources);
     if (!cites.length) continue;

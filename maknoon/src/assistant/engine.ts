@@ -19,6 +19,8 @@ export type Answer =
 
 // "Is it permissible for me…", "must I…", "what should I do…" → personal ruling (fatwa).
 const PERSONAL = /(هل يجوز|هل يحل|هل يحرم|هل يجب|هل علي|هل يصح|هل تصح|هل تجوز|ماذا افعل|ما حكم|يجوز لي|علي ان|افتني|فتوي|هل يلزمني|هل اثم)/;
+// «does X break the fast / the wudu / the prayer?» asks for a ruling too.
+const BREAKS = /^هل .*(يفطر|تفطر|يبطل|تبطل|ينقض|تنقض|يفسد|تفسد)/;
 // Out of scope (plan §8.2 rule 6).
 const OUT_OF_SCOPE = /(تكفير|كافر|سياس|انتخاب|حزب|انتحار|اقتل|اذي نفسي|طائف)/;
 
@@ -35,7 +37,7 @@ export async function ask(question: string): Promise<Answer> {
   // No relaxed fallback here: one shared word made unrelated sources lead the answer.
   const curated = scored.filter((x) => x.h >= need);
 
-  if (PERSONAL.test(nq)) {
+  if (PERSONAL.test(nq) || BREAKS.test(nq)) {
     return { kind: 'ruling', query: q, fiqh: curated.filter((x) => x.n.kind === 'fiqh').map((x) => x.n).slice(0, 2) };
   }
   if (!toks.length) return { kind: 'empty', query: q };

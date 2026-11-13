@@ -5,7 +5,7 @@ import { type ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Pressable } from '@/components/Tap';
 import type { Node } from '@/assistant/corpus';
 import { ask, type Answer } from '@/assistant/engine';
-import { type Line, summarize, summaryStatus } from '@/assistant/summary';
+import { type Summary, summarize, summaryStatus } from '@/assistant/summary';
 import { usePrefs } from '@/store/prefs';
 import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
@@ -20,7 +20,7 @@ import { APP_NAME } from '@/config';
 import { TypingDots } from '@/components/motion';
 import { colors } from '@/theme/tokens';
 
-type Turn = { id: number; q: string; answer: Answer | null; summary?: Line[] | 'loading' };
+type Turn = { id: number; q: string; answer: Answer | null; summary?: Summary | 'loading' };
 
 /**
  * Retrieval-only assistant (plan §8). Answers are cards from the app's own texts,
@@ -164,18 +164,22 @@ function AnswerCard({ answer }: { answer: Answer }) {
 }
 
 /** The automatic summary (level 2): guarded sentences, each pointing at the numbered sources below. */
-function SummaryCard({ summary }: { summary: Line[] | 'loading' }) {
-  if (summary !== 'loading' && !summary.length) return null;
+function SummaryCard({ summary }: { summary: Summary | 'loading' }) {
+  const loading = summary === 'loading';
+  if (!loading && !summary.lines.length && !summary.why) return null;
   return (
     <GlassCard soft style={{ gap: 8 }}>
       <View style={[styles.row, { justifyContent: 'space-between' }]}>
         <Display size={16}>ملخّص آلي</Display>
         <Chip label="راجع النصوص" tone="pending" />
       </View>
-      {summary === 'loading' ? (
-        <TypingDots color={colors.primary} />
-      ) : (
-        summary.map((l, i) => (
+      {loading ? (
+        <View style={[styles.row, { gap: 10 }]}>
+          <TypingDots color={colors.primary} />
+          <Caption>يكتب النموذج على هاتفك… قد يأخذ ذلك ثوانيَ في المرة الأولى.</Caption>
+        </View>
+      ) : summary.lines.length ? (
+        summary.lines.map((l, i) => (
           <Body key={i} size={14} lineHeight={26} color={colors.ink}>
             {l.text}
             <Body size={12} weight="bold" color={colors.primary}>
@@ -183,8 +187,16 @@ function SummaryCard({ summary }: { summary: Line[] | 'loading' }) {
             </Body>
           </Body>
         ))
+      ) : (
+        <Caption color={colors.pendingInk}>
+          {summary.why === 'failed'
+            ? `تعذّر تشغيل نموذج الملخّص على هاتفك${summary.error ? ` (${summary.error})` : ''}. المصادر أدناه كاملة.`
+            : summary.why === 'filtered'
+              ? 'كتب النموذج ملخّصًا، لكن فحص الأمان حذف جمله كلها (بلا رقم مصدر، أو فيها اقتباس أو حكم). اعتمد على المصادر أدناه.'
+              : 'لم يكتب النموذج شيئًا لهذا السؤال. المصادر أدناه كاملة.'}
+        </Caption>
       )}
-      <Caption>كتبه نموذج صغير على هاتفك من المصادر المرقّمة أدناه فقط، وقد يخطئ. المرجع هو النصوص نفسها.</Caption>
+      {!loading && summary.lines.length ? <Caption>كتبه نموذج صغير على هاتفك من المصادر المرقّمة أدناه فقط، وقد يخطئ. المرجع هو النصوص نفسها.</Caption> : null}
     </GlassCard>
   );
 }
