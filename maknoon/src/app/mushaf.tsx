@@ -1,23 +1,21 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { Easing, ReduceMotion, SlideInDown, SlideOutDown, runOnJS, useDerivedValue, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, runOnJS, useDerivedValue, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
 import { ThiqalIcon } from '@/components/ThiqalIcon';
 import { PageCurl } from '@/components/PageCurl';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { type ShotTarget, pageShot, shotsSupported, takePageShot } from '@/content/pageShots';
-import { FlatList, Image as RNImage, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { Image as RNImage, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Backdrop } from '@/components/Backdrop';
 import { Icon } from '@/components/Icon';
 import { Squircle } from '@/components/Squircle';
 import { AyahText, Body, Caption, Display } from '@/components/Typography';
-import { RoundButton } from '@/components/ui';
 import { mushaf as m } from '@/content/design';
-import { ar, ayahPlaceholder, ayatLabel, ayatOnPage, getAyah } from '@/content/quran';
-import { stripTashkeel } from '@/content/text';
+import { ar, ayahPlaceholder, ayatOnPage, getAyah } from '@/content/quran';
 import { SURAH_TITLES } from '@/content/surahTitles';
 import { ayahKey, pageOfAyah, qcf4Available, qcf4Em, qcf4Page, useQcf4Fonts } from '@/content/qcf4';
 import { recitationCredit, togglePage, usePlayer } from '@/recitation/player';
@@ -76,7 +74,6 @@ function MushafPage({ page }: { page: number }) {
   const insets = useSafeAreaInsets();
   const [controls, setControls] = useState(false);
   const [zoom, setZoom] = useState(100);
-  const [picking, setPicking] = useState(false);
   const [prefs] = usePrefs();
   const size = (prefs.quranSize - 3) * (zoom / 100); // Settings size 24 → the design's 21pt page
 
@@ -102,6 +99,8 @@ function MushafPage({ page }: { page: number }) {
     if (!b || b.surah !== x.surah) blocks.push((b = { surah: x.surah, starts: x.ayah === 1, ayat: [], fontFamily: t?.fontFamily }));
     b.ayat.push({ key: `${x.surah}:${x.ayah}`, text: t?.text ?? ayahPlaceholder(name, x.ayah) });
   }
+  // the surah list opens as the system sheet (native slide, drag down to close)
+  const pickSurah = () => router.push({ pathname: '/surah-picker', params: { current: String(onPage[0]?.surah ?? 1) } });
   const goTo = (p: number) => router.setParams({ page: String(Math.min(LAST_PAGE, Math.max(1, p))) });
 
   // Listening from this page: the recitation follows the mushaf, turning the page when it moves on.
@@ -232,13 +231,13 @@ function MushafPage({ page }: { page: number }) {
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 24, paddingBottom: insets.bottom + 150 }}>
         <Pressable accessibilityLabel="إظهار أدوات القراءة" onPress={() => setControls((v) => !v)}>
           {qcf ? (
-            qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={() => setPicking(true)} /> : <View style={{ minHeight: 600 }} />
+            qcfReady ? <QcfPageView page={page} zoom={zoom} tasmee={tasmee} current={listening ? audio.ayah : null} onPickSurah={pickSurah} /> : <View style={{ minHeight: 600 }} />
           ) : null}
           {qcf ? null : blocks.map((b, i) => (
             <View key={b.surah} style={i > 0 ? { marginTop: 18 } : null}>
               {/* Surah banner: at the top of the page, and wherever a surah begins */}
               {i === 0 || b.starts ? (
-                <SurahBanner surah={b.surah} onPress={() => setPicking(true)} />
+                <SurahBanner surah={b.surah} onPress={pickSurah} />
               ) : null}
               {/* الفاتحة counts the basmala as its first ayah; التوبة has none */}
               {b.starts && b.surah !== 1 && b.surah !== 9 ? (
@@ -301,15 +300,6 @@ function MushafPage({ page }: { page: number }) {
         <PageCurl fromRight progress={backward} visible={showBackward} width={winW} height={winH} leaf={prevImg ? shotView(prevImg) : <PageSheet page={page - 1} />} under={curImg ? shotView(curImg) : <PageSheet page={page} />} />
       ) : null}
 
-      <SurahPicker
-        visible={picking}
-        current={onPage[0]?.surah ?? 1}
-        onClose={() => setPicking(false)}
-        onPick={(p) => {
-          setPicking(false);
-          goTo(p);
-        }}
-      />
 
       {!controls && listening && !tasmee.note ? (
         <View style={[styles.tasmee, { top: insets.top + 6 }]} pointerEvents="box-none">
@@ -560,66 +550,6 @@ function SurahBanner({ surah, onPress }: { surah: number; onPress: () => void })
   );
 }
 
-/** Bottom sheet listing the 114 surahs; choosing one turns the mushaf to its first page. */
-function SurahPicker({ visible, current, onClose, onPick }: { visible: boolean; current: number; onClose: () => void; onPick: (page: number) => void }) {
-  const insets = useSafeAreaInsets();
-  const [q, setQ] = useState('');
-  const needle = stripTashkeel(q.trim());
-  const list = needle ? quranIndex.surahs.filter((x) => stripTashkeel(x.name).includes(needle) || String(x.n) === needle || ar(x.n) === needle) : quranIndex.surahs;
-  return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
-      <Animated.View entering={fadeIn} exiting={fadeOut} style={styles.scrim}>
-        <Pressable accessibilityLabel="إغلاق" onPress={onClose} style={{ flex: 1 }} />
-      </Animated.View>
-      <Animated.View entering={sheetIn} exiting={sheetOut} style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
-        <View style={styles.sheetHead}>
-          <Display size={20}>اختر السورة</Display>
-          <RoundButton icon="close" label="إغلاق" size={36} iconSize={16} onPress={onClose} />
-        </View>
-        <View style={styles.sheetSearch}>
-          <Icon name="search" size={18} color={colors.primary} />
-          <TextInput
-            value={q}
-            onChangeText={setQ}
-            placeholder="اسم السورة أو رقمها"
-            placeholderTextColor={colors.muted}
-            accessibilityLabel="ابحث عن سورة"
-            style={[styles.sheetInput, { fontFamily: F.sans }]}
-          />
-        </View>
-        <FlatList
-          data={list}
-          keyExtractor={(x) => String(x.n)}
-          initialScrollIndex={needle ? undefined : Math.max(0, current - 3)}
-          getItemLayout={(_, i) => ({ length: 56, offset: 56 * i, index: i })}
-          keyboardShouldPersistTaps="handled"
-          renderItem={({ item: x }) => (
-            <Pressable accessibilityRole="button" accessibilityState={{ selected: x.n === current }} onPress={() => {
-              haptic.select();
-              onPick(x.page);
-            }} style={[styles.sheetRow, x.n === current && { backgroundColor: 'rgba(3,90,95,0.08)' }]}>
-              <View style={styles.sheetNo}>
-                <Body size={13} weight="bold" color={colors.primary} lineHeight={18}>
-                  {ar(x.n)}
-                </Body>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Display size={17}>{x.name}</Display>
-                <Caption>{`${x.type} · ${ayatLabel(x.ayat)}`}</Caption>
-              </View>
-              <Caption>{`ص ${ar(x.page)}`}</Caption>
-            </Pressable>
-          )}
-          ListEmptyComponent={<Caption style={{ padding: 16, textAlign: 'center' }}>لا نتائج</Caption>}
-        />
-      </Animated.View>
-    </Modal>
-  );
-}
-
-// The sheet rises on a soft spring and drops away quickly.
-const sheetIn = SlideInDown.springify().damping(24).stiffness(220).reduceMotion(ReduceMotion.System);
-const sheetOut = SlideOutDown.duration(200).reduceMotion(ReduceMotion.System);
 
 const NOTES: Record<Exclude<TasmeeNote, null>, string> = {
   'web-preview': 'معاينة آلية · نسخة الويب لا تستمع، والتسميع يعمل في تطبيق iOS وAndroid',
@@ -675,13 +605,6 @@ const styles = StyleSheet.create({
   bannerChevron: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.28)', alignItems: 'center', justifyContent: 'center' },
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 },
   pageNo: { width: 52.49, height: 32.157, alignItems: 'center', justifyContent: 'center' },
-  scrim: { flex: 1, backgroundColor: 'rgba(20,24,40,0.35)' },
-  sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '72%', backgroundColor: '#F7F4F1', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 14 },
-  sheetHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 10 },
-  sheetSearch: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, marginHorizontal: 20, marginBottom: 8, paddingHorizontal: 14, borderRadius: 22, backgroundColor: '#FFFFFF' },
-  sheetInput: { flex: 1, minWidth: 0, fontSize: 15, color: colors.ink, textAlign: 'right', paddingVertical: 0 },
-  sheetRow: { height: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20 },
-  sheetNo: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(3,90,95,0.08)', alignItems: 'center', justifyContent: 'center' },
   tasmee: { position: 'absolute', start: 20, end: 20, alignItems: 'center', gap: 10 },
   tasmeeRow: { flexDirection: 'row', alignItems: 'center', gap: 18 },
   note: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 14 },

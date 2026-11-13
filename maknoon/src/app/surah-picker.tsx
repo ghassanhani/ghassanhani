@@ -1,0 +1,84 @@
+import { router, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
+import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Icon } from '@/components/Icon';
+import { haptic } from '@/components/motion';
+import { Body, Caption, Display } from '@/components/Typography';
+import { ar, ayatLabel } from '@/content/quran';
+import { stripTashkeel } from '@/content/text';
+import { quranIndex } from '@/content/worship';
+import { F } from '@/theme/fonts';
+import { colors } from '@/theme/tokens';
+
+/**
+ * The 114 surahs, as the system sheet (see the root layout): it slides up and away with the
+ * platform's own motion and follows the finger when dragged down. Choosing a surah turns the
+ * mushaf to its first page.
+ */
+export default function SurahPicker() {
+  const insets = useSafeAreaInsets();
+  const { current: c } = useLocalSearchParams<{ current?: string }>();
+  const current = Number(c) || 1;
+  const [q, setQ] = useState('');
+  const needle = stripTashkeel(q.trim());
+  const list = needle ? quranIndex.surahs.filter((x) => stripTashkeel(x.name).includes(needle) || String(x.n) === needle || ar(x.n) === needle) : quranIndex.surahs;
+  return (
+    <View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
+      <View style={styles.head}>
+        <Display size={20}>اختر السورة</Display>
+      </View>
+      <View style={styles.search}>
+        <Icon name="search" size={18} color={colors.primary} />
+        <TextInput
+          value={q}
+          onChangeText={setQ}
+          placeholder="اسم السورة أو رقمها"
+          placeholderTextColor={colors.muted}
+          accessibilityLabel="ابحث عن سورة"
+          style={[styles.input, { fontFamily: F.sans }]}
+        />
+      </View>
+      <FlatList
+        data={list}
+        keyExtractor={(x) => String(x.n)}
+        initialScrollIndex={needle ? undefined : Math.max(0, current - 3)}
+        getItemLayout={(_, i) => ({ length: 56, offset: 56 * i, index: i })}
+        initialNumToRender={14}
+        keyboardShouldPersistTaps="handled"
+        renderItem={({ item: x }) => (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected: x.n === current }}
+            onPress={() => {
+              haptic.select();
+              router.dismissTo({ pathname: '/mushaf', params: { page: String(x.page) } });
+            }}
+            style={[styles.row, x.n === current && { backgroundColor: 'rgba(3,90,95,0.08)' }]}
+          >
+            <View style={styles.no}>
+              <Body size={13} weight="bold" color={colors.primary} lineHeight={18}>
+                {ar(x.n)}
+              </Body>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Display size={17}>{x.name}</Display>
+              <Caption>{`${x.type} · ${ayatLabel(x.ayat)}`}</Caption>
+            </View>
+            <Caption>{`ص ${ar(x.page)}`}</Caption>
+          </Pressable>
+        )}
+        ListEmptyComponent={<Caption style={{ padding: 16, textAlign: 'center' }}>لا نتائج</Caption>}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  sheet: { flex: 1, backgroundColor: '#F7F4F1', paddingTop: 22 },
+  head: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 10 },
+  search: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, marginHorizontal: 20, marginBottom: 8, paddingHorizontal: 14, borderRadius: 22, backgroundColor: '#FFFFFF' },
+  input: { flex: 1, minWidth: 0, fontSize: 15, color: colors.ink, textAlign: 'right', paddingVertical: 0 },
+  row: { height: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20 },
+  no: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(3,90,95,0.08)', alignItems: 'center', justifyContent: 'center' },
+});

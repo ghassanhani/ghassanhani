@@ -45,6 +45,17 @@ export default function RootLayout() {
         {/* the page turns with a horizontal swipe, so the edge back-swipe stays off here */}
         <Stack.Screen name="mushaf" options={{ animation: 'fade', gestureEnabled: false }} />
         <Stack.Screen name="ayah/[id]" />
+        {/* the platform's own bottom sheet: native slide, grabber, drag down to close */}
+        <Stack.Screen
+          name="surah-picker"
+          options={{
+            presentation: 'formSheet',
+            sheetAllowedDetents: [0.72, 1],
+            sheetGrabberVisible: true,
+            sheetCornerRadius: 28,
+            contentStyle: { backgroundColor: '#F7F4F1' },
+          }}
+        />
         <Stack.Screen name="hadith/[id]" />
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
       </Stack>
