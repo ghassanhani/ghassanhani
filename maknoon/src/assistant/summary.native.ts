@@ -1,6 +1,7 @@
 import { Directory, File, Paths } from 'expo-file-system';
 import { initLlama, type LlamaContext } from 'llama.rn';
 import manifest from '../../assets/models/manifest.json';
+import { download } from '@/store/downloads';
 import { getPrefs, setPrefs } from '@/store/prefs';
 import { allAyahPlain, ayahPlain, type Node } from './corpus';
 import { guardSummary, type Line, quoteCheck } from './guard';
@@ -35,17 +36,10 @@ async function release() {
   if (c) await (await c).release().catch(() => undefined);
 }
 
-/** Download and verify the model. Throws on network or checksum errors (nothing is kept). */
+/** Download and verify the model (in the background; progress via useDownload('summary')). Throws on network or checksum errors (nothing is kept). */
 export async function downloadSummaryModel(): Promise<void> {
   if (!dir().exists) dir().create({ intermediates: true });
-  const target = file();
-  if (target.exists) target.delete();
-  const got = await File.downloadFileAsync(summaryModel.url, target);
-  const hash = (await got.digest('SHA-256')).toLowerCase();
-  if (hash !== summaryModel.sha256) {
-    got.delete();
-    throw new Error('Checksum mismatch');
-  }
+  await download('summary', summaryModel.url, file(), summaryModel.sha256, summaryModel.title, summaryModel.bytes);
   setPrefs({ summaryModel: true });
 }
 

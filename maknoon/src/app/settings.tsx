@@ -15,6 +15,8 @@ import { APP_NAME } from '@/config';
 import { METHODS, cityByKey } from '@/content/prayer';
 import { ar, basmala } from '@/content/quran';
 import { downloadModel, modelStatus, recitationModel, removeModel } from '@/recitation/model';
+import { atStart } from '@/components/motion';
+import { fraction, type Download, useDownload } from '@/store/downloads';
 import { downloadSummaryModel, removeSummaryModel, summaryModel, summaryStatus } from '@/assistant/summary';
 import { recitationById, recitations } from '@/recitation/player';
 import { semanticEnabled } from '@/search/semantic';
@@ -37,31 +39,9 @@ export default function SettingsScreen() {
   const methodName = METHODS.find((m) => m.key === (prefs.prayerMethod ?? city.method))?.name ?? '';
   const preview = basmala(); // canonical text from the source file, never typed
   const recStatus = modelStatus();
-  const [recBusy, setRecBusy] = useState(false);
-  const [recError, setRecError] = useState(false);
-  const getModel = async () => {
-    setRecBusy(true);
-    setRecError(false);
-    try {
-      await downloadModel();
-    } catch {
-      setRecError(true);
-    }
-    setRecBusy(false);
-  };
+  const recDl = useDownload('recitation');
   const sumStatus = summaryStatus();
-  const [sumBusy, setSumBusy] = useState(false);
-  const [sumError, setSumError] = useState(false);
-  const getSummaryModel = async () => {
-    setSumBusy(true);
-    setSumError(false);
-    try {
-      await downloadSummaryModel();
-    } catch {
-      setSumError(true);
-    }
-    setSumBusy(false);
-  };
+  const sumDl = useDownload('summary');
   const meaning = prefs.meaningSearch;
   const setMeaning = (v: boolean) => setPrefs({ meaningSearch: v });
   const analytics = prefs.analytics;
@@ -132,13 +112,9 @@ export default function SettingsScreen() {
                       : 'لم يُنشر بعد'}
                 </Caption>
               </View>
-              {recStatus === 'missing' ? (
-                recBusy ? <ActivityIndicator color={colors.primary} /> : <SoftButton label="تنزيل" onPress={getModel} />
-              ) : recStatus === 'ready' ? (
-                <SoftButton label="حذف" onPress={() => void removeModel()} />
-              ) : null}
+              {recStatus === 'missing' && !recDl ? <SoftButton label="تنزيل" onPress={() => void downloadModel().catch(() => undefined)} /> : recStatus === 'ready' ? <SoftButton label="حذف" onPress={() => void removeModel()} /> : null}
             </View>
-            {recError ? <Caption color={colors.pendingInk}>تعذّر التنزيل أو لم يطابق الملف بصمته. لم يُحفظ شيء.</Caption> : null}
+            <DownloadProgress d={recDl} retry={() => void downloadModel().catch(() => undefined)} />
             <Caption>نموذج Tarteel لتمييز التلاوة (Apache-2.0)، محوَّل ليعمل على الهاتف. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل.</Caption>
           </GlassCard>
         </>
@@ -153,13 +129,9 @@ export default function SettingsScreen() {
                 <Display size={16}>{summaryModel.title}</Display>
                 <Caption>{sumStatus === 'ready' ? 'مثبّت · يعمل دون اتصال' : `${ar((summaryModel.bytes / 1e9).toFixed(1))} غ.ب · تنزيل اختياري`}</Caption>
               </View>
-              {sumStatus === 'missing' ? (
-                sumBusy ? <ActivityIndicator color={colors.primary} /> : <SoftButton label="تنزيل" onPress={getSummaryModel} />
-              ) : (
-                <SoftButton label="حذف" onPress={() => void removeSummaryModel()} />
-              )}
+              {sumStatus === 'missing' && !sumDl ? <SoftButton label="تنزيل" onPress={() => void downloadSummaryModel().catch(() => undefined)} /> : sumStatus === 'ready' ? <SoftButton label="حذف" onPress={() => void removeSummaryModel()} /> : null}
             </View>
-            {sumError ? <Caption color={colors.pendingInk}>تعذّر التنزيل أو لم يطابق الملف بصمته. لم يُحفظ شيء.</Caption> : null}
+            <DownloadProgress d={sumDl} retry={() => void downloadSummaryModel().catch(() => undefined)} />
             {sumStatus === 'ready' ? <ToggleRow title="اعرض الملخّص في المساعد" sub="جمل قصيرة فوق المصادر، كل جملة برقم مصدرها" value={prefs.aiSummary} onChange={(v) => setPrefs({ aiSummary: v })} /> : null}
             <Caption>
               نموذج لغوي صغير (Qwen2.5 · Apache-2.0) يعمل على هاتفك فقط، فلا يُرسل سؤالك إلى أي مكان. يكتب جملًا قصيرة عن المصادر التي وجدها البحث، ثم يحذف التطبيق كل جملة بلا رقم مصدر، أو فيها اقتباس، أو حكم فقهي. قد يخطئ، فالمرجع دائمًا النصوص المعروضة تحته.
@@ -235,6 +207,35 @@ export default function SettingsScreen() {
 }
 
 /** Choose the recitation (RATQ, Hafs ʿan ʿĀṣim). «آية بآية» marks those with verified ayah timings. */
+/** A running model download: a bar, the percentage and the size; stays here while the app is in the background. */
+function DownloadProgress({ d, retry }: { d: Download | null; retry: () => void }) {
+  if (!d) return null;
+  if (d.state === 'error') {
+    return (
+      <View style={[styles.row, { justifyContent: 'space-between', gap: 12 }]}>
+        <Caption color={colors.pendingInk} style={{ flex: 1 }}>
+          تعذّر التنزيل أو لم يطابق الملف بصمته. لم يُحفظ شيء.
+        </Caption>
+        <SoftButton label="أعد المحاولة" onPress={retry} />
+      </View>
+    );
+  }
+  const f = fraction(d);
+  const mb = (b: number) => ar(Math.round(b / 1e6));
+  return (
+    <View style={{ gap: 6 }}>
+      <View style={styles.track}>
+        <View style={[styles.fill, atStart(0), { width: `${Math.max(2, f * 100)}%` }]} />
+      </View>
+      <View style={[styles.row, { justifyContent: 'space-between' }]}>
+        <Caption color={colors.primary}>{d.state === 'verifying' ? 'يتحقق من الملف…' : `يُنزَّل ${ar(Math.floor(f * 100))}٪`}</Caption>
+        <Caption>{d.total ? `${mb(d.written)} من ${mb(d.total)} م.ب` : ''}</Caption>
+      </View>
+      <Caption>يستمر التنزيل إن خرجت من التطبيق، ونخبرك حين يكتمل.</Caption>
+    </View>
+  );
+}
+
 function ReciterPicker({ current, onPick }: { current: number; onPick: (id: number) => void }) {
   const [open, setOpen] = useState(false);
   const r = recitationById(current);
@@ -343,6 +344,8 @@ function LinkItem({ title, sub, route, first }: { title: string; sub: string; ro
 }
 
 const styles = StyleSheet.create({
+  track: { height: 8, borderRadius: 4, backgroundColor: 'rgba(3,90,95,0.10)', overflow: 'hidden' },
+  fill: { position: 'absolute', top: 0, bottom: 0, borderRadius: 4, backgroundColor: colors.primary },
   row: { flexDirection: 'row', alignItems: 'center' },
   sep: { height: 1, backgroundColor: colors.hairline },
   packBtn: { height: 36, paddingHorizontal: 16, borderRadius: 18, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },

@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
-import * as Crypto from 'expo-crypto';
 import { Directory, File, Paths } from 'expo-file-system';
 import manifest from '../../assets/models/manifest.json';
+import { download } from '@/store/downloads';
 import { getPrefs, setPrefs } from '@/store/prefs';
 import type { ModelInfo, ModelStatus } from './model';
 
@@ -26,20 +26,11 @@ export function modelStatus(): ModelStatus {
 }
 export const modelUri = (): string | null => (modelStatus() === 'ready' ? file().uri : null);
 
-const toHex = (buf: ArrayBuffer) => Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
-
-/** Download and verify the model. Throws on network or checksum errors (nothing is kept). */
+/** Download and verify the model (in the background; progress via useDownload('recitation')). Throws on network or checksum errors (nothing is kept). */
 export async function downloadModel(): Promise<void> {
   if (!baseUrl || !recitationModel.sha256) throw new Error('The recitation model is not published yet');
   if (!dir().exists) dir().create({ intermediates: true });
-  const target = file();
-  if (target.exists) target.delete();
-  const got = await File.downloadFileAsync(`${baseUrl}/${recitationModel.file}`, target);
-  const hash = toHex(await Crypto.digest(Crypto.CryptoDigestAlgorithm.SHA256, await got.bytes()));
-  if (hash !== recitationModel.sha256) {
-    got.delete();
-    throw new Error('Checksum mismatch');
-  }
+  await download('recitation', `${baseUrl}/${recitationModel.file}`, file(), recitationModel.sha256, recitationModel.title, recitationModel.bytes ?? 0);
   setPrefs({ recitationModel: true });
 }
 
