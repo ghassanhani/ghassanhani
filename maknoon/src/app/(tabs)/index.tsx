@@ -187,7 +187,7 @@ export default function HomeScreen() {
       {/* Learn */}
       <Display size={20}>تعلّم</Display>
       <Pressable accessibilityRole="link" onPress={() => router.push('/path')}>
-      <GlassCard soft tint="neutral" style={{ minHeight: 174 }}>
+      <GlassCard soft tint="sky" style={{ minHeight: 174 }}>
         <View style={styles.between}>
           <Body size={12} weight="medium">
             {home.learn.label}
@@ -237,7 +237,7 @@ function WirdProgress({ value }: { value: number }) {
 
 function MiniCard({ title, icon }: { title: string; icon: IconName }) {
   return (
-    <GlassCard soft tint="neutral" style={styles.mini}>
+    <GlassCard soft tint="ink" style={styles.mini}>
       <IconBubble name={icon} size={31} iconSize={16} color={colors.ink} />
       <Display size={15} lineHeight={20} style={{ marginTop: 'auto' }}>
         {title}

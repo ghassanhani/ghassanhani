@@ -94,7 +94,13 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
               </LinearGradient>
             ) : null}
             {blobs?.map((b, i) =>
-              b.blur ? (
+              b.blur && !b.exact ? (
+                <G key={i}>
+                  <BlurGradient id={`b${uid}${i}`} b={b} w={size.w} h={size.h} />
+                  <BlurGradient id={`bs${uid}${i}`} b={{ ...b, blur: 2 }} w={size.w} h={size.h} />
+                  {b.fade ? <FadeMask id={`${uid}${i}`} b={b} w={size.w} h={size.h} /> : null}
+                </G>
+              ) : b.blur ? (
                 <G key={i}>
                   <Filter id={`bf${uid}${i}`} filterUnits="userSpaceOnUse" x={-400} y={-400} width={size.w + 800} height={size.h + 800}>
                     <FeGaussianBlur stdDeviation={b.blur} />
@@ -143,6 +149,15 @@ export function Squircle({ radius, fill, gradient, blobs, glow = 'none', noise =
             {fill || gradient ? <Path d={d} fill={gradient ? `url(#f${uid})` : g && small && fill ? `url(#e${uid})` : fill} /> : null}
             {blobs?.map((b, i) => {
               const e = { cx: b.cx * size.w, cy: b.cy * size.h, rx: b.rx * size.w, ry: b.ry * size.h, fill: b.color, opacity: b.opacity ?? 1 };
+              if (b.blur && !b.exact) {
+                const grow = 2.5 * b.blur;
+                return (
+                  <G key={i}>
+                    <Ellipse cx={e.cx} cy={e.cy} rx={e.rx + grow} ry={e.ry + grow} fill={`url(#b${uid}${i})`} mask={b.fade ? `url(#mb${uid}${i})` : undefined} />
+                    {b.fade ? <Ellipse cx={e.cx} cy={e.cy} rx={e.rx + 5} ry={e.ry + 5} fill={`url(#bs${uid}${i})`} mask={`url(#ms${uid}${i})`} /> : null}
+                  </G>
+                );
+              }
               if (b.blur)
                 return (
                   <G key={i}>
@@ -206,6 +221,36 @@ function Inset({ d, w, h, erode, dy, opacity, filter }: { d: string; w: number; 
         {erode ? <Path d={d} fill="none" stroke="#FFFFFF" strokeWidth={erode * 2} /> : null}
       </G>
     </G>
+  );
+}
+
+/** erf, Abramowitz–Stegun 7.1.26 (|error| < 1.5e-7) */
+function erf(x: number) {
+  const t = 1 / (1 + 0.3275911 * Math.abs(x));
+  const y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+  return x >= 0 ? y : -y;
+}
+
+/**
+ * A Gaussian-blurred ellipse drawn as a radial gradient (no filter, cheap to scroll):
+ * the stops follow the blurred edge profile of a disc of the ellipse's mean radius.
+ */
+function BlurGradient({ id, b, w, h }: { id: string; b: Blob; w: number; h: number }) {
+  const sigma = b.blur!;
+  const R = (b.rx * w + b.ry * h) / 2;
+  const Rg = R + 2.5 * sigma;
+  const k = sigma * Math.SQRT2;
+  const stops = Array.from({ length: 13 }, (_, i) => {
+    const t = i / 12;
+    const r = t * Rg;
+    return { t, a: 0.5 * (erf((R - r) / k) + erf((R + r) / k)) };
+  });
+  return (
+    <RadialGradient id={id} cx="50%" cy="50%" rx="50%" ry="50%">
+      {stops.map((st) => (
+        <Stop key={st.t} offset={st.t} stopColor={b.color} stopOpacity={(b.opacity ?? 1) * st.a} />
+      ))}
+    </RadialGradient>
   );
 }
 

@@ -54,7 +54,7 @@ export default function PrayerScreen() {
               <Caption color="rgba(255,255,255,0.8)">{`${prev.name} ${fmtTime(prev.date, tz)}`}</Caption>
               <Caption color="rgba(255,255,255,0.8)">{`${next.name} ${fmtTime(next.date, tz)}`}</Caption>
             </View>
-            <ProgressBar value={elapsed} height={8} fill="#B9BCF2" track="rgba(255,255,255,0.18)" />
+            <ProgressBar value={elapsed} height={8} fill="#B9BCF2" track="#FFFFFF" trackOpacity={0.18} />
           </View>
         ) : null}
         <Caption color="rgba(255,255,255,0.7)" style={{ marginTop: 6 }}>

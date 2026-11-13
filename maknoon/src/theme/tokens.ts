@@ -62,39 +62,56 @@ export type Blob = {
   blur?: number;
   /** Figma progressive blur: blurred along `dir` until `from`, sharp (blur 2) after `to` (fractions of the gradient line) */
   fade?: { dir: [number, number]; from: number; to: number };
+  /** draw the blur with a real SVG filter (costly; hero cards only). Otherwise a gradient follows the same blur curve. */
+  exact?: boolean;
 };
 
+/**
+ * The canvas lights: every card carries the same three Figma ellipses (blur 50, progressive edge),
+ * placed at fixed offsets from the card's top-left and tinted per card. Sizes are the canvas card size (pt).
+ * `x` shifts all three (0 on full-width cards, -183 on half cards, -235 on the small rail cards);
+ * `e1` moves the first light where a card does so.
+ */
+export function lights(
+  W: number,
+  H: number,
+  [c1, c2, c3]: [string, string, string],
+  { x = 0, e1, opacity = 1, exact = false }: { x?: number; e1?: [number, number]; opacity?: number; exact?: boolean } = {},
+): Blob[] {
+  const [x1, y1] = e1 ?? [x, 153.125];
+  return [
+    { color: c1, opacity, exact, blur: 50, cx: (x1 + 129) / W, cy: (y1 + 72.4375) / H, rx: 129 / W, ry: 72.4375 / H, fade: { dir: [-0.358, 0.934], from: 0.39, to: 0.66 } },
+    { color: c2, opacity, exact, blur: 50, cx: (x + 245 + 99.5) / W, cy: 213 / H, rx: 99.5 / W, ry: 177 / H, fade: { dir: [0.934, 0.358], from: 0.367, to: 0.693 } },
+    { color: c3, opacity, exact, blur: 50, cx: (x + 127 + 129.5) / W, cy: 444 / H, rx: 129.5 / W, ry: 231 / H, fade: { dir: [0.934, 0.358], from: 0.348, to: 0.721 } },
+  ];
+}
+
+
+const VIOLET = '#7D7FC5';
+const ROSE = '#C57D7E';
+
+/** Light glass cards: the canvas lights at 20%, middle colour = the card's accent. */
 export const tints = {
-  /** Home light cards: teal / sky / rose at 20% */
-  neutral: [
-    { color: '#035A5F', opacity: 0.2, cx: 0.1, cy: 1.05, rx: 0.75, ry: 0.75 },
-    { color: '#7DB3C5', opacity: 0.2, cx: 0.95, cy: 0.9, rx: 0.6, ry: 0.9 },
-    { color: '#C57D7E', opacity: 0.2, cx: 0.6, cy: 1.3, rx: 0.8, ry: 0.8 },
-  ],
-  lavender: [
-    { color: '#7D7FC5', opacity: 0.2, cx: 0.5, cy: 1.0, rx: 0.8, ry: 0.5 },
-    { color: '#7DB3C5', opacity: 0.15, cx: 1.0, cy: 0.6, rx: 0.6, ry: 0.8 },
-  ],
-  mint: [
-    { color: '#7FC57D', opacity: 0.2, cx: 0.9, cy: 0.9, rx: 0.7, ry: 0.7 },
-    { color: '#BADA47', opacity: 0.12, cx: 0.1, cy: 1.0, rx: 0.8, ry: 0.6 },
-  ],
-  peach: [
-    { color: '#C57D7E', opacity: 0.18, cx: 0.0, cy: 1.0, rx: 0.8, ry: 0.8 },
-    { color: '#E8CF9A', opacity: 0.18, cx: 0.2, cy: 0.2, rx: 0.5, ry: 0.6 },
-  ],
+  /** آية اليوم (354 × 189): teal light moved up and in */
+  neutral: lights(354, 189, ['#035A5F', '#7DB3C5', ROSE], { e1: [-122, 82], opacity: 0.2 }),
+  /** تعلّم (354 × 174) */
+  sky: lights(354, 174, [VIOLET, '#3AAADA', ROSE], { opacity: 0.2 }),
+  /** وردي اليوم (171 × 189) */
+  lavender: lights(171, 189, [VIOLET, '#0A55F6', ROSE], { x: -183, opacity: 0.2 }),
+  /** الأذكار (171 × 189) */
+  mint: lights(171, 189, [VIOLET, '#0D8E14', ROSE], { x: -183, opacity: 0.2 }),
+  /** مراجعة الحفظ (354 × 139) */
+  peach: lights(354, 139, [VIOLET, '#DA753A', ROSE], { opacity: 0.2 }),
+  /** adhkar rail (112 × 116) */
+  ink: lights(112, 116, [VIOLET, '#141B34', ROSE], { x: -235, opacity: 0.2 }),
 } satisfies Record<string, Blob[]>;
 
 /** Dark hero cards. */
 export const heroes = {
   night: {
     fill: '#0C1140',
-    // Exact ellipses of the canvas card (354 × 249): blur 50, progressive edge at -159°
-    blobs: [
-      { color: '#7D7FC5', cx: 0.364, cy: 0.906, rx: 0.364, ry: 0.291, blur: 50, fade: { dir: [-0.358, 0.934], from: 0.39, to: 0.66 } },
-      { color: '#7DB3C5', cx: 0.973, cy: 0.855, rx: 0.281, ry: 0.711, blur: 50, fade: { dir: [0.934, 0.358], from: 0.367, to: 0.693 } },
-      { color: '#C57D7E', cx: 0.725, cy: 1.783, rx: 0.366, ry: 0.928, blur: 50, fade: { dir: [0.934, 0.358], from: 0.348, to: 0.721 } },
-    ] as Blob[],
+    // the canvas lights at full strength, drawn with real blur filters
+    blobs: lights(354, 249, [VIOLET, '#7DB3C5', ROSE], { exact: true }),
   },
   teal: {
     fill: '#035A5F',

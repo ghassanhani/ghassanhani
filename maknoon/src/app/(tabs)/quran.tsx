@@ -29,7 +29,7 @@ export default function QuranHubScreen() {
           {q.resume.meta}
         </Body>
         <View style={{ marginVertical: 18 }}>
-          <ProgressBar value={q.resume.progress} height={10} fill="#4FD3E3" track="rgba(255,255,255,0.3)" />
+          <ProgressBar value={q.resume.progress} fill="#26CCDB" track="#FFFFFF" />
         </View>
         <View style={styles.row}>
           <PillButton label="المصحف" icon="quran2" onPress={() => router.push('/mushaf')} />
@@ -103,7 +103,7 @@ export default function QuranHubScreen() {
           </Body>
         </View>
         <View style={{ marginTop: 12, marginBottom: 6 }}>
-          <Segments segments={['on', 'on', 'off']} />
+          <Segments segments={['on', 'on', 'off']} light="bottom" />
         </View>
         {q.hifz.items.map((it) => (
           <View key={it.title} style={[styles.row, { paddingVertical: 12, gap: 14 }]}>
@@ -174,23 +174,38 @@ export default function QuranHubScreen() {
 }
 
 function Ring({ value, label, unit }: { value: number; label: string; unit: string }) {
+  // canvas: 50pt ring, 6.6pt thick; track #C6B2B2 at 30%, arc #3526DB with round ends
   const size = 52;
-  const r = 22;
+  const w = 6.57;
+  const r = 25.05 - w / 2;
   const c = 2 * Math.PI * r;
   return (
     <View style={[styles.center, { width: size, height: size }]}>
       <Svg width={size} height={size} style={{ position: 'absolute' }}>
-        <Circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(129,130,144,0.2)" strokeWidth={5} fill="#FFFFFF" />
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke="#C6B2B2" strokeOpacity={0.3} strokeWidth={w} fill="none" />
         <Circle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="#7C5CF0"
-          strokeWidth={5}
+          stroke="#3526DB"
+          strokeWidth={w}
           fill="none"
           strokeLinecap="round"
           strokeDasharray={`${Math.max(c * value, c * 0.08)} ${c}`}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+        {/* the arc's inner light (0 4 blur 2 white .72), as a thin highlight along its outer half */}
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r + w / 4}
+          stroke="#FFFFFF"
+          strokeOpacity={0.35}
+          strokeWidth={1.5}
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={`${Math.max(c * value, c * 0.08) * 0.9} ${c * 2}`}
+          transform={`rotate(-88 ${size / 2} ${size / 2})`}
         />
       </Svg>
       <Display size={15} lineHeight={17}>

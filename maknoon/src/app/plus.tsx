@@ -97,7 +97,7 @@ export default function PlusScreen() {
               {P.sponsor.of}
             </Body>
           </View>
-          <ProgressBar value={0} height={12} fill="#26CCDB" track="rgba(255,255,255,0.3)" />
+          <ProgressBar value={0} fill="#26CCDB" track="#FFFFFF" />
         </View>
         <Pressable accessibilityRole="button">
           <Squircle radius={24} fill={colors.white} glow="glass" style={styles.give}>

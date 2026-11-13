@@ -39,7 +39,7 @@ export default function HifzScreen() {
         </Body>
         <View style={{ marginVertical: 14 }}>
           {/* 41 of 604 pages (juz 30 + part of 29) as drawn */}
-          <ProgressBar value={(604 - H.pace.remainingPages) / 604} height={10} fill="#4FD3E3" track="rgba(255,255,255,0.3)" />
+          <ProgressBar value={(604 - H.pace.remainingPages) / 604} fill="#26CCDB" track="#FFFFFF" />
         </View>
         <Caption color="rgba(255,255,255,0.75)">{H.progress.mushaf}</Caption>
       </HeroCard>

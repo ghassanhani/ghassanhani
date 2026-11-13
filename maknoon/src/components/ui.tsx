@@ -137,11 +137,14 @@ export function PillButton({ label, icon, onPress, variant = 'solid' }: Pressabl
 }
 
 /** Segmented progress (12pt, rounded 30) — 'on' sky, 'part' gold, 'off' track. */
-export function Segments({ segments }: { segments: readonly ('on' | 'off' | 'part')[] }) {
+/** `light`: where the done segments catch the light — 'top' (تعلّم card) or 'bottom' (Quran hub), as drawn. */
+export function Segments({ segments, light = 'top' }: { segments: readonly ('on' | 'off' | 'part')[]; light?: 'top' | 'bottom' }) {
   return (
     <View style={styles.segRow}>
       {segments.map((s, i) => (
-        <View key={i} style={[styles.seg, s === 'on' ? styles.segOn : styles.segOff]}>
+        // canvas: 52pt segments, the one in progress 30pt with a 20pt gold fill at its start
+        <View key={i} style={[styles.seg, { flex: s === 'part' ? 30 : 52 }]}>
+          {s === 'on' ? <View style={[styles.segFill, styles.segOn, light === 'bottom' && styles.segOnSoft]} /> : <View style={[styles.segFill, styles.segOff]} />}
           {s === 'part' ? <View style={[styles.segPart, atStart(0)]} /> : null}
         </View>
       ))}
@@ -149,11 +152,18 @@ export function Segments({ segments }: { segments: readonly ('on' | 'off' | 'par
   );
 }
 
-/** Single progress bar (track + fill). */
-export function ProgressBar({ value, height = 12, fill = colors.sky, track = colors.track }: { value: number; height?: number; fill?: string; track?: string }) {
+/**
+ * Single progress bar, as drawn in the canvas: a solid `track` colour at `trackOpacity` with a soft inner shadow,
+ * and a fill from the start side with the inner light (0 4 blur 2 white .95, 0 -4 blur 2 white .15).
+ */
+export function ProgressBar({ value, height = 12, fill = colors.sky, track = '#818290', trackOpacity = 0.3 }: { value: number; height?: number; fill?: string; track?: string; trackOpacity?: number }) {
+  const v = Math.max(0, Math.min(1, value));
   return (
-    <View style={{ height, borderRadius: height / 2, backgroundColor: track, overflow: 'hidden', flexDirection: 'row' }}>
-      <View style={{ width: `${Math.max(0, Math.min(1, value)) * 100}%`, backgroundColor: fill, borderRadius: height / 2 }} />
+    <View style={{ height }} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(v * 100) }}>
+      <View style={[styles.segFill, { borderRadius: height / 2, backgroundColor: track, opacity: trackOpacity, boxShadow: 'inset 4px 4px 4px rgba(0,0,0,0.25)' }]} />
+      {v > 0 ? (
+        <View style={[styles.barFill, atStart(0), { width: `${v * 100}%`, borderRadius: height / 2, backgroundColor: fill }]} />
+      ) : null}
     </View>
   );
 }
@@ -172,10 +182,15 @@ const styles = StyleSheet.create({
   count: { minWidth: 25, height: 24, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' },
   pill: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   segRow: { flexDirection: 'row', gap: 4 },
-  seg: { flex: 1, height: 12, borderRadius: 30, overflow: 'hidden' },
-  segOn: { backgroundColor: colors.sky, boxShadow: 'inset 0 -4px 4px rgba(255,255,255,0.35)' },
-  segOff: { backgroundColor: colors.track, boxShadow: 'inset 4px 4px 4px -1px rgba(0,0,0,0.25)' },
-  segPart: { position: 'absolute', top: 0, bottom: 0, width: '66%', backgroundColor: '#B8975A', borderRadius: 30 },
+  seg: { height: 12, borderRadius: 30, overflow: 'hidden' },
+  segFill: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, borderRadius: 30 },
+  // done: #3AAADA with the canvas inner light (0 4 blur 2 white .95, 0 -4 blur 2 white .15)
+  segOn: { backgroundColor: '#3AAADA', boxShadow: 'inset 0 4px 4px rgba(255,255,255,0.95), inset 0 -4px 4px rgba(255,255,255,0.15)' },
+  segOnSoft: { boxShadow: 'inset 0 -4px 4px rgba(255,255,255,0.35)' },
+  barFill: { position: 'absolute', top: 0, bottom: 0, boxShadow: 'inset 0 4px 4px rgba(255,255,255,0.95), inset 0 -4px 4px rgba(255,255,255,0.15)' },
+  // to go: #818290 at 30% with a soft inner shadow
+  segOff: { backgroundColor: '#818290', opacity: 0.3, boxShadow: 'inset 4px 4px 4px rgba(0,0,0,0.25)' },
+  segPart: { position: 'absolute', top: 0, bottom: 0, width: '66.7%', backgroundColor: '#A57D33', borderRadius: 30, boxShadow: 'inset 0 2px 3px rgba(255,255,255,0.95), inset 0 -4px 4px rgba(255,255,255,0.15)' },
   sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   segTrack: { flexDirection: 'row', gap: 6, padding: 4, borderRadius: 30, backgroundColor: 'rgba(129,130,144,0.12)' },
   segBtn: { minHeight: 42, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
