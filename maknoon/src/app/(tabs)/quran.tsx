@@ -63,7 +63,7 @@ export default function QuranHubScreen() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.rail} contentContainerStyle={styles.railContent}>
         {q.shortcuts.map((s) => (
           <Pressable key={s.title} accessibilityRole="button" onPress={() => s.route && router.push(s.route)}>
-            <GlassCard style={styles.mini}>
+            <GlassCard radius={28} style={styles.mini}>
               <IconBubble name={s.icon} size={31} iconSize={16} color={colors.ink} />
               <Display size={16} lineHeight={21} style={{ marginTop: 'auto' }}>
                 {s.title}

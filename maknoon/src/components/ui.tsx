@@ -12,10 +12,10 @@ type Box = { style?: StyleProp<ViewStyle>; children?: ReactNode };
 
 /** White 70% glass card, radius 36, inner glows. Optional colour tint. */
 /** `tint`: the coloured lights are a Home-only treatment in the canvas; cards elsewhere stay plain white glass. */
-export function GlassCard({ style, children, tint, soft }: Box & { tint?: TintName; soft?: boolean }) {
+export function GlassCard({ style, children, tint, soft, radius: r = radius.card }: Box & { tint?: TintName; soft?: boolean; radius?: number }) {
   return (
     <Squircle
-      radius={radius.card}
+      radius={r}
       fill={soft ? colors.glassSoft : colors.glass}
       blobs={tint ? tints[tint] : undefined}
       glow="frost"

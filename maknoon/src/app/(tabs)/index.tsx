@@ -237,7 +237,7 @@ function WirdProgress({ value }: { value: number }) {
 
 function MiniCard({ title, icon }: { title: string; icon: IconName }) {
   return (
-    <GlassCard soft tint="ink" style={styles.mini}>
+    <GlassCard soft tint="ink" radius={27} style={styles.mini}>
       <IconBubble name={icon} size={31} iconSize={16} color={colors.ink} />
       <Display size={15} lineHeight={20} style={{ marginTop: 'auto' }}>
         {title}

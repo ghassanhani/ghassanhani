@@ -35,7 +35,7 @@ export const home = {
   hifzReview: { label: 'مراجعة الحفظ', title: '٣ مقاطع اليوم', surahs: ['الملك', 'القلم', 'الحاقة'] },
   adhkarRail: [
     { title: 'أذكار الصباح والمساء', icon: 'ramadhan1' },
-    { title: 'الذكر المطلق', icon: 'quran3' },
+    { title: 'الذكر\nالمطلق', icon: 'quran3' },
     { title: 'أذكار بعد الصلاة', icon: 'ramadhan2' },
     { title: 'أذكار بعد الصلاة', icon: 'quran2' },
   ] as const,
