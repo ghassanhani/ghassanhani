@@ -66,10 +66,14 @@
       "forcesRTL": true,
       "packsBaseUrl": null,
       "searchWorkerUrl": "https://maknoon-assistant.ghassanhani0.workers.dev",
-      "modelBaseUrl": "https://raw.githubusercontent.com/ghassanhani/ghassanhani/eb53332ceeadc62f921551ba2c1decf5d5a6a941/maknoon/hosted/models"
+      "modelBaseUrl": "https://raw.githubusercontent.com/ghassanhani/ghassanhani/eb53332ceeadc62f921551ba2c1decf5d5a6a941/maknoon/hosted/models",
+      "eas": {
+        "projectId": "efb5e217-ad97-4247-9609-b990594f8834"
+      }
     },
     "experiments": {
       "typedRoutes": false
-    }
+    },
+    "owner": "ghassanhani0"
   }
 }
