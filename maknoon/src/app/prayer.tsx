@@ -273,8 +273,8 @@ function QiblaCompass({ bearing }: { bearing: number }) {
             <Circle cx={c} cy={c} r={6} fill="#FFFFFF" stroke={facing ? '#2E8B57' : colors.ink} strokeWidth={2.5} />
           </Svg>
           {/* the Kaaba at the needle's tip, kept upright */}
-          <Animated.View style={[styles.kaaba, { left: c + r * Math.sin((bearing * Math.PI) / 180) - 22, top: c - r * Math.cos((bearing * Math.PI) / 180) - 22 }, upright, facing && { borderColor: '#2E8B57' }]}>
-            <Image source={require('../../assets/brand/kaaba.png')} style={{ width: 30, height: 30 }} accessibilityLabel="الكعبة" />
+          <Animated.View style={[styles.kaaba, { left: c + r * Math.sin((bearing * Math.PI) / 180) - 22, top: c - r * Math.cos((bearing * Math.PI) / 180) - 22 }, upright]}>
+            <Image source={require('../../assets/brand/kaaba.png')} style={{ width: 40, height: 40 }} accessibilityLabel="الكعبة" />
           </Animated.View>
         </Animated.View>
       </View>
@@ -294,7 +294,8 @@ function QiblaCompass({ bearing }: { bearing: number }) {
 
 const styles = StyleSheet.create({
   lubber: { width: 0, height: 0, borderLeftWidth: 9, borderRightWidth: 9, borderTopWidth: 12, borderLeftColor: 'transparent', borderRightColor: 'transparent' },
-  kaaba: { position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#F2A516', boxShadow: '0 3px 8px rgba(0,0,0,0.2)' },
+  // the Kaaba on its own, no ring around it
+  kaaba: { position: 'absolute', width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center' },
   between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   dot: { width: 10, height: 10, borderRadius: 5, borderWidth: 1.5, borderColor: '#C9CAD3' },
