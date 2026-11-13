@@ -3,7 +3,9 @@ import { Stack } from 'expo-router/stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { I18nManager, Platform } from 'react-native';
+import { Image } from 'expo-image';
+import { I18nManager, Platform, StyleSheet } from 'react-native';
+import Animated, { FadeOut } from 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { hydratePrefs } from '@/store/prefs';
@@ -22,6 +24,8 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
 }
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+const LAUNCH = Date.now();
+const SPLASH_MS = 8000; // the founder's choice: the splash stays about 8 seconds
 
 export default function RootLayout() {
   const [loaded, error] = useFonts(fontAssets);
@@ -30,11 +34,22 @@ export default function RootLayout() {
     hydratePrefs().finally(() => setPrefsReady(true));
   }, []);
 
+  // The design's splash, drawn full screen: the system shows it at launch, then the same picture
+  // stays above the app (which loads underneath it) until 8 s have passed, and fades away.
+  const [splash, setSplash] = useState(true);
+  const ready = (loaded || !!error) && prefsReady;
   useEffect(() => {
-    if ((loaded || error) && prefsReady) SplashScreen.hideAsync().catch(() => {});
-  }, [loaded, error, prefsReady]);
+    if (!ready) return;
+    const t = setTimeout(() => setSplash(false), Math.max(0, SPLASH_MS - (Date.now() - LAUNCH)));
+    // the system splash hands over once the picture is drawn above the app; never later than this
+    const h = setTimeout(() => SplashScreen.hideAsync().catch(() => {}), 1200);
+    return () => {
+      clearTimeout(t);
+      clearTimeout(h);
+    };
+  }, [ready]);
 
-  if ((!loaded && !error) || !prefsReady) return null;
+  if (!ready) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -60,6 +75,16 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
       </Stack>
     </SafeAreaProvider>
+      {splash ? (
+        <Animated.View exiting={FadeOut.duration(450)} style={StyleSheet.absoluteFill} pointerEvents="auto">
+          <Image
+            source={require('../../assets/brand/splash-full.png')}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+            onDisplay={() => SplashScreen.hideAsync().catch(() => {})}
+          />
+        </Animated.View>
+      ) : null}
     </GestureHandlerRootView>
   );
 }

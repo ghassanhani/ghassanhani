@@ -69,6 +69,17 @@ export default function MushafScreen() {
 }
 
 const isWord = (t: string) => /[\u0621-\u064A]/.test(t);
+// Words per ayah, counted the same way the recitation check counts them (cached: asked for every glyph).
+const WORDS = new Map<string, number>();
+function ayahWords(key: string) {
+  let n = WORDS.get(key);
+  if (n === undefined) {
+    const [s, a] = key.split(':').map(Number);
+    n = (getAyah(s, a)?.text ?? '').split(/[\s\u00a0]+/).filter(isWord).length;
+    WORDS.set(key, n);
+  }
+  return n;
+}
 
 function MushafPage({ page }: { page: number }) {
   const insets = useSafeAreaInsets();
@@ -457,10 +468,7 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: numbe
   const centred = page <= 2; // the first two pages are set in a narrow block, centred
   const row = isRTL() ? 'row' : 'row-reverse';
   // Words counted per ayah the same way the recitation check counts them.
-  const wordCount = (key: string) => {
-    const [s, a] = key.split(':').map(Number);
-    return (getAyah(s, a)?.text ?? '').split(/[\s\u00a0]+/).filter(isWord).length;
-  };
+  const wordCount = ayahWords;
   const firstIsHeader = 'h' in (pg.l[0] ?? {});
   const firstSurah = (() => {
     for (const l of pg.l) {
@@ -472,26 +480,22 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: numbe
     }
     return 1;
   })();
-  const glyph = (l: Extract<Qcf4Line, { g: string }>, ch: string, gi: number) => {
-    const ai = l.a[gi];
-    const wi = l.i[gi];
-    const k = `${l.a.join('.')}-${gi}-${ch}`;
-    // The ayah end: the design's teal medallion with the ayah number, in place of the font's mark
-    if (wi === -1 && ai) return <AyahMarker key={k} n={Number(ayahKey(ai).split(':')[1])} scale={size / 21} />;
-    let style = null;
-    // the ayah being recited reads in teal
-    if (current && ai && ayahKey(ai) === current) style = styles.wListen;
-    if (tasmee?.active && ai && wi >= 0) {
-      const key = ayahKey(ai);
-      const { state, current: now } = tasmee.wordState(key, wi, wordCount(key));
-      style = now ? styles.wCurrent : state === 'pending' ? styles.wHidden : state === 'ok' ? null : styles.wCheck;
-    }
-    return (
-      <Text key={k} style={[{ fontFamily: pg.f, fontSize: size, lineHeight: lineH, color: colors.ink }, style]}>
-        {ch}
-      </Text>
-    );
-  };
+  // One letter per glyph saying how it is drawn; a line redraws only when its own letters change
+  // (while reciting, only the line with the new word redraws, not the whole page).
+  const codesOf = (l: Extract<Qcf4Line, { g: string }>) =>
+    Array.from(l.g, (_, gi) => {
+      const ai = l.a[gi];
+      const wi = l.i[gi];
+      if (wi === -1 && ai) return 'm';
+      let c = current && ai && ayahKey(ai) === current ? 'l' : 'n';
+      if (tasmee?.active && ai && wi >= 0) {
+        const key = ayahKey(ai);
+        const { state, current: now } = tasmee.wordState(key, wi, wordCount(key));
+        c = now ? 'c' : state === 'pending' ? 'h' : state === 'ok' ? 'n' : 'x';
+      }
+      return c;
+    }).join('');
+  const glyphs = (l: Extract<Qcf4Line, { g: string }>, li: number) => <Glyphs key={`g${li}`} l={l} codes={codesOf(l)} font={pg.f} size={size} lineH={lineH} />;
   // Rows of the page: headers and basmala as they are; word lines either kept line for line,
   // or (zoomed) joined into one flowing paragraph per run of lines.
   const rows: React.ReactNode[] = [];
@@ -513,16 +517,16 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: numbe
       );
       return;
     }
-    const glyphs = Array.from(l.g).map((ch, gi) => glyph(l, ch, gi));
+    const line = glyphs(l, li);
     if (!reflow) {
       rows.push(
         <View key={li} style={{ flexDirection: row, justifyContent: centred ? 'center' : 'space-between', gap: centred ? size * 0.3 : 0, height: lineH, alignItems: 'center' }}>
-          {glyphs}
+          {line}
         </View>,
       );
       return;
     }
-    flow = [...flow, ...glyphs];
+    flow = [...flow, line];
     const next = pg.l[li + 1];
     if (next && 'a' in next) return; // the paragraph goes on
     rows.push(
@@ -540,6 +544,27 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah }: { page: numbe
     </View>
   );
 }
+
+/** The glyphs of one mushaf line, drawn from their codes (see `codesOf`); redrawn only when those change. */
+const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH }: { l: Extract<Qcf4Line, { g: string }>; codes: string; font: string; size: number; lineH: number }) {
+  const base = { fontFamily: font, fontSize: size, lineHeight: lineH, color: colors.ink };
+  return (
+    <>
+      {Array.from(l.g, (ch, gi) => {
+        const c = codes[gi];
+        const k = `${gi}-${ch}`;
+        // The ayah end: the design's teal medallion with the ayah number, in place of the font's mark
+        if (c === 'm') return <AyahMarker key={k} n={Number(ayahKey(l.a[gi]).split(':')[1])} scale={size / 21} />;
+        const style = c === 'l' ? styles.wListen : c === 'c' ? styles.wCurrent : c === 'h' ? styles.wHidden : c === 'x' ? styles.wCheck : null;
+        return (
+          <Text key={k} style={[base, style]}>
+            {ch}
+          </Text>
+        );
+      })}
+    </>
+  );
+});
 
 /**
  * The ornamented surah header from the design canvas (exported artwork, 354×61 with a soft edge).
