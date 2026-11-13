@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   count: { minWidth: 25, height: 24, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' },
   pill: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   segRow: { flexDirection: 'row', gap: 4 },
-  seg: { height: 12, borderRadius: 30, overflow: 'hidden' },
+  seg: { height: 12, borderRadius: 30, borderCurve: 'continuous', overflow: 'hidden' },
   segFill: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, borderRadius: 30 , borderCurve: 'continuous'},
   // done: #3AAADA with the canvas inner light (0 4 blur 2 white .95, 0 -4 blur 2 white .15)
   segOn: { backgroundColor: '#3AAADA', boxShadow: 'inset 0 4px 4px rgba(255,255,255,0.95), inset 0 -4px 4px rgba(255,255,255,0.15)' },
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
   segTrack: { flexDirection: 'row', gap: 6, padding: 4, borderRadius: 30, borderCurve: 'continuous', backgroundColor: 'rgba(129,130,144,0.12)' },
   segBtn: { minHeight: 42, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
-  segPill: { position: 'absolute', top: 4, bottom: 4, backgroundColor: colors.white, boxShadow: '0 2px 6px rgba(39,40,51,0.08)', borderRadius: 22 },
+  segPill: { position: 'absolute', top: 4, bottom: 4, backgroundColor: colors.white, boxShadow: '0 2px 6px rgba(39,40,51,0.08)', borderRadius: 22, borderCurve: 'continuous' },
   switch: { width: 50, height: 30, borderRadius: 15, borderCurve: 'continuous', padding: 3, justifyContent: 'center' },
   switchOnShadow: { boxShadow: 'inset 0 3px 4px rgba(255,255,255,0.35)' },
   switchOffShadow: { boxShadow: 'inset 3px 3px 4px -1px rgba(0,0,0,0.25)' },
