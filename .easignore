@@ -41,3 +41,6 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 *.orig.*
+
+# models served to the app from GitHub (raw), never bundled into the app
+maknoon/hosted/
