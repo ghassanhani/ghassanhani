@@ -797,9 +797,6 @@ function SurahBanner({ surah, onPress }: { surah: number; onPress: () => void })
           // Free calligraphic fallback until each surah has its drawn title: Amiri Quran (SIL OFL).
           <Text style={styles.bannerName}>{`سورة ${name.replace(/[\u064B-\u0652\u0670]/g, '')}`}</Text>
         )}
-        <View style={styles.bannerChevron}>
-          <Icon name="chevronDown" size={14} color={colors.white} />
-        </View>
       </View>
     </PressScale>
   );
@@ -890,7 +887,6 @@ const styles = StyleSheet.create({
   bannerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   bannerTitle: { width: 140, height: 44 },
   bannerName: { fontFamily: F.display, fontSize: 24, lineHeight: 40, color: colors.white, textAlign: 'center' },
-  bannerChevron: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.28)', alignItems: 'center', justifyContent: 'center' },
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 },
   pageNo: { width: 52.49, height: 32.157, alignItems: 'center', justifyContent: 'center' },
   tasmee: { position: 'absolute', start: 20, end: 20, alignItems: 'center', gap: 10 },
