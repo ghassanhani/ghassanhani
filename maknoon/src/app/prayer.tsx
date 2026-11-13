@@ -2,7 +2,7 @@ import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Linking, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, G, Line, Polygon, Text as SvgText } from 'react-native-svg';
 import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
@@ -234,7 +234,7 @@ function QiblaCompass({ bearing }: { bearing: number }) {
 
   const dial = useAnimatedStyle(() => ({ transform: [{ rotate: `${-turn.get()}deg` }] }));
   const upright = useAnimatedStyle(() => ({ transform: [{ rotate: `${turn.get() - bearing}deg` }] }));
-  const r = c - 30; // the needle's length: the Kaaba sits just inside the ring of ticks
+  const r = c - 6; // the Kaaba sits on the dial's edge, over the ring of ticks
 
   return (
     <View style={{ alignItems: 'center', gap: 10 }}>
@@ -243,30 +243,40 @@ function QiblaCompass({ bearing }: { bearing: number }) {
         <View style={[styles.lubber, { borderTopColor: facing ? '#2E8B57' : colors.ink }]} />
         <Animated.View style={[{ width: size, height: size, marginTop: 4 }, dial]} accessibilityLabel={`اتجاه القبلة ${Math.round(bearing)} درجة من الشمال`}>
           <Svg width={size} height={size}>
-            <Circle cx={c} cy={c} r={c - 2} fill="#FFFFFF" fillOpacity={0.9} stroke={facing ? '#2E8B57' : 'rgba(3,90,95,0.15)'} strokeWidth={facing ? 3 : 1} />
+            <Circle cx={c} cy={c} r={c - 2} fill="#FFFFFF" fillOpacity={0.92} stroke={facing ? '#2E8B57' : 'rgba(3,90,95,0.15)'} strokeWidth={facing ? 3 : 1} />
             {Array.from({ length: 72 }, (_, i) => (
-              <Line key={i} x1={c} y1={8} x2={c} y2={i % 18 === 0 ? 22 : i % 2 === 0 ? 15 : 12} stroke={i % 18 === 0 ? colors.ink : '#A3A4AF'} strokeWidth={i % 18 === 0 ? 2.5 : 1} transform={`rotate(${i * 5} ${c} ${c})`} />
+              <Line key={i} x1={c} y1={8} x2={c} y2={i % 18 === 0 ? 22 : i % 2 === 0 ? 16 : 12} stroke={i % 18 === 0 ? colors.primary : i % 2 === 0 ? 'rgba(3,90,95,0.55)' : '#B9BAC4'} strokeWidth={i % 18 === 0 ? 3 : i % 2 === 0 ? 1.6 : 1} transform={`rotate(${i * 5} ${c} ${c})`} />
             ))}
-            {[['ش', 0], ['ق', 90], ['ج', 180], ['غ', 270]].map(([t, a]) => (
-              <SvgText key={t as string} x={c + (c - 36) * Math.sin(((a as number) * Math.PI) / 180)} y={c - (c - 36) * Math.cos(((a as number) * Math.PI) / 180) + 6} fontSize={t === 'ش' ? 17 : 14} fill={t === 'ش' ? '#B3261E' : colors.ink} textAnchor="middle" fontFamily={F.sansBold}>
-                {t as string}
-              </SvgText>
-            ))}
+            {[['ش', 0], ['ق', 90], ['ج', 180], ['غ', 270]].map(([t, a]) => {
+              const rad = ((a as number) * Math.PI) / 180;
+              return (
+                <G key={t as string}>
+                  <SvgText x={c + (c - 36) * Math.sin(rad)} y={c - (c - 36) * Math.cos(rad) + 6} fontSize={t === 'ش' ? 17 : 14} fill={t === 'ش' ? '#B3261E' : colors.ink} textAnchor="middle" fontFamily={F.sansBold}>
+                    {t as string}
+                  </SvgText>
+                  <SvgText x={c + (c - 58) * Math.sin(rad)} y={c - (c - 58) * Math.cos(rad) + 4} fontSize={10} fill="#8A8B96" textAnchor="middle" fontFamily={F.sans}>
+                    {ar(a as number)}
+                  </SvgText>
+                </G>
+              );
+            })}
+            {/* the arrow to the qibla: amber, green once the phone faces it; a short red tail behind */}
             <G transform={`rotate(${bearing} ${c} ${c})`}>
-              <Line x1={c} y1={c} x2={c} y2={c - r + 22} stroke={colors.primary} strokeWidth={6} strokeLinecap="round" />
+              <Polygon points={`${c},${c - r + 24} ${c - 11},${c} ${c + 11},${c}`} fill={facing ? '#2E8B57' : '#F2A516'} />
+              <Polygon points={`${c - 11},${c} ${c + 11},${c} ${c},${c + 34}`} fill={facing ? '#1E6B42' : '#E2483A'} />
             </G>
-            <Circle cx={c} cy={c} r={7} fill="#FFFFFF" stroke={colors.primary} strokeWidth={2.5} />
+            <Circle cx={c} cy={c} r={6} fill="#FFFFFF" stroke={facing ? '#2E8B57' : colors.ink} strokeWidth={2.5} />
           </Svg>
           {/* the Kaaba at the needle's tip, kept upright */}
-          <Animated.View style={[styles.kaaba, { left: c + r * Math.sin((bearing * Math.PI) / 180) - 22, top: c - r * Math.cos((bearing * Math.PI) / 180) - 22 }, upright, facing && { backgroundColor: '#2E8B57' }]}>
-            <Icon name="kaaba" size={26} color="#FFFFFF" outline />
+          <Animated.View style={[styles.kaaba, { left: c + r * Math.sin((bearing * Math.PI) / 180) - 22, top: c - r * Math.cos((bearing * Math.PI) / 180) - 22 }, upright, facing && { borderColor: '#2E8B57' }]}>
+            <Icon name="kaaba" size={26} color="#1B1C22" outline />
           </Animated.View>
         </Animated.View>
       </View>
       <Display size={30} lineHeight={40}>{`${ar(Math.round(bearing))}° ${P.qibla.from}`}</Display>
       {mode === 'on' ? (
         <Body size={14} weight="bold" color={facing ? '#2E8B57' : colors.primary}>
-          {facing ? 'أنت باتجاه القبلة' : 'أدِر الهاتف حتى تصير الكعبة تحت العلامة'}
+          {facing ? 'أنت باتجاه القبلة' : 'أدِر الجهاز حتى يصير السهم أخضر'}
         </Body>
       ) : mode === 'off' || mode === 'denied' ? (
         <SoftButton label={mode === 'denied' ? 'اسمح بالبوصلة من الإعدادات' : 'شغّل البوصلة'} onPress={() => (mode === 'denied' ? Linking.openSettings() : start(true))} />
@@ -279,7 +289,7 @@ function QiblaCompass({ bearing }: { bearing: number }) {
 
 const styles = StyleSheet.create({
   lubber: { width: 0, height: 0, borderLeftWidth: 9, borderRightWidth: 9, borderTopWidth: 12, borderLeftColor: 'transparent', borderRightColor: 'transparent' },
-  kaaba: { position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: '#272833', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#D9BC85', boxShadow: '0 3px 8px rgba(0,0,0,0.25)' },
+  kaaba: { position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: '#F2A516', boxShadow: '0 3px 8px rgba(0,0,0,0.2)' },
   row: { flexDirection: 'row', alignItems: 'center' },
   between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   dot: { width: 10, height: 10, borderRadius: 5, borderWidth: 1.5, borderColor: '#C9CAD3' },
