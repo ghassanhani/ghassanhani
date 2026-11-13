@@ -127,7 +127,9 @@ export const prayerScreen = {
 };
 
 // ── Adhkar ────────────────────────────────────────────────────────────
-type Src = { pending: true } | { src: string; chip: string };
+type Src = { pending: true } | { src: string; chip: string } | { hadith: string; ref: string; chip: string };
+import { type Grade, gradeLabel, graderName } from './hadithGrades';
+
 const P: Src = { pending: true };
 const S = (src: string, chip = 'صحيح'): Src => ({ src, chip });
 export type Dhikr = { id: string; label?: string; text: string; n: number; virtue?: string; ayah?: boolean; s: Src };
@@ -180,6 +182,25 @@ export const adhkar: Record<'sabah' | 'mutlaq' | 'salah' | 'nawm' | 'occ', Adhka
   ] },
 };
 export const adhkarOrder = ['sabah', 'mutlaq', 'salah', 'nawm', 'occ'] as const;
+
+// Each dhikr found in its hadith (pipeline/importers/adhkar, from the verified Sunnah.com packs)
+// takes its wording verbatim from that hadith, with the hadith's reference and grading; the rest
+// keep their place and stay marked for review.
+const fromHadith = (require('../../assets/content/adhkar.json') as { adhkar: Record<string, { id: string; text: string; hadith: string; ref: string; grades: Grade[] }[]> }).adhkar;
+const toArabicDigits = (t: string) => t.replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[+d]);
+for (const [cat, list] of Object.entries(fromHadith)) {
+  const items = adhkar[cat as keyof typeof adhkar]?.items;
+  if (!items) continue;
+  for (const x of list) {
+    const d = items.find((i) => i.id === x.id);
+    if (!d) continue;
+    const [book] = x.hadith.split(':');
+    // a grading as the source gives it (Al-Albani first when there are several); the two Sahihs carry none
+    const g = [...x.grades].sort((a) => (/albani|الألباني/i.test(a.by) ? -1 : 1))[0];
+    d.text = x.text;
+    d.s = { hadith: x.hadith, ref: toArabicDigits(x.ref), chip: g ? `${gradeLabel(g)} · ${graderName(g)}` : book === 'bukhari' || book === 'muslim' ? 'في الصحيح' : 'بلا حكم في المصدر' };
+  }
+}
 
 // ── Zakat ─────────────────────────────────────────────────────────────
 export const zakatScreen = {

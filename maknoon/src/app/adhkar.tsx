@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
@@ -141,6 +141,12 @@ function DhikrCard({ d, count, onTap }: { d: Dhikr; count: number; onTap: () => 
       {d.virtue ? <Body size={13} color="#4A4B57">{`${A.virtue} ${d.virtue}`}</Body> : null}
       {'pending' in d.s ? (
         <Chip label={A.pending} tone="pending" />
+      ) : 'hadith' in d.s ? (
+        // from its hadith: the reference and grading as the source gives them; opens the full hadith
+        <Pressable accessibilityRole="link" onPress={() => 'hadith' in d.s && router.push(`/hadith/${d.s.hadith}`)} style={[styles.row, { gap: 8, flexWrap: 'wrap' }]}>
+          <Chip label={d.s.chip} tone={/صحيح/.test(d.s.chip) ? 'reviewed' : 'pending'} />
+          <Caption color={colors.primary}>{`${d.s.ref} ‹`}</Caption>
+        </Pressable>
       ) : (
         <View style={[styles.row, { gap: 8 }]}>
           <Chip label={d.s.chip} tone={d.s.chip === 'صحيح' ? 'reviewed' : 'pending'} />
