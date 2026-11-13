@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import * as Location from 'expo-location';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Linking, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
@@ -12,7 +14,7 @@ import { prayerScreen as P } from '@/content/worship';
 import { usePrefs } from '@/store/prefs';
 import { F } from '@/theme/fonts';
 import { Breathe, haptic } from '@/components/motion';
-import { colors } from '@/theme/tokens';
+import { colors, space } from '@/theme/tokens';
 
 export default function PrayerScreen() {
   const [prefs, setPrefs] = usePrefs();
@@ -104,21 +106,11 @@ export default function PrayerScreen() {
         })}
       </GlassCard>
 
-      <GlassCard style={{ gap: 14 }}>
-        <View style={[styles.row, { gap: 16 }]}>
-          <Compass bearing={qibla} />
-          <View style={{ flex: 1 }}>
-            <Caption>{P.qibla.title}</Caption>
-            <Display size={34} lineHeight={46}>{`${ar(Math.round(qibla))}°`}</Display>
-            <Body size={13} color={colors.primary}>
-              {P.qibla.from}
-            </Body>
-          </View>
-        </View>
-        <Body size={13} color="#4A4B57">
+      <GlassCard style={{ gap: 12, alignItems: 'center' }}>
+        <QiblaCompass bearing={qibla} />
+        <Body size={13} color="#4A4B57" style={{ textAlign: 'center' }}>
           {P.qibla.hint}
         </Body>
-        <SoftButton label={P.qibla.map} />
       </GlassCard>
 
       <GlassCard style={{ gap: 12 }}>
@@ -192,28 +184,102 @@ function Options({ items, value, onPick }: { items: { key: string; label: string
 }
 
 /** Static compass rose with the qibla bearing (device heading needs a sensor; next step). */
-function Compass({ bearing }: { bearing: number }) {
-  const s = 120;
-  const c = s / 2;
+/**
+ * The qibla compass: the dial turns with the phone (its «ش» points to true north, from the phone's
+ * own calibrated compass); the needle points to the qibla with the Kaaba at its tip. The fixed mark
+ * at the top is where the phone points: bring the Kaaba under it and the phone taps once.
+ * The heading is read on the device only (iOS asks for location permission to give it).
+ */
+function QiblaCompass({ bearing }: { bearing: number }) {
+  const { width } = useWindowDimensions();
+  const size = Math.min(300, width - 2 * space.gutter - 56);
+  const c = size / 2;
+  const [mode, setMode] = useState<'off' | 'on' | 'denied' | 'none'>(Platform.OS === 'web' ? 'none' : 'off');
+  const [facing, setFacing] = useState(false);
+  const turn = useSharedValue(0); // the phone's heading, unwrapped (no jump between 359° and 0°)
+  const last = useRef(0);
+  const sub = useRef<{ remove: () => void } | null>(null);
+
+  const start = useCallback(async (ask: boolean) => {
+    try {
+      const perm = ask ? await Location.requestForegroundPermissionsAsync() : await Location.getForegroundPermissionsAsync();
+      if (!perm.granted) {
+        if (ask) setMode('denied');
+        return;
+      }
+      sub.current?.remove();
+      sub.current = await Location.watchHeadingAsync((h) => {
+        const v = h.trueHeading >= 0 ? h.trueHeading : h.magHeading;
+        const d = ((v - (last.current % 360) + 540) % 360) - 180;
+        last.current += d;
+        turn.set(withTiming(last.current, { duration: 200, easing: Easing.out(Easing.quad) }));
+        setFacing(Math.abs(((bearing - v + 540) % 360) - 180) < 4);
+      });
+      setMode('on');
+    } catch {
+      setMode('none');
+    }
+  }, [bearing, turn]);
+  useEffect(() => {
+    // already allowed: start at once, without asking (on the next tick, outside the render pass)
+    const t = Platform.OS !== 'web' ? setTimeout(() => void start(false), 0) : undefined;
+    return () => {
+      if (t) clearTimeout(t);
+      sub.current?.remove();
+    };
+  }, [start]);
+  useEffect(() => {
+    if (facing) haptic.land();
+  }, [facing]);
+
+  const dial = useAnimatedStyle(() => ({ transform: [{ rotate: `${-turn.get()}deg` }] }));
+  const upright = useAnimatedStyle(() => ({ transform: [{ rotate: `${turn.get() - bearing}deg` }] }));
+  const r = c - 30; // the needle's length: the Kaaba sits just inside the ring of ticks
+
   return (
-    <Svg width={s} height={s} accessibilityLabel={`اتجاه القبلة ${Math.round(bearing)} درجة من الشمال`}>
-      <Circle cx={c} cy={c} r={c - 2} fill="#FFFFFF" fillOpacity={0.85} />
-      {Array.from({ length: 36 }, (_, i) => (
-        <Line key={i} x1={c} y1={6} x2={c} y2={i % 9 === 0 ? 16 : 11} stroke="#A3A4AF" strokeWidth={i % 9 === 0 ? 2 : 1} transform={`rotate(${i * 10} ${c} ${c})`} />
-      ))}
-      <SvgText x={c} y={28} fontSize={12} fill={colors.ink} textAnchor="middle" fontFamily={F.sansBold}>
-        ش
-      </SvgText>
-      <G transform={`rotate(${bearing} ${c} ${c})`}>
-        <Line x1={c} y1={c} x2={c} y2={18} stroke={colors.primary} strokeWidth={6} strokeLinecap="round" />
-        <Circle cx={c} cy={18} r={7} fill="#D9BC85" />
-      </G>
-      <Circle cx={c} cy={c} r={5} fill="#FFFFFF" stroke={colors.primary} strokeWidth={2} />
-    </Svg>
+    <View style={{ alignItems: 'center', gap: 10 }}>
+      <View style={{ width: size, height: size + 14, alignItems: 'center' }}>
+        {/* where the phone points */}
+        <View style={[styles.lubber, { borderTopColor: facing ? '#2E8B57' : colors.ink }]} />
+        <Animated.View style={[{ width: size, height: size, marginTop: 4 }, dial]} accessibilityLabel={`اتجاه القبلة ${Math.round(bearing)} درجة من الشمال`}>
+          <Svg width={size} height={size}>
+            <Circle cx={c} cy={c} r={c - 2} fill="#FFFFFF" fillOpacity={0.9} stroke={facing ? '#2E8B57' : 'rgba(3,90,95,0.15)'} strokeWidth={facing ? 3 : 1} />
+            {Array.from({ length: 72 }, (_, i) => (
+              <Line key={i} x1={c} y1={8} x2={c} y2={i % 18 === 0 ? 22 : i % 2 === 0 ? 15 : 12} stroke={i % 18 === 0 ? colors.ink : '#A3A4AF'} strokeWidth={i % 18 === 0 ? 2.5 : 1} transform={`rotate(${i * 5} ${c} ${c})`} />
+            ))}
+            {[['ش', 0], ['ق', 90], ['ج', 180], ['غ', 270]].map(([t, a]) => (
+              <SvgText key={t as string} x={c + (c - 36) * Math.sin(((a as number) * Math.PI) / 180)} y={c - (c - 36) * Math.cos(((a as number) * Math.PI) / 180) + 6} fontSize={t === 'ش' ? 17 : 14} fill={t === 'ش' ? '#B3261E' : colors.ink} textAnchor="middle" fontFamily={F.sansBold}>
+                {t as string}
+              </SvgText>
+            ))}
+            <G transform={`rotate(${bearing} ${c} ${c})`}>
+              <Line x1={c} y1={c} x2={c} y2={c - r + 22} stroke={colors.primary} strokeWidth={6} strokeLinecap="round" />
+            </G>
+            <Circle cx={c} cy={c} r={7} fill="#FFFFFF" stroke={colors.primary} strokeWidth={2.5} />
+          </Svg>
+          {/* the Kaaba at the needle's tip, kept upright */}
+          <Animated.View style={[styles.kaaba, { left: c + r * Math.sin((bearing * Math.PI) / 180) - 22, top: c - r * Math.cos((bearing * Math.PI) / 180) - 22 }, upright, facing && { backgroundColor: '#2E8B57' }]}>
+            <Icon name="kaaba" size={26} color="#FFFFFF" outline />
+          </Animated.View>
+        </Animated.View>
+      </View>
+      <Display size={30} lineHeight={40}>{`${ar(Math.round(bearing))}° ${P.qibla.from}`}</Display>
+      {mode === 'on' ? (
+        <Body size={14} weight="bold" color={facing ? '#2E8B57' : colors.primary}>
+          {facing ? 'أنت باتجاه القبلة' : 'أدِر الهاتف حتى تصير الكعبة تحت العلامة'}
+        </Body>
+      ) : mode === 'off' || mode === 'denied' ? (
+        <SoftButton label={mode === 'denied' ? 'اسمح بالبوصلة من الإعدادات' : 'شغّل البوصلة'} onPress={() => (mode === 'denied' ? Linking.openSettings() : start(true))} />
+      ) : (
+        <Caption>البوصلة تعمل في تطبيق الجوال.</Caption>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  lubber: { width: 0, height: 0, borderLeftWidth: 9, borderRightWidth: 9, borderTopWidth: 12, borderLeftColor: 'transparent', borderRightColor: 'transparent' },
+  kaaba: { position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: '#272833', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#D9BC85', boxShadow: '0 3px 8px rgba(0,0,0,0.25)' },
   row: { flexDirection: 'row', alignItems: 'center' },
   between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   dot: { width: 10, height: 10, borderRadius: 5, borderWidth: 1.5, borderColor: '#C9CAD3' },
