@@ -22,6 +22,13 @@ from huggingface_hub import snapshot_download
 snapshot_download("tarteel-ai/whisper-base-ar-quran", local_dir="tarteel")
 PY
 
+# The model's config sets max_length = 1024, but its decoder holds 448 positions: whisper.cpp
+# rejects the file unless the text context is max_target_positions.
+python - <<'PY'
+import json; p = "tarteel/config.json"; c = json.load(open(p))
+c["max_length"] = c["max_target_positions"]; json.dump(c, open(p, "w"), indent=1)
+PY
+
 # 1 · Hugging Face weights → GGML (f16)
 python whisper.cpp/models/convert-h5-to-ggml.py tarteel whisper .
 # 2 · quantize (q5_1 keeps accuracy close to f16 at about 40% of the size)

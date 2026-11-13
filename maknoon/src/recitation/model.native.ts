@@ -7,13 +7,15 @@ import type { ModelInfo, ModelStatus } from './model';
 
 /**
  * The optional speech-model pack for the recitation check (SPEC §2.12): downloaded once
- * from `expo.extra.packsBaseUrl`, verified against the manifest's SHA-256, kept on the device.
+ * from `expo.extra.modelBaseUrl` (GitHub, pinned to a commit), verified against the manifest's SHA-256, kept on the device.
  * Until the converted model is published (manifest sha256 = null) the feature reports 'unavailable'.
  */
 export type { ModelInfo, ModelStatus } from './model';
 export const recitationModel = (manifest as { recitation: ModelInfo }).recitation;
 
-const rawBase = (Constants.expoConfig?.extra as { packsBaseUrl?: unknown } | undefined)?.packsBaseUrl;
+// The model is served from the repository (pinned to the commit that added it); packsBaseUrl is the fallback.
+const extra = Constants.expoConfig?.extra as { modelBaseUrl?: unknown; packsBaseUrl?: unknown } | undefined;
+const rawBase = extra?.modelBaseUrl ?? extra?.packsBaseUrl;
 const baseUrl = typeof rawBase === 'string' && /^https:\/\//.test(rawBase) ? rawBase.replace(/\/$/, '') : null;
 const dir = () => new Directory(Paths.document, 'models');
 const file = () => new File(dir(), `${recitationModel.id}.v${recitationModel.version}.bin`);

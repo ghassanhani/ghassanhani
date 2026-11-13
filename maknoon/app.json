@@ -53,14 +53,20 @@
       "expo-image",
       "expo-sqlite",
       "expo-asset",
-      ["expo-audio", { "microphonePermission": "يستمع المكنون إلى تلاوتك للتسميع فقط. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل." }]
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "يستمع المكنون إلى تلاوتك للتسميع فقط. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل."
+        }
+      ]
     ],
     "scheme": "maknoon",
     "extra": {
       "supportsRTL": true,
       "forcesRTL": true,
       "packsBaseUrl": null,
-      "searchWorkerUrl": "https://maknoon-assistant.ghassanhani0.workers.dev"
+      "searchWorkerUrl": "https://maknoon-assistant.ghassanhani0.workers.dev",
+      "modelBaseUrl": "https://raw.githubusercontent.com/ghassanhani/ghassanhani/eb53332ceeadc62f921551ba2c1decf5d5a6a941/maknoon/hosted/models"
     },
     "experiments": {
       "typedRoutes": false
