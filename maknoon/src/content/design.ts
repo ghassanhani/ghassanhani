@@ -34,10 +34,10 @@ export const home = {
   adhkarCard: { label: 'الأذكار', title: 'أذكار المساء', meta: 'كل ذِكر مع مصدره ودرجته', cta: 'ابدأ الآن' },
   hifzReview: { label: 'مراجعة الحفظ', title: '٣ مقاطع اليوم', surahs: ['الملك', 'القلم', 'الحاقة'] },
   adhkarRail: [
-    { title: 'أذكار الصباح والمساء', icon: 'ramadhan1' },
-    { title: 'الذكر\nالمطلق', icon: 'quran3' },
-    { title: 'أذكار بعد الصلاة', icon: 'ramadhan2' },
-    { title: 'أذكار بعد الصلاة', icon: 'quran2' },
+    { title: 'أذكار الصباح والمساء', icon: 'ramadhan1', cat: 'sabah' },
+    { title: 'الذكر\nالمطلق', icon: 'quran3', cat: 'mutlaq' },
+    { title: 'أذكار بعد الصلاة', icon: 'ramadhan2', cat: 'salah' },
+    { title: 'أذكار النوم والاستيقاظ', icon: 'quran2', cat: 'nawm' },
   ] as const,
   learn: {
     label: 'مسار التعليم',
@@ -62,7 +62,7 @@ export const quranHub = {
     { title: 'المصحف الشريف', icon: 'quran2', route: '/mushaf' },
     { title: 'آيات للدراسة', icon: 'sparkle', route: null },
     { title: 'فهرس سور القران', icon: 'list', route: '/surahs' },
-    { title: 'أذكار بعد الصلاة', icon: 'quran2', route: '/adhkar' },
+    { title: 'أذكار بعد الصلاة', icon: 'quran2', route: '/adhkar?cat=salah' },
   ] as const,
   listen: { title: 'استمع', surah: 'سورة الكهف', meta: '[القارئ المرخّص] · من الآية ٧٧' },
   hifz: {

@@ -31,7 +31,7 @@ const KIND_FILTER: Record<Node['kind'], Filter> = { ayah: 'quran', hadith: 'hadi
  * plus the app's hadith, adhkar and modules, plus (iOS/Android) the al-Mukhtasar pack.
  */
 export default function SearchScreen() {
-  const [query, setQuery] = useState(s.query);
+  const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [moreFor, setMoreFor] = useState(''); // «عرض المزيد» applies to one query + filter only
   const q = useDeferredValue(query.trim());

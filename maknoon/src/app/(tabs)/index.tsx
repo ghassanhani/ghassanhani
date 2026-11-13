@@ -7,15 +7,17 @@ import { Squircle } from '@/components/Squircle';
 import { AyahText, Body, Caption, Display } from '@/components/Typography';
 import { GlassCard, HeroCard, IconBubble, RoundButton, Segments } from '@/components/ui';
 import { home } from '@/content/design';
-import { ayahPlaceholder, getAyah } from '@/content/quran';
+import { ar, ayahPlaceholder, getAyah } from '@/content/quran';
 import { colors, space } from '@/theme/tokens';
 import { METHODS, type MethodKey, cityByKey, fmtDuration, fmtTime, usePrayerDay } from '@/content/prayer';
 
 import { usePrefs } from '@/store/prefs';
+import { ayahOfDay, readingAt } from '@/store/reading';
 import { toggleAyah, usePlayer } from '@/recitation/player';
 
 export default function HomeScreen() {
-  const a = home.ayahOfDay;
+  // A different ayah every day (store/reading.ts), always the canonical text.
+  const a = { ...home.ayahOfDay, ...ayahOfDay() };
   const ayah = getAyah(a.surah, a.ayah);
   // Live, on-device times (Adhan) for the default city.
   const [prefs] = usePrefs();
@@ -23,6 +25,9 @@ export default function HomeScreen() {
   const city = cityByKey(prefs.city);
   const pd = usePrayerDay(city, prefs.asr, (METHODS.find((m) => m.key === prefs.prayerMethod)?.key ?? city.method) as MethodKey);
   const five = pd.times.filter((t) => t.key !== 'sunrise');
+  const r = readingAt(prefs.lastPage);
+  // Morning adhkar from Fajr until Asr, evening adhkar from Asr through the night.
+  const morning = pd.prev?.key === 'fajr' || pd.prev?.key === 'dhuhr';
 
   return (
     <Screen backdrop="sand">
@@ -102,7 +107,7 @@ export default function HomeScreen() {
       </Pressable>
 
       {/* Ayah of the day */}
-      <Pressable accessibilityRole="button" onPress={() => router.push('/ayah/3:3')}>
+      <Pressable accessibilityRole="button" onPress={() => router.push(`/ayah/${a.surah}:${a.ayah}`)}>
         <GlassCard soft tint="neutral" style={{ minHeight: 189 }}>
           <View style={styles.between}>
             <Display size={20}>{a.title}</Display>
@@ -119,7 +124,7 @@ export default function HomeScreen() {
 
       {/* Wird + adhkar */}
       <View style={[styles.row, { gap: 12, alignItems: 'stretch' }]}>
-        <View style={styles.halfSlot}>
+        <Pressable accessibilityRole="button" style={styles.halfSlot} onPress={() => router.push({ pathname: '/mushaf', params: { page: String(r.page) } })}>
         <GlassCard soft tint="lavender" style={styles.half}>
           <View style={styles.between}>
             <Body size={14} weight="medium">
@@ -128,13 +133,13 @@ export default function HomeScreen() {
             <IconBubble name="quran2" iconSize={21} color={colors.white} fill="#4246B7" />
           </View>
           <Display size={22} style={{ marginTop: 20 }}>
-            {home.wird.title}
+            {`سورة ${r.surahName}`}
           </Display>
-          <Caption>{home.wird.meta}</Caption>
-          <WirdProgress value={home.wird.progress} />
+          <Caption>{`الآية ${ar(r.ayah)} · صفحة ${ar(r.page)}`}</Caption>
+          <WirdProgress value={r.progress} />
         </GlassCard>
-        </View>
-        <Pressable accessibilityRole="button" style={styles.halfSlot} onPress={() => router.push('/adhkar')}>
+        </Pressable>
+        <Pressable accessibilityRole="button" style={styles.halfSlot} onPress={() => router.push({ pathname: '/adhkar', params: { cat: 'sabah' } })}>
         <GlassCard soft tint="mint" style={styles.half}>
           <View style={styles.between}>
             <Body size={14} weight="medium">
@@ -143,7 +148,7 @@ export default function HomeScreen() {
             <IconBubble name="moonCloud" iconSize={21} color={colors.white} fill="#0D8E14" />
           </View>
           <Display size={22} style={{ marginTop: 20 }}>
-            {home.adhkarCard.title}
+            {morning ? 'أذكار الصباح' : 'أذكار المساء'}
           </Display>
           <Caption>{home.adhkarCard.meta}</Caption>
           <View style={[styles.row, { gap: 4, marginTop: 'auto' }]}>
@@ -182,7 +187,7 @@ export default function HomeScreen() {
       <Display size={20}>الأذكار</Display>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.rail} contentContainerStyle={styles.railContent}>
         {home.adhkarRail.map((d, i) => (
-          <Pressable key={i} accessibilityRole="button" onPress={() => router.push('/adhkar')}>
+          <Pressable key={i} accessibilityRole="button" onPress={() => router.push({ pathname: '/adhkar', params: { cat: d.cat } })}>
             <MiniCard title={d.title} icon={d.icon} />
           </Pressable>
         ))}

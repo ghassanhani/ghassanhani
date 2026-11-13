@@ -25,7 +25,7 @@ import { colors } from '@/theme/tokens';
 import { quranIndex } from '@/content/worship';
 import { Breathe, haptic, isRTL, PressScale, Ripple, fadeIn, fadeOut } from '@/components/motion';
 import { type TasmeeNote, useTasmee } from '@/recitation/useTasmee';
-import { usePrefs } from '@/store/prefs';
+import { getPrefs, setPrefs, usePrefs } from '@/store/prefs';
 
 /**
  * Mushaf reading (page ٥٠, آل عمران ١–٩ in the design).
@@ -59,11 +59,11 @@ function playTurn() {
   turnSound.seekTo(0).catch(() => undefined);
   turnSound.play();
 }
-const DEFAULT_PAGE = 50; // the page the design shows
 
 export default function MushafScreen() {
   const params = useLocalSearchParams<{ page?: string }>();
-  const page = Math.min(LAST_PAGE, Math.max(1, Number(params.page) || DEFAULT_PAGE));
+  // Without ?page= the mushaf opens where the reader left off (page ١ the first time).
+  const page = Math.min(LAST_PAGE, Math.max(1, Number(params.page) || getPrefs().lastPage || 1));
   // Keyed by page: turning the page starts a fresh recitation check.
   return <MushafPage key={page} page={page} />;
 }
@@ -86,6 +86,10 @@ function MushafPage({ page }: { page: number }) {
   const [controls, setControls] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [prefs] = usePrefs();
+  // The reading position: the page on screen is remembered (on the device only).
+  useEffect(() => {
+    if (getPrefs().lastPage !== page) setPrefs({ lastPage: page });
+  }, [page]);
   const size = (prefs.quranSize - 3) * (zoom / 100); // Settings size 24 → the design's 21pt page
 
   // A page of the Madinah mushaf from the page data. Without ?page= it is the design's page ٥٠ (آل عمران ١–٩).
@@ -296,7 +300,7 @@ function MushafPage({ page }: { page: number }) {
             </View>
             <View style={{ flex: 1, alignItems: 'flex-end' }}>
               <Body size={14} weight="medium" color={colors.primary}>
-                {page === DEFAULT_PAGE ? m.marker : ''}
+                {/* the hizb-quarter marker needs per-page hizb data, not imported yet */}
               </Body>
             </View>
           </View>

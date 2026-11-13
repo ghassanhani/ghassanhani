@@ -8,9 +8,19 @@ import { Squircle } from '@/components/Squircle';
 import { Body, Caption, Display } from '@/components/Typography';
 import { Cta, GlassCard, HeroCard, IconBubble, InnerCard, PillButton, ProgressBar, Segments } from '@/components/ui';
 import { quranHub as q } from '@/content/design';
+import { ar } from '@/content/quran';
+import { recitationById, togglePage, usePlayer } from '@/recitation/player';
+import { usePrefs } from '@/store/prefs';
+import { readingAt, readingMeta } from '@/store/reading';
 import { colors, space } from '@/theme/tokens';
 
 export default function QuranHubScreen() {
+  // Everything on this tab follows the reading position kept on the device.
+  const [prefs] = usePrefs();
+  const r = readingAt(prefs.lastPage);
+  const audio = usePlayer();
+  const listening = audio.playing === 'page';
+  const openMushaf = () => router.push({ pathname: '/mushaf', params: { page: String(r.page) } });
   return (
     <Screen backdrop="mint">
       <Display size={30} lineHeight={44} style={{ marginTop: 8 }}>
@@ -20,20 +30,20 @@ export default function QuranHubScreen() {
       {/* Continue reading */}
       <HeroCard hero="teal" style={{ paddingTop: 30, gap: 4 }}>
         <Body size={14} weight="medium" color={colors.gold}>
-          {q.resume.label}
+          {r.started ? q.resume.label : 'ابدأ القراءة'}
         </Body>
         <Display size={40} color={colors.white} lineHeight={60}>
-          {q.resume.surah}
+          {`سورة ${r.surahName}`}
         </Display>
         <Body size={12} color={colors.white}>
-          {q.resume.meta}
+          {`${readingMeta(r)} · صفحة ${ar(r.page)}`}
         </Body>
         <View style={{ marginVertical: 18 }}>
-          <ProgressBar value={q.resume.progress} fill="#26CCDB" track="#FFFFFF" />
+          <ProgressBar value={r.progress} fill="#26CCDB" track="#FFFFFF" />
         </View>
         <View style={styles.row}>
-          <PillButton label="المصحف" icon="quranSolid" onPress={() => router.push('/mushaf')} />
-          <PillButton label="آيات للدراسة" variant="glass" />
+          <PillButton label="المصحف" icon="quranSolid" onPress={openMushaf} />
+          <PillButton label="فهرس السور" variant="glass" onPress={() => router.push('/surahs')} />
         </View>
       </HeroCard>
 
@@ -46,16 +56,16 @@ export default function QuranHubScreen() {
               {q.khatma.plan}
             </Body>
           </View>
-          <Ring value={q.khatma.doneFraction} label={q.khatma.done} unit={q.khatma.unit} />
+          <Ring value={r.progress} label={ar(r.juz - 1)} unit={q.khatma.unit} />
         </View>
         <InnerCard style={[styles.between, { marginTop: 14, alignItems: 'center' }]}>
           <View>
             <Caption color={colors.ink}>{q.khatma.wirdLabel}</Caption>
             <Body size={14} weight="bold">
-              {q.khatma.wird}
+              {`الجزء ${ar(r.juz)} · نحو ٢٠ صفحة`}
             </Body>
           </View>
-          <Cta label={q.khatma.cta} height={42} compact style={{ minWidth: 101 }} onPress={() => router.push('/mushaf')} />
+          <Cta label={q.khatma.cta} height={42} compact style={{ minWidth: 101 }} onPress={openMushaf} />
         </InnerCard>
       </GlassCard>
 
@@ -79,15 +89,17 @@ export default function QuranHubScreen() {
           <View style={{ flex: 1 }}>
             <Display size={24}>{q.listen.title}</Display>
             <Body size={15} weight="medium">
-              {q.listen.surah}
+              {`سورة ${r.surahName}`}
             </Body>
             <Body size={13} color={colors.primary}>
-              {q.listen.meta}
+              {`${recitationById(prefs.reciter).name} · من الآية ${ar(r.ayah)}`}
             </Body>
           </View>
-          <Squircle radius={25} fill={colors.primary} glow="button" style={[styles.center, { width: 50, height: 50, alignSelf: 'flex-end' }]}>
-            <Icon name="play" size={20} color={colors.white} />
-          </Squircle>
+          <Pressable accessibilityRole="button" accessibilityLabel={listening ? 'إيقاف التلاوة' : 'استماع'} onPress={() => togglePage(r.surah, r.ayah)}>
+            <Squircle radius={25} fill={colors.primary} glow="button" style={[styles.center, { width: 50, height: 50, alignSelf: 'flex-end' }]}>
+              <Icon name={listening ? 'pause' : 'play'} size={20} color={colors.white} />
+            </Squircle>
+          </Pressable>
         </View>
       </GlassCard>
 

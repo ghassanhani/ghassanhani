@@ -9,6 +9,8 @@ import { Body, Caption, Display } from '@/components/Typography';
 import { Chip, Cta, GlassCard, HeroCard } from '@/components/ui';
 import { ar, ayatLabel } from '@/content/quran';
 import { quranIndex, surahIndexScreen as S } from '@/content/worship';
+import { usePrefs } from '@/store/prefs';
+import { readingAt } from '@/store/reading';
 import { F } from '@/theme/fonts';
 import { colors, space } from '@/theme/tokens';
 
@@ -22,6 +24,8 @@ const norm = (s: string) =>
     .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
 
 export default function SurahIndexScreen() {
+  const [prefs] = usePrefs();
+  const r = readingAt(prefs.lastPage);
   const [tab, setTab] = useState(0);
   const [q, setQ] = useState('');
   const surahs = useMemo(() => {
@@ -66,10 +70,10 @@ export default function SurahIndexScreen() {
             {S.lastRead.label}
           </Body>
           <Display size={24} color={colors.white}>
-            {S.lastRead.title}
+            {`${r.surahName} · الآية ${ar(r.ayah)}`}
           </Display>
         </View>
-        <Pressable accessibilityRole="button" onPress={() => router.push('/mushaf')}>
+        <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/mushaf', params: { page: String(r.page) } })}>
           <Squircle radius={24} fill={colors.white} style={styles.resume}>
             <Display size={14}>{S.lastRead.cta}</Display>
           </Squircle>

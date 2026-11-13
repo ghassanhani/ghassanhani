@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
@@ -12,11 +13,17 @@ import { adhkar, adhkarOrder, adhkarScreen as A, type Dhikr } from '@/content/wo
 import { colors, space } from '@/theme/tokens';
 import { stripTashkeel } from '@/content/text';
 import { usePrefs } from '@/store/prefs';
+import { METHODS, type MethodKey, cityByKey, usePrayerDay } from '@/content/prayer';
 
 type Cat = (typeof adhkarOrder)[number];
 
 export default function AdhkarScreen() {
-  const [tab, setTab] = useState<Cat>('sabah');
+  const { cat: asked } = useLocalSearchParams<{ cat?: string }>();
+  const [tab, setTab] = useState<Cat>((adhkarOrder as readonly string[]).includes(asked ?? '') ? (asked as Cat) : 'sabah');
+  // «الآن بعد العصر»: the last prayer that has come in, from the on-device times.
+  const [prefs] = usePrefs();
+  const city = cityByKey(prefs.city);
+  const pd = usePrayerDay(city, prefs.asr, (METHODS.find((m) => m.key === prefs.prayerMethod)?.key ?? city.method) as MethodKey);
   // Session-only counters (the canvas: «العدّاد لعدد المرات فقط، لا يُحفظ ولا يُقارن»).
   const [counts, setCounts] = useState<Record<string, number>>({});
   const cat = adhkar[tab];
@@ -27,7 +34,7 @@ export default function AdhkarScreen() {
       <HeroCard hero="forest" style={{ gap: 4 }}>
         <View style={styles.between}>
           <Body size={14} weight="medium" color={colors.gold}>
-            {A.now}
+            {pd.prev ? `الآن بعد ${pd.prev.name}` : 'الآن قبل الفجر'}
           </Body>
           <IconBubble name="moonCloud" iconSize={20} color={colors.white} fill="rgba(255,255,255,0.18)" />
         </View>
