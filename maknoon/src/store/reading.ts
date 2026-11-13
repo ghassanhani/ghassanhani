@@ -52,3 +52,7 @@ export function ayahOfDay(date = new Date()): { surah: number; ayah: number; ref
   const pick = POOL[(day * stride) % POOL.length];
   return { ...pick, ref: `${plain(quranIndex.surahs[pick.surah - 1].name)} : ${ar(pick.ayah)}` };
 }
+
+/** «الجزء الثاني عشر»: the juz as the printed mushaf names it at the top of its pages. */
+const JUZ = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن', 'التاسع', 'العاشر', 'الحادي عشر', 'الثاني عشر', 'الثالث عشر', 'الرابع عشر', 'الخامس عشر', 'السادس عشر', 'السابع عشر', 'الثامن عشر', 'التاسع عشر', 'العشرون', 'الحادي والعشرون', 'الثاني والعشرون', 'الثالث والعشرون', 'الرابع والعشرون', 'الخامس والعشرون', 'السادس والعشرون', 'السابع والعشرون', 'الثامن والعشرون', 'التاسع والعشرون', 'الثلاثون'];
+export const juzName = (n: number) => `الجزء ${JUZ[n - 1] ?? ar(n)}`;

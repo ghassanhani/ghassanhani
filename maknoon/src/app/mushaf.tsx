@@ -27,6 +27,7 @@ import { quranIndex } from '@/content/worship';
 import { Breathe, haptic, isRTL, PressScale, Ripple, fadeIn, fadeOut } from '@/components/motion';
 import { type TasmeeNote, useTasmee } from '@/recitation/useTasmee';
 import { getPrefs, setPrefs, usePrefs } from '@/store/prefs';
+import { juzName, readingAt } from '@/store/reading';
 
 /**
  * Mushaf reading (page ٥٠, آل عمران ١–٩ in the design).
@@ -308,7 +309,8 @@ function MushafPage({ page }: { page: number }) {
           {pageView ? null : blocks.map((b, i) => (
             <View key={b.surah} style={i > 0 ? { marginTop: 18 } : null}>
               {/* Surah banner: at the top of the page, and wherever a surah begins */}
-              {i === 0 || b.starts ? (
+              {i === 0 ? <PageHead page={page} surah={b.surah} onPickSurah={pickSurah} dark={dark} /> : null}
+              {b.starts ? (
                 <SurahBanner surah={b.surah} onPress={pickSurah} />
               ) : null}
               {/* الفاتحة counts the basmala as its first ayah; التوبة has none */}
@@ -579,7 +581,6 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, on
   const row = isRTL() ? 'row' : 'row-reverse';
   // Words counted per ayah the same way the recitation check counts them.
   const wordCount = ayahWords;
-  const firstIsHeader = 'h' in (pg.l[0] ?? {});
   const firstSurah = (() => {
     for (const l of pg.l) {
       if ('h' in l) return l.h;
@@ -649,7 +650,9 @@ function QcfPageView({ page, zoom, tasmee, current, onPickSurah, held = null, on
   return (
     <View style={{ width: w, alignSelf: 'center' }}>
       {/* The design keeps the banner at the top of every page (it opens the surah list) */}
-      {firstIsHeader ? null : <SurahBanner surah={firstSurah} onPress={onPickSurah} />}
+      {/* As the printed mushaf: a slim running head on every page (juz on the right, surah on the
+          left); the ornamented surah banner appears only where a surah begins. */}
+      <PageHead page={page} surah={firstSurah} onPickSurah={onPickSurah} dark={dark} />
       {rows}
     </View>
   );
@@ -682,6 +685,21 @@ const Glyphs = memo(function Glyphs({ l, codes, font, size, lineH, ink, onHold, 
     </>
   );
 });
+
+/** The running head of a page: «الجزء الثاني عشر» on the right, «سورة هود» on the left (it opens the surah list). */
+function PageHead({ page, surah, onPickSurah, dark }: { page: number; surah: number; onPickSurah: () => void; dark: boolean }) {
+  const r = readingAt(page);
+  const name = (quranIndex.surahs[surah - 1]?.name ?? '').replace(/[\u064B-\u0652\u0670\u0640]/g, '');
+  const tint = dark ? '#D9A08E' : '#A8503A';
+  return (
+    <View style={[styles.head, { flexDirection: isRTL() ? 'row' : 'row-reverse' }]}>
+      <Text style={[styles.headText, { color: tint }]}>{juzName(r.juz)}</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel={`سورة ${name} · تغيير السورة`} hitSlop={8} onPress={onPickSurah}>
+        <Text style={[styles.headText, { color: tint }]}>{`سورة ${name}`}</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 /**
  * The ornamented surah header from the design canvas (exported artwork, 354×61 with a soft edge).
@@ -774,6 +792,8 @@ function GlassRound({ label, onPress, children }: { label: string; onPress: () =
 
 const styles = StyleSheet.create({
   banner: { height: 61, alignItems: 'center', justifyContent: 'center' },
+  head: { justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, height: 30, marginBottom: 2 },
+  headText: { fontFamily: F.quran, fontSize: 16, lineHeight: 28 },
   // The exported artwork carries a 4pt soft edge at the sides, 6pt above and 9pt below the 354×61 banner.
   bannerArt: { position: 'absolute', left: -4, right: -4, top: -6, bottom: -9 },
   bannerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
