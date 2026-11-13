@@ -35,7 +35,7 @@
     "expo-status-bar": "~58.0.5",
     "fflate": "^0.8.3",
     "figma-squircle": "^1.1.0",
-    "llama.rn": "^0.12.9",
+    "llama.rn": "0.13.0-rc.11",
     "quran-meta": "^7.0.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
