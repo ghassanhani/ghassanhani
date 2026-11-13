@@ -162,7 +162,16 @@ function MushafPage({ page }: { page: number }) {
   // Search in the Mushaf: results above the field; a result opens its ayah's page.
   const [query, setQuery] = useState('');
   const [found, setFound] = useState<{ key: string; surah: number; ayah: number }[] | null>(null);
-  const runSearch = () => setFound(query.trim() ? searchQuran(query, 8) : null);
+  // a surah named in the query («الفاتحة», «سورة الكهف», «18») comes first, opening at its first page
+  const [surahHit, setSurahHit] = useState<number | null>(null);
+  const runSearch = () => {
+    const t = query.trim();
+    if (!t) return setFound(null);
+    const n = plainSearch(t.replace(/^سوره\s+/, '').replace(/^سورة\s+/, ''));
+    const hit = quranIndex.surahs.find((x) => String(x.n) === n || plainSearch(x.name) === n || plainSearch(x.name) === `ال${n}`);
+    setSurahHit(hit?.n ?? null);
+    setFound(searchQuran(t, 8));
+  };
   const openFound = (key: string) => {
     const p = pageOfAyah(key);
     setFound(null);
@@ -528,10 +537,25 @@ function MushafPage({ page }: { page: number }) {
           <Animated.View style={[styles.controls, { bottom: insets.bottom + 24 }, lift]} pointerEvents="box-none">
             {found ? (
               <Squircle radius={24} fill="rgba(255,255,255,0.96)" glow="glass" style={styles.results}>
-                {found.length ? (
+                {surahHit ? (
+                  <Pressable
+                    accessibilityRole="link"
+                    onPress={() => {
+                      setFound(null);
+                      setQuery('');
+                      Keyboard.dismiss();
+                      goTo(quranIndex.surahs[surahHit - 1].page);
+                    }}
+                    style={styles.result}
+                  >
+                    <Caption color={colors.primary}>{`سورة · ص ${ar(quranIndex.surahs[surahHit - 1].page)}`}</Caption>
+                    <Display size={18}>{`سُورَةُ ${quranIndex.surahs[surahHit - 1].name}`}</Display>
+                  </Pressable>
+                ) : null}
+                {found.length || surahHit ? (
                   <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 260 }}>
                     {found.map((h, i) => (
-                      <Pressable key={h.key} accessibilityRole="link" onPress={() => openFound(h.key)} style={[styles.result, i > 0 && styles.resultSep]}>
+                      <Pressable key={h.key} accessibilityRole="link" onPress={() => openFound(h.key)} style={[styles.result, (i > 0 || !!surahHit) && styles.resultSep]}>
                         <Caption color={colors.primary}>{`${quranIndex.surahs[h.surah - 1]?.name ?? ''} · الآية ${ar(h.ayah)} · ص ${ar(pageOfAyah(h.key) ?? 0)}`}</Caption>
                         <MadinahAyah surah={h.surah} ayah={h.ayah} size={17} numberOfLines={2} />
                       </Pressable>
@@ -844,6 +868,15 @@ function GlassRound({ label, onPress, children }: { label: string; onPress: () =
 }
 
 const SOLID = '#111114';
+/** Letters only, for matching a typed surah name (search side only). */
+const plainSearch = (t: string) =>
+  t
+    .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+    .replace(/[أإآٱ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .trim();
 
 const styles = StyleSheet.create({
   banner: { height: 61, alignItems: 'center', justifyContent: 'center' },
