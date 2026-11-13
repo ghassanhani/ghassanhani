@@ -43,6 +43,7 @@
           "backgroundColor": "#075B5F"
         }
       ],
+      "./plugins/withoutPushEntitlement",
       [
         "expo-notifications",
         {
