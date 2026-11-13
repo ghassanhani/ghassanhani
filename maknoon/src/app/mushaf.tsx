@@ -1,12 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { ReduceMotion, SlideInDown, SlideOutDown, runOnJS, useDerivedValue, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, ReduceMotion, SlideInDown, SlideOutDown, runOnJS, useDerivedValue, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
 import { ThiqalIcon } from '@/components/ThiqalIcon';
 import { PageCurl } from '@/components/PageCurl';
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Backdrop } from '@/components/Backdrop';
@@ -118,8 +118,12 @@ function MushafPage({ page }: { page: number }) {
   const { width: winW } = useWindowDimensions();
   const flip = useSharedValue(0); // 0 rest · (0, 1] turning to the next page · [-1, 0) bringing back the previous
   const { height: winH } = useWindowDimensions();
-  const [turning, setTurning] = useState<0 | 1 | -1>(0);
-  const dir = useSharedValue(0);
+  // Both curls are drawn ahead, invisibly, once the page has settled: the turn follows the finger from its first move.
+  const [curlsReady, setCurlsReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setCurlsReady(true), 500);
+    return () => clearTimeout(t);
+  }, []);
   useQcf4Fonts(Math.min(LAST_PAGE, page + 1)); // the neighbours' fonts are ready before a turn
   useQcf4Fonts(Math.max(1, page - 1));
   const turned = (d: number) => {
@@ -132,16 +136,7 @@ function MushafPage({ page }: { page: number }) {
     .enabled(PAGE_FLIP)
     .activeOffsetX([-16, 16])
     .failOffsetY([-14, 14])
-    .onStart(() => {
-      dir.set(0);
-    })
     .onUpdate((e) => {
-      // the direction is set by the first real movement (some platforms start the gesture at 0)
-      if (dir.get() === 0 && e.translationX !== 0) {
-        const d = e.translationX > 0 ? 1 : -1;
-        dir.set(d);
-        if ((d === 1 && canNext) || (d === -1 && canPrev)) runOnJS(setTurning)(d);
-      }
       let v = e.translationX / winW;
       if ((v > 0 && !canNext) || (v < 0 && !canPrev)) v *= 0.08; // first or last page: a little give, no turn
       flip.set(Math.max(-1, Math.min(1, v)));
@@ -150,15 +145,21 @@ function MushafPage({ page }: { page: number }) {
       const v = flip.get();
       const d = v > 0 ? 1 : -1;
       const allowed = d === 1 ? canNext : canPrev;
-      if (allowed && (Math.abs(v) > 0.3 || Math.abs(e.velocityX) > 700) && Math.sign(e.velocityX || v) === d) {
+      const fling = Math.abs(e.velocityX) > 650 && Math.sign(e.velocityX) === d;
+      if (allowed && (Math.abs(v) > 0.3 || fling) && Math.sign(e.velocityX || v) !== -d) {
         runOnJS(playTurn)();
-        flip.set(withTiming(d, { duration: 420 }, (done) => done && runOnJS(turned)(d)));
-      } else flip.set(withSpring(0, { damping: 20, stiffness: 220 }, (done) => done && runOnJS(setTurning)(0)));
+        // the rest of the turn takes time in proportion to what is left, quicker for a flick, easing out like paper settling
+        const left = 1 - Math.abs(v);
+        const duration = Math.max(160, Math.min(520, (fling ? 300 : 460) * left + 90));
+        flip.set(withTiming(d, { duration, easing: Easing.out(Easing.cubic) }, (done) => done && runOnJS(turned)(d)));
+      } else flip.set(withSpring(0, { damping: 19, stiffness: 210, mass: 0.9 }));
     });
   // The curl: turning forward, the current page curls away over the next one; turning back, the
-  // previous page curls back down over the current one. Drawn only while a turn is under way.
+  // previous page curls back down over the current one. Each shows only during its own turn.
   const forward = useDerivedValue(() => Math.max(0, flip.get()));
   const backward = useDerivedValue(() => 1 + Math.min(0, flip.get()));
+  const showForward = useDerivedValue<number>(() => (flip.get() > 0.0005 ? 1 : 0));
+  const showBackward = useDerivedValue<number>(() => (flip.get() < -0.0005 ? 1 : 0));
 
   return (
     <View style={{ flex: 1 }}>
@@ -230,8 +231,8 @@ function MushafPage({ page }: { page: number }) {
       </ScrollView>
       </Animated.View>
       </GestureDetector>
-      {turning === 1 ? <PageCurl progress={forward} width={winW} height={winH} leaf={() => <PageSheet page={page} />} under={<PageSheet page={page + 1} />} /> : null}
-      {turning === -1 ? <PageCurl progress={backward} width={winW} height={winH} leaf={() => <PageSheet page={page - 1} />} under={<PageSheet page={page} />} /> : null}
+      {PAGE_FLIP && curlsReady && canNext ? <PageCurl progress={forward} visible={showForward} width={winW} height={winH} leaf={<PageSheet page={page} />} under={<PageSheet page={page + 1} />} /> : null}
+      {PAGE_FLIP && curlsReady && canPrev ? <PageCurl progress={backward} visible={showBackward} width={winW} height={winH} leaf={<PageSheet page={page - 1} />} under={<PageSheet page={page} />} /> : null}
 
       <SurahPicker
         visible={picking}
@@ -342,7 +343,7 @@ function MushafPage({ page }: { page: number }) {
 }
 
 /** A still copy of a neighbouring page (beneath, or coming back over, the turning leaf). */
-function PageSheet({ page }: { page: number }) {
+const PageSheet = memo(function PageSheet({ page }: { page: number }) {
   const insets = useSafeAreaInsets();
   const qcf = qcf4Available();
   const ready = useQcf4Fonts(page);
@@ -364,7 +365,7 @@ function PageSheet({ page }: { page: number }) {
       </View>
     </View>
   );
-}
+});
 
 /**
  * One Madinah Mushaf page from the QCF4 data: the surah banner from the design where the page
