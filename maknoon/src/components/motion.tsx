@@ -48,6 +48,8 @@ export const haptic = {
   select: () => nativeHaptics && Haptics.selectionAsync().catch(() => {}),
   /** a meaningful moment: recitation check starts/ends */
   soft: () => nativeHaptics && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).catch(() => {}),
+  /** the recitation check found a word to re-check */
+  warn: () => nativeHaptics && Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {}),
 };
 
 /** RTL as the screen is laid out (native forces RTL; the web build sets dir="rtl"). */

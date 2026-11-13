@@ -322,7 +322,22 @@ function MushafPage({ page }: { page: number }) {
         </View>
       ) : null}
 
-      {!controls && tasmee.note ? (
+      {!controls && tasmee.alert ? (
+        <Animated.View entering={fadeIn} exiting={fadeOut} style={[styles.tasmee, { top: insets.top + 6 }]} pointerEvents="none">
+          <View style={styles.alert} accessibilityLiveRegion="assertive">
+            <Body size={14} weight="bold" color={colors.white}>
+              {tasmee.alert.kind === 'skipped-ayah' ? 'تأكد من هذه الآية' : 'تأكد من هذه الكلمة'}
+            </Body>
+            {tasmee.alert.word ? (
+              <Body size={16} weight="bold" color={colors.white}>
+                {tasmee.alert.kind === 'missing' ? `فاتتك: ${tasmee.alert.word}` : tasmee.alert.word}
+              </Body>
+            ) : null}
+          </View>
+        </Animated.View>
+      ) : null}
+
+      {!controls && !tasmee.alert && tasmee.note ? (
         <View style={[styles.tasmee, { top: insets.top + 6 }]} pointerEvents="box-none">
             <Squircle radius={16} fill="rgba(255,255,255,0.85)" glow="glass" style={styles.note}>
               <Caption style={{ textAlign: 'center' }}>{NOTES[tasmee.note]}</Caption>
@@ -683,7 +698,9 @@ const styles = StyleSheet.create({
   pagerBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   listenBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   wCurrent: { color: '#1F7A33', backgroundColor: '#CDE9C3' },
-  wCheck: { color: '#A8862B' },
+  // a word to re-check: clearly marked, as a teacher's red pencil would
+  wCheck: { color: '#B3261E', backgroundColor: '#F9DEDC', textDecorationLine: 'underline', textDecorationColor: '#B3261E' },
+  alert: { alignSelf: 'center', alignItems: 'center', gap: 2, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 18, borderCurve: 'continuous', backgroundColor: '#B3261E', boxShadow: '0 6px 18px rgba(120,20,20,0.3)' },
   controls: { position: 'absolute', start: 20, end: 20, gap: 14, alignItems: 'center' },
   zoomRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   zoomBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },

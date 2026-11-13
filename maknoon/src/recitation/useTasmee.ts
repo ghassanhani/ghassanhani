@@ -3,6 +3,7 @@ import plain from '../../assets/content/quran-search.json';
 import { type Listening, listeningSupported, startListening } from './listen';
 import { type ExpectedAyah, type WordState, check, wordCount } from './match';
 import { modelStatus } from './model';
+import { haptic } from '@/components/motion';
 
 const PLAIN = plain as Record<string, string>;
 
@@ -46,6 +47,31 @@ export function useTasmee(ayahKeys: string[]) {
   const result = useMemo(() => (heard ? check(expected, heard) : null), [expected, heard]);
   const last = result?.last ?? -1;
   const active = listening || !!heard || hinted.length > 0;
+
+  // A word to re-check is announced (vibration + a note naming it) as soon as it is certain: the
+  // reciter has gone on past it and a later word matched. Each word is announced once.
+  const [alert, setAlert] = useState<{ word: string; kind: 'missing' | 'changed' | 'skipped-ayah' } | null>(null);
+  const announced = useRef(new Set<string>());
+  useEffect(() => {
+    if (!result) return;
+    const fresh = result.flags.filter((f) => {
+      const l = layout.map.get(f.ayah);
+      if (!l) return false;
+      const flat = f.kind === 'skipped-ayah' ? l.offset + l.count - 1 : l.offset + f.word;
+      const id = f.kind === 'skipped-ayah' ? f.ayah : `${f.ayah}:${f.word}`;
+      return flat < last && !announced.current.has(id);
+    });
+    if (!fresh.length) return;
+    for (const f of fresh) announced.current.add(f.kind === 'skipped-ayah' ? f.ayah : `${f.ayah}:${f.word}`);
+    const f = fresh[fresh.length - 1];
+    haptic.warn();
+    setAlert({ word: f.kind === 'skipped-ayah' ? '' : f.expected, kind: f.kind });
+  }, [result, last, layout]);
+  useEffect(() => {
+    if (!alert) return;
+    const t = setTimeout(() => setAlert(null), 4000);
+    return () => clearTimeout(t);
+  }, [alert]);
 
   const stopPreview = () => {
     if (preview.current) clearInterval(preview.current);
@@ -116,6 +142,8 @@ export function useTasmee(ayahKeys: string[]) {
     void session.current?.cancel().catch(() => {});
     session.current = null;
     kept.current = '';
+    announced.current.clear();
+    setAlert(null);
     setHeard('');
     setHinted([]);
     setListening(false);
@@ -136,5 +164,5 @@ export function useTasmee(ayahKeys: string[]) {
     return { state: st, current };
   };
 
-  return { active, listening, note, start, stop, hint, reset, wordState, done: !!result?.complete };
+  return { active, listening, note, alert, start, stop, hint, reset, wordState, done: !!result?.complete };
 }

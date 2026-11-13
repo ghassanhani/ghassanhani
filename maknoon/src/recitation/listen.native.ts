@@ -45,7 +45,22 @@ export async function startListening(onHeard?: (textSoFar: string) => void): Pro
 
   const transcriber = new RealtimeTranscriber(
     { whisperContext, audioStream: new AudioPcmStreamAdapter() }, // no `fs`: audio is never written to disk
-    { audioSliceSec: 25, transcribeOptions: { language: 'ar' }, promptPreviousSlices: false },
+    {
+      // Short slices: each one is decoded on its own, so the model writes what it hears instead of
+      // completing a long passage from memory (it was trained on the Quran and would otherwise
+      // "correct" a slip). Short slices also come back fast enough to follow the reciter.
+      audioSliceSec: 8,
+      audioMinSec: 0.6,
+      realtimeProcessingPauseMs: 700,
+      promptPreviousSlices: false,
+      transcribeOptions: {
+        language: 'ar',
+        maxContext: 0, // no earlier text as a hint
+        temperature: 0, // the most likely reading of the audio, never a sampled guess
+        temperatureInc: 0, // no retries at higher temperature (they drift towards the memorized text)
+        beamSize: 1,
+      },
+    },
     {
       onTranscribe: (e) => {
         if (e.type !== 'transcribe' || !e.data) return;
