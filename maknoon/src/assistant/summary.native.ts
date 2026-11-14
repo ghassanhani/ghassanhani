@@ -62,8 +62,8 @@ const SYSTEM = [
   'اختم كل جملة برقم المصدر الذي تعتمد عليه بين قوسين مربعين، مثل [1].',
   'لا تقتبس نص أي آية أو حديث أو ذكر، ولا تضع علامات تنصيص؛ صِف المعنى بكلماتك.',
   'لا تذكر أي معلومة ليست في المصادر، ولا تُصدر حكمًا فقهيًا ولا فتوى، ولا تقل حلال أو حرام أو واجب.',
+  'ابدأ مباشرة بالجواب عن السؤال بمعاني المصادر نفسها، ولا تكتب جملًا عامة عن المصادر لا تقول شيئًا.',
   'إن لم تُجب المصادر عن السؤال فقل ذلك في جملة واحدة مع رقم أقرب مصدر.',
-  'مثال على الشكل المطلوب فقط: «يذكر المصدر الأول هذا المعنى [1]. ويضيف المصدر الثالث جانبًا آخر منه [3].»',
 ].join('\n');
 
 let quotes: ((s: string) => boolean) | null = null;
@@ -97,6 +97,6 @@ export async function summarize(question: string, sources: Node[]): Promise<Summ
   }
   quotes ??= quoteCheck(allAyahPlain());
   const own = quoteCheck(list.map(sourceText));
-  const lines = guardSummary(text, list.length, (s) => quotes!(s) || own(s));
+  const lines = guardSummary(text, list.length, (s) => quotes!(s) || own(s), 3, { question, texts: list.map((n) => `${n.title} ${sourceText(n)}`) });
   return lines.length ? { lines } : { lines: [], why: text.trim() ? 'filtered' : 'empty' };
 }

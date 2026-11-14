@@ -41,3 +41,12 @@ test('accepts the citation styles small models drift into', () => {
   const out = guardSummary('يذكر المصدر الأول هذا المعنى (1). ويضيف الثاني جانبًا آخر [المصدر 2]. ويجمعهما معًا قول واضح [1، 2].', 2, quoted);
   assert.deepEqual(out.map((l) => l.cites), [[1], [2], [1, 2]]);
 });
+
+test('a template sentence that says nothing about the sources is dropped', () => {
+  // a real ayah (read from the source file) that speaks of patience, as the cited source
+  const key = Object.keys(plain).find((k) => plain[k].includes('الصبر'))!;
+  const ground = { question: 'ما جزاء الصبر؟', texts: [plain[key]] };
+  const out = guardSummary('يذكر المصدر الأول هذا المعنى [1]. ويضيف المصدر الثالث جانبًا آخر منه [1]. تحثّ الآية على الصبر وتجعله عونًا [1].', 1, quoted, 3, ground);
+  assert.equal(out.length, 1);
+  assert.match(out[0].text, /الصبر/);
+});
