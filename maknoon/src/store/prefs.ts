@@ -44,6 +44,8 @@ export type Prefs = {
   khatmaHistory: { startedAt: number; finishedAt: number }[];
   /** «منبّهات السنن»: a daily reminder to read a surah (al-Mulk, al-Baqarah), minutes after midnight */
   sunanAlerts: Record<string, { on: boolean; at: number }>;
+  /** learning path: the stations the reader marked as done (indexes) */
+  pathDone: number[];
   /** seconds spent with the mushaf open */
   mushafSeconds: number; // the more accurate speech model is downloaded, joined and verified (then used)
   reciter: number; // RATQ recitation id (assets/content/recitations.json)
@@ -86,6 +88,7 @@ export const DEFAULT_PREFS: Prefs = {
   khatma: null,
   khatmaHistory: [],
   mushafSeconds: 0,
+  pathDone: [],
   sunanAlerts: { '67': { on: false, at: 21 * 60 }, '2': { on: false, at: 20 * 60 + 30 } },
   reciter: 35, // إبراهيم الدوسري: complete ayah timings on RATQ
   lastPage: null,

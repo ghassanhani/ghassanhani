@@ -9,6 +9,8 @@ import { Squircle } from '@/components/Squircle';
 import { Body, Caption, Display } from '@/components/Typography';
 import { GlassCard, IconBubble, RoundButton } from '@/components/ui';
 import { me as M } from '@/content/account';
+import { ar } from '@/content/quran';
+import { usePrefs } from '@/store/prefs';
 import { colors } from '@/theme/tokens';
 
 // Worship tools stay one tap away (they have no tab of their own).
@@ -21,6 +23,7 @@ const tools: { title: string; icon: IconName; route: string }[] = [
 ];
 
 export default function MeScreen() {
+  const [prefs] = usePrefs();
   return (
     <Screen backdrop="sand">
       <View style={[styles.row, { gap: 14, marginTop: 8 }]}>
@@ -75,7 +78,7 @@ export default function MeScreen() {
 
       <GlassCard style={{ paddingVertical: 8 }}>
         {M.study.map((s, i) => (
-          <Row key={s.title} first={i === 0} title={s.title} meta={s.meta} onPress={() => router.push(s.route as never)} />
+          <Row key={s.title} first={i === 0} title={s.title} meta={s.route === '/path' ? `أركان الإسلام · أنجزت ${ar(prefs.pathDone.length)} من ١٢` : s.meta} onPress={() => router.push(s.route as never)} />
         ))}
       </GlassCard>
 

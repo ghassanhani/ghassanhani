@@ -39,7 +39,7 @@ const curated: Node[] = [
     kind: 'hadith',
     title: hadith.title,
     ref: hadith.chapter,
-    route: '/hadith/bukhari-8',
+    route: '/hadith/bukhari:8',
     tone: 'reviewed',
     chip: 'صحيح · البخاري ومسلم',
     text: hadith.matn,

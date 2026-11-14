@@ -12,7 +12,7 @@ import { colors } from '@/theme/tokens';
 
 export default function NarratorScreen() {
   return (
-    <Screen backdrop="sea" withTabBar={false} header={<PageHeader title={N.title} fallback="/hadith/bukhari-8" />}>
+    <Screen backdrop="sea" withTabBar={false} header={<PageHeader title={N.title} fallback="/hadith/bukhari:8" />}>
       <SampleBanner />
       <GlassCard style={{ alignItems: 'center', gap: 8 }}>
         <Squircle radius={36} fill={colors.primary} glow="button" style={styles.avatar}>

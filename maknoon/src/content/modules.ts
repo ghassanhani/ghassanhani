@@ -113,7 +113,7 @@ export const narrator = {
     title: 'رواياته في المكنون',
     all: 'عرض الكل',
     items: [
-      { text: '«بُنِيَ الإِسْلَامُ عَلَى خَمْسٍ…»', chip: 'صحيح · البخاري ومسلم', ref: 'البخاري ٨', route: '/hadith/bukhari-8' },
+      { text: '«بُنِيَ الإِسْلَامُ عَلَى خَمْسٍ…»', chip: 'صحيح · البخاري ومسلم', ref: 'البخاري ٨', route: '/hadith/bukhari:8' },
       { text: '[رواية أخرى لابن عمر · نصّ من مصدر مرخّص]', chip: null, ref: '[المصدر · الرقم]', route: null },
     ],
   },
@@ -218,36 +218,70 @@ export const path = {
   hero: {
     label: 'مسارات التعلّم',
     title: 'أركان الإسلام من مصادرها',
-    body: '١٢ محطة تمشي بك بين الآيات والأحاديث وأحكام المذاهب. ابدأ من أي محطة.',
-    progress: 'المحطة ٥ من ١٢',
+    body: '١٢ محطة تمشي بك بين الآيات والأحاديث. ابدأ من أي محطة، وأتمّها حين تفرغ منها.',
     saved: 'تقدّمك محفوظ على جهازك',
-    current: 5,
     total: 12,
   },
   done: 'أنجزتها',
-  currentChip: 'الحالية',
-  stationLabel: (n: string) => `المحطة ${n}`,
+  markDone: 'أتممت هذه المحطة',
+  undo: 'لم أتمّها',
+  // Each step opens a real node: an ayah (with its tafsir), a hadith (Sunnah.com, with its grading),
+  // or a tool. Labels describe; the texts themselves are read on the node, never typed here.
+  // Rulings of the madhhabs join each station once their reviewed sources exist.
   stations: [
-    { title: 'الشهادتان', meta: 'آية · حديث · [د] دقيقة' },
-    { title: 'الطهارة مفتاح الصلاة', meta: 'آية · حديث · حكم · [د] دقيقة' },
-    { title: 'الصلاة: فرضها وأوقاتها', meta: 'آية · حديث · حكم · [د] دقيقة' },
-    { title: 'الصلاة: أركانها وسننها', meta: 'حديث · حكم · أصل · [د] دقيقة' },
-    {
-      title: 'الزكاة',
-      meta: 'آية · حديث · حكم · [د] دقيقة',
-      steps: [
-        { tag: 'آ', text: 'البقرة ٤٣ · الأمر بالزكاة', route: '/ayah/2:43' },
-        { tag: 'ح', text: '«بُنِيَ الإسلامُ على خمسٍ» · صحيح', route: '/hadith/bukhari-8' },
-        { tag: 'ف', text: 'نصاب الزكاة في المذاهب الأربعة', route: '/fiqh' },
-      ],
-      cta: { label: 'جرّب حاسبة الزكاة', route: '/zakat' },
-    },
-    { title: 'الزكاة: الأموال والنصاب', meta: 'حكم · حاسبة · [د] دقيقة', n: '٦' },
-    { title: 'الصيام', meta: 'آية · حديث · حكم · [د] دقيقة', n: '٧' },
-    { title: 'رمضان وقيامه', meta: 'آية · حديث · [د] دقيقة', n: '٨' },
-    { title: 'الحج: فرضه وشروطه', meta: 'آية · حكم · [د] دقيقة', n: '٩' },
-    { title: 'مناسك الحج', meta: 'حديث · حكم · سيرة · [د] دقيقة', n: '١٠' },
-    { title: 'العمرة', meta: 'حديث · حكم · [د] دقيقة', n: '١١' },
-    { title: 'أثر الأركان في القلب', meta: 'تزكية · آية · [د] دقيقة', n: '١٢' },
-  ],
+    { title: 'الشهادتان', steps: [
+      { tag: 'آ', text: 'آل عمران ١٨ · شهادة التوحيد', route: '/ayah/3:18' },
+      { tag: 'آ', text: 'محمد ١٩ · العلم بالتوحيد', route: '/ayah/47:19' },
+      { tag: 'ح', text: 'حديث جبريل في الإسلام والإيمان والإحسان · صحيح مسلم ٨', route: '/hadith/muslim:8' },
+      { tag: 'ح', text: 'بناء الإسلام على خمس · صحيح البخاري ٨', route: '/hadith/bukhari:8' },
+    ] },
+    { title: 'الطهارة مفتاح الصلاة', steps: [
+      { tag: 'آ', text: 'المائدة ٦ · آية الوضوء', route: '/ayah/5:6' },
+      { tag: 'ح', text: 'مفتاح الصلاة الطهور · جامع الترمذي ٣', route: '/hadith/tirmidhi:3' },
+      { tag: 'ح', text: 'لا تُقبل صلاة المحدث حتى يتوضأ · صحيح البخاري ١٣٥', route: '/hadith/bukhari:135' },
+      { tag: 'ك', text: 'أحاديث الطهارة من بلوغ المرام', route: '/hadith/book/bulugh?section=1' },
+    ] },
+    { title: 'الصلاة: فرضها وأوقاتها', steps: [
+      { tag: 'آ', text: 'النساء ١٠٣ · الصلاة كتاب موقوت', route: '/ayah/4:103' },
+      { tag: 'آ', text: 'البقرة ٢٣٨ · المحافظة على الصلوات', route: '/ayah/2:238' },
+      { tag: 'ح', text: 'تعليم أوقات الصلاة · صحيح مسلم ٦١٣', route: '/hadith/muslim:613' },
+    ], cta: { label: 'مواقيت الصلاة في مدينتك', route: '/prayer' } },
+    { title: 'الصلاة: أركانها وسننها', steps: [
+      { tag: 'ح', text: 'صلّوا كما رأيتموني أصلي · صحيح البخاري ٦٣١', route: '/hadith/bukhari:631' },
+      { tag: 'ح', text: 'حديث المسيء صلاته · صحيح البخاري ٧٥٧', route: '/hadith/bukhari:757' },
+    ] },
+    { title: 'الزكاة', steps: [
+      { tag: 'آ', text: 'البقرة ٤٣ · الأمر بالزكاة', route: '/ayah/2:43' },
+      { tag: 'آ', text: 'التوبة ١٠٣ · خذ من أموالهم صدقة', route: '/ayah/9:103' },
+    ], cta: { label: 'جرّب حاسبة الزكاة', route: '/zakat' } },
+    { title: 'الزكاة: الأموال والنصاب', steps: [
+      { tag: 'ح', text: 'ما دون النصاب لا زكاة فيه · صحيح البخاري ١٤٤٧', route: '/hadith/bukhari:1447' },
+    ], cta: { label: 'احسب زكاتك', route: '/zakat' } },
+    { title: 'الصيام', steps: [
+      { tag: 'آ', text: 'البقرة ١٨٣ · فرض الصيام', route: '/ayah/2:183' },
+      { tag: 'ح', text: 'فضل صيام رمضان · صحيح البخاري ٣٨', route: '/hadith/bukhari:38' },
+    ] },
+    { title: 'رمضان وقيامه', steps: [
+      { tag: 'آ', text: 'البقرة ١٨٥ · شهر رمضان', route: '/ayah/2:185' },
+      { tag: 'ح', text: 'فضل قيام رمضان · صحيح البخاري ٣٧', route: '/hadith/bukhari:37' },
+    ] },
+    { title: 'الحج: فرضه وشروطه', steps: [
+      { tag: 'آ', text: 'آل عمران ٩٧ · فرض الحج على المستطيع', route: '/ayah/3:97' },
+      { tag: 'ح', text: 'إعلان فرض الحج · صحيح مسلم ١٣٣٧', route: '/hadith/muslim:1337' },
+    ] },
+    { title: 'مناسك الحج', steps: [
+      { tag: 'آ', text: 'البقرة ١٩٦–١٩٧ · أحكام الحج', route: '/ayah/2:196' },
+      { tag: 'ح', text: 'حديث جابر في صفة حجة النبي ﷺ · صحيح مسلم ١٢١٨', route: '/hadith/muslim:1218' },
+      { tag: 'ك', text: 'أحاديث الحج من بلوغ المرام', route: '/hadith/book/bulugh?section=6' },
+    ] },
+    { title: 'العمرة', steps: [
+      { tag: 'آ', text: 'البقرة ١٩٦ · إتمام الحج والعمرة', route: '/ayah/2:196' },
+      { tag: 'ح', text: 'العمرة إلى العمرة كفارة · صحيح البخاري ١٧٧٣', route: '/hadith/bukhari:1773' },
+    ] },
+    { title: 'أثر الأركان في القلب', steps: [
+      { tag: 'آ', text: 'العنكبوت ٤٥ · الصلاة تنهى عن الفحشاء', route: '/ayah/29:45' },
+      { tag: 'ح', text: 'إنما الأعمال بالنيات · صحيح البخاري ١', route: '/hadith/bukhari:1' },
+    ] },
+  ] as { title: string; steps: { tag: string; text: string; route: string }[]; cta?: { label: string; route: string } }[],
 };
+
