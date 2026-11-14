@@ -16,11 +16,12 @@ import { colors, space } from '@/theme/tokens';
  * hadith screen. Long lists are virtualised (Bukhari has 7,558 hadith).
  */
 export default function HadithBook() {
-  const { slug } = useLocalSearchParams<{ slug: string }>();
+  // ?section= opens one book of it directly (from a library shelf)
+  const { slug, section: initial } = useLocalSearchParams<{ slug: string; section?: string }>();
   const insets = useSafeAreaInsets();
   const meta = bookMeta(slug ?? '');
   const { pack } = usePack(slug);
-  const [section, setSection] = useState<string | null>(null);
+  const [section, setSection] = useState<string | null>(initial ?? null);
   const items = useMemo(() => (pack && section ? pack.hadith.filter((h) => h.b === section) : []), [pack, section]);
 
   return (

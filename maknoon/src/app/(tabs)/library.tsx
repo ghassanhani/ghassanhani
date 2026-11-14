@@ -20,9 +20,10 @@ const SHELF_ROUTES: Record<string, string> = {
   الحديث: '/hadith',
   التفسير: '/tafsir',
   'الفقه وأصوله': '/fiqh-index',
-  'السيرة والتاريخ': '/seerah',
-  'التزكية والأخلاق': '/topic',
-  'علوم العربية': '/grammar',
+  'السيرة والتاريخ': '/shelf/seerah',
+  العقيدة: '/shelf/aqeedah',
+  'التزكية والأخلاق': '/shelf/tazkiyah',
+  'علوم العربية': '/shelf/arabic',
   الأذكار: '/adhkar',
 };
 
@@ -42,7 +43,15 @@ function shelfMeta(title: string): string {
     case 'الأذكار':
       return `${ar(adhkarOrder.reduce((n, c) => n + adhkar[c].items.length, 0))} ذكرًا من مصادرها`;
     case 'العقيدة':
-      return 'قريبًا';
+      return 'الإيمان والتوحيد والقدر من كتب الحديث';
+    case 'التزكية والأخلاق':
+      return 'الأدب المفرد والرقائق والبر';
+    case 'السيرة والتاريخ':
+      return 'الشمائل والمغازي والمناقب';
+    case 'علوم العربية':
+      return 'قريبًا · بانتظار مصدر مرخّص';
+    case 'الفقه وأصوله':
+      return 'أحاديث الأحكام · المسائل قيد البناء';
     default:
       return 'نموذج أولي · قيد البناء';
   }

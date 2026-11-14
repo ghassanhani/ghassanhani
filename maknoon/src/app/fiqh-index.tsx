@@ -6,6 +6,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { Body, Caption, Display } from '@/components/Typography';
 import { Chip, GlassCard } from '@/components/ui';
+import { bookMeta } from '@/content/hadith';
+import { ar } from '@/content/quran';
 import { colors } from '@/theme/tokens';
 
 /**
@@ -43,6 +45,22 @@ export default function FiqhIndexScreen() {
               {c.sub ? <Caption>{c.sub}</Caption> : null}
             </View>
             {c.route ? <Icon name="chevronLeft" size={18} color={colors.ink} /> : <Chip label="قريبًا" tone="pending" />}
+          </Pressable>
+        ))}
+      </GlassCard>
+      {/* hadith of the rulings, by chapter: Bulugh al-Maram (Sunnah.com, approved), each hadith with its grading */}
+      <GlassCard style={{ paddingVertical: 8 }}>
+        <Display size={17} style={{ paddingTop: 8 }}>
+          أحاديث الأحكام
+        </Display>
+        <Caption style={{ paddingBottom: 4 }}>{`${bookMeta('bulugh')?.name ?? 'بلوغ المرام'} · كل حديث بحكمه ومصدره`}</Caption>
+        {(bookMeta('bulugh')?.books ?? []).map((b) => (
+          <Pressable key={b.no} accessibilityRole="link" onPress={() => router.push({ pathname: '/hadith/book/[slug]', params: { slug: 'bulugh', section: b.no } })} style={[styles.row, styles.item]}>
+            <View style={{ flex: 1 }}>
+              <Display size={16}>{b.name}</Display>
+              <Caption>{`${ar(b.count)} حديثًا`}</Caption>
+            </View>
+            <Icon name="chevronLeft" size={18} color={colors.ink} />
           </Pressable>
         ))}
       </GlassCard>
