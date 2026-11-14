@@ -33,7 +33,9 @@ export type Prefs = {
   summaryModel: boolean; // the optional summary model (assistant, level 2) is downloaded and verified
   aiSummary: boolean; // show the automatic summary above the sources when the model is there
   recitationModel: boolean; // the optional speech-model pack is downloaded and verified
-  recitationPro: boolean; // the more accurate speech model is downloaded, joined and verified (then used)
+  recitationPro: boolean;
+  /** «دفتر المتشابهات»: words the recitation check confirmed as slips, newest last (on the device only) */
+  slips: { key: string; word: number; expected: string; heard?: string; at: number }[]; // the more accurate speech model is downloaded, joined and verified (then used)
   reciter: number; // RATQ recitation id (assets/content/recitations.json)
   lastPage: number | null; // the mushaf page last open (reading position), on the device only
   bookmarks: string[]; // bookmarked ayat, "surah:ayah", newest last
@@ -69,6 +71,7 @@ export const DEFAULT_PREFS: Prefs = {
   aiSummary: true,
   recitationModel: false,
   recitationPro: false,
+  slips: [],
   reciter: 35, // إبراهيم الدوسري: complete ayah timings on RATQ
   lastPage: null,
   bookmarks: [],

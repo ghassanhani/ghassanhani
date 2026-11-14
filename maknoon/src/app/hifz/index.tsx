@@ -154,7 +154,7 @@ export default function HifzScreen() {
         <GlassCard style={{ flex: 1, gap: 6, padding: 16 }}>
           <Display size={16}>{H.mutashabihat.title}</Display>
           <Caption>{H.mutashabihat.meta}</Caption>
-          <Cta label={H.mutashabihat.cta} height={38} compact style={{ marginTop: 'auto' }} />
+          <Cta label={H.mutashabihat.cta} height={38} compact style={{ marginTop: 'auto' }} onPress={() => router.push('/notebook')} />
         </GlassCard>
         <GlassCard style={{ flex: 1, gap: 6, padding: 16 }}>
           <Display size={16}>{H.teacher.title}</Display>

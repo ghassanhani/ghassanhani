@@ -67,7 +67,7 @@ function playTurn() {
 }
 
 export default function MushafScreen() {
-  const params = useLocalSearchParams<{ page?: string }>();
+  const params = useLocalSearchParams<{ page?: string; tasmee?: string }>();
   // Without ?page= the mushaf opens where the reader left off (page ١ the first time).
   const page = Math.min(LAST_PAGE, Math.max(1, Number(params.page) || getPrefs().lastPage || 1));
   // Keyed by page: turning the page starts a fresh recitation check.
@@ -147,6 +147,15 @@ function MushafPage({ page }: { page: number }) {
     [qcf, page, onPage],
   );
   const tasmee = useTasmee(keys);
+  // opened from «التسميع» or the notebook's «تدرّب»: the check starts at once (once per opening)
+  const { tasmee: autoTasmee } = useLocalSearchParams<{ tasmee?: string }>();
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (autoTasmee !== '1' || autoStarted.current) return;
+    autoStarted.current = true;
+    void tasmee.start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoTasmee]);
   // a red word tapped during the recitation check: what the listening model heard there
   const [heardNote, setHeardNote] = useState<string | null>(null);
   const onFlag = useCallback(

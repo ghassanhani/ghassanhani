@@ -5,6 +5,7 @@ import { type ExpectedAyah, type WordState, check, wordCount } from './match';
 import { modelStatus } from './model';
 import { setAudioModeAsync } from 'expo-audio';
 import { haptic } from '@/components/motion';
+import { setPrefs } from '@/store/prefs';
 import { stop as stopRecitation } from './player';
 
 const PLAIN = plain as Record<string, string>;
@@ -130,6 +131,15 @@ export function useTasmee(ayahKeys: string[]) {
     });
     if (!fresh.length) return;
     for (const f of fresh) announced.current.add(f.kind === 'skipped-ayah' ? f.ayah : `${f.ayah}:${f.word}`);
+    // the notebook keeps every word the check confirmed (on the device only)
+    const noted = fresh.filter((x) => x.kind !== 'skipped-ayah');
+    if (noted.length)
+      setPrefs((p) => {
+        const now = Date.now();
+        const add = noted.flatMap((x) => ('word' in x ? [{ key: x.ayah, word: x.word, expected: x.expected, heard: x.kind === 'changed' ? x.heard : undefined, at: now }] : []));
+        const keep = p.slips.filter((o) => !add.some((a) => a.key === o.key && a.word === o.word));
+        return { slips: [...keep, ...add].slice(-200) };
+      });
     const f = fresh[fresh.length - 1];
     haptic.warn();
     setAlert({ word: f.kind === 'skipped-ayah' ? '' : f.expected, kind: f.kind });

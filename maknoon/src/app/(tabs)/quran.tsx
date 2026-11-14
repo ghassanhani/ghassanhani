@@ -135,17 +135,25 @@ export default function QuranHubScreen() {
       </GlassCard>
       <View style={styles.row}>
         {q.hifz.tools.map((t) => (
-          <GlassCard key={t.title} style={[styles.toolCard]}>
+          <Pressable
+            key={t.title}
+            accessibilityRole="button"
+            style={{ flex: 1 }}
+            // «التسميع»: the Mushaf where the reader stopped, the check running · «المتشابهات»: the notebook
+            onPress={() => (t.icon === 'mic' ? router.push({ pathname: '/mushaf', params: { page: String(prefs.lastPage || 1), tasmee: '1' } }) : router.push('/notebook'))}
+          >
+          <GlassCard style={[styles.toolCard]}>
             <View style={[styles.row, { gap: 10 }]}>
               <IconBubble name={t.icon} size={31} iconSize={16} color={colors.ink} />
               <View>
                 <Display size={15} lineHeight={20}>
                   {t.title}
                 </Display>
-                <Caption color={colors.primary}>{t.meta}</Caption>
+                <Caption color={colors.primary}>{t.icon === 'books' && prefs.slips.length ? `${ar(new Set(prefs.slips.map((x) => x.key)).size)} مواضع` : t.meta}</Caption>
               </View>
             </View>
           </GlassCard>
+          </Pressable>
         ))}
       </View>
 
