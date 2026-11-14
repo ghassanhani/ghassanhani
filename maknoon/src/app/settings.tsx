@@ -15,7 +15,7 @@ import { MADHHAB_NAMES, usePrefs } from '@/store/prefs';
 import { APP_NAME } from '@/config';
 import { METHODS, cityByKey } from '@/content/prayer';
 import { ar, basmala } from '@/content/quran';
-import { downloadModel, downloadPro, modelStatus, proStatus, recitationModel, recitationPro, removeModel, removePro } from '@/recitation/model';
+import { downloadPro, modelStatus, proStatus, recitationModel, recitationPro, removePro } from '@/recitation/model';
 import { atStart } from '@/components/motion';
 import { fraction, type Download, useDownload } from '@/store/downloads';
 import { downloadSummaryModel, removeSummaryModel, summaryModel, summaryStatus } from '@/assistant/summary';
@@ -50,9 +50,6 @@ export default function SettingsScreen() {
   const methodName = METHODS.find((m) => m.key === (prefs.prayerMethod ?? city.method))?.name ?? '';
   const preview = basmala(); // canonical text from the source file, never typed
   const recStatus = modelStatus();
-  const recDl = useDownload('recitation');
-  // the standard model's own state (the check may be running on the accurate one)
-  const baseState = recStatus === 'unsupported' || recStatus === 'unavailable' ? recStatus : prefs.recitationModel ? 'ready' : 'missing';
   const pro = proStatus();
   const proDl0 = useDownload('recitation-pro-0');
   const proDl1 = useDownload('recitation-pro-1');
@@ -142,17 +139,9 @@ export default function SettingsScreen() {
             <View style={[styles.row, { justifyContent: 'space-between', gap: 12 }]}>
               <View style={{ flex: 1 }}>
                 <Display size={16}>{recitationModel.title}</Display>
-                <Caption>
-                  {baseState === 'ready'
-                    ? pro === 'ready' ? 'مثبّت · احتياطي' : 'مثبّت · يعمل دون اتصال'
-                    : baseState === 'missing'
-                      ? `${recitationModel.bytes ? `${ar((recitationModel.bytes / 1e6).toFixed(0))} م.ب · ` : ''}تنزيل اختياري`
-                      : 'لم يُنشر بعد'}
-                </Caption>
+                <Caption>{pro === 'ready' ? 'مدمج في التطبيق · يقرأ الكلمات أثناء التلاوة' : 'مدمج في التطبيق · يعمل دون اتصال'}</Caption>
               </View>
-              {baseState === 'missing' && !recDl ? <SoftButton label="تنزيل" onPress={() => void downloadModel().catch(() => undefined)} /> : baseState === 'ready' ? <SoftButton label="حذف" onPress={() => void removeModel()} /> : null}
             </View>
-            <DownloadProgress d={recDl} retry={() => void downloadModel().catch(() => undefined)} />
             {pro !== 'unsupported' && pro !== 'unavailable' ? (
               <>
                 <View style={styles.sep} />

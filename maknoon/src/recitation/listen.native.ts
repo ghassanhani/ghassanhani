@@ -49,6 +49,35 @@ export function warmUp() {
   }
 }
 
+/**
+ * One reading at a time per model (whisper refuses a second while one runs): readings wait their
+ * turn here, and the live reading of the words always goes before a background re-read.
+ */
+const queues = new Map<WhisperContext, { busy: boolean; waiting: { live: boolean; go: () => void }[] }>();
+function turn(model: WhisperContext, live: boolean): Promise<() => void> {
+  let q = queues.get(model);
+  if (!q) queues.set(model, (q = { busy: false, waiting: [] }));
+  const lane = q;
+  const release = () => {
+    const i = lane.waiting.findIndex((w) => w.live);
+    const next = lane.waiting.splice(i >= 0 ? i : 0, 1)[0];
+    if (next) next.go();
+    else lane.busy = false;
+  };
+  if (!lane.busy) {
+    lane.busy = true;
+    return Promise.resolve(release);
+  }
+  return new Promise((ok) => lane.waiting.push({ live, go: () => ok(release) }));
+}
+
+/**
+ * The encoder's window, sized to the audio (whisper otherwise encodes a full 30 s for every
+ * reading): in 20 ms frames, with a margin, in steps of 64. Measured on recitation audio with the
+ * Tarteel base model: about three times faster, the same words out.
+ */
+const audioCtx = (bytes: number) => Math.min(1500, Math.ceil((Math.ceil((bytes / BPS) * 50) + 64) / 64) * 64);
+
 async function microphoneAllowed(): Promise<boolean> {
   if (Platform.OS !== 'android') return true; // iOS asks when the stream starts (NSMicrophoneUsageDescription)
   const r = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
@@ -117,15 +146,24 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
     const done = phrases.slice(0, ((i) => (i < 0 ? phrases.length : i))(phrases.findIndex((p) => p.sure === null)));
     return { text: text(), alt: done.map((p) => p.quick).filter(Boolean).join(' '), sure: done.map((p) => p.sure).filter(Boolean).join(' ') };
   };
-  /** One reading of `audio` (cleaned first); `careful` searches five readings instead of taking the first. */
+  /** One reading of `audio` (cleaned first); `careful`: a finished phrase, re-read to confirm it. */
   const transcribe = async (audio: Uint8Array, careful: boolean) => {
-    // words as they come: the fast model; a finished phrase, re-read to confirm: the accurate one
-    const t = (careful ? ctx.accurate : ctx.fast).transcribeData(clean(audio).buffer as ArrayBuffer, careful && ctx.accurate !== ctx.fast ? OPTIONS : careful ? CAREFUL : OPTIONS);
-    jobs.add(t);
+    // words as they come: the fast model; a finished phrase: the accurate one (with one model only,
+    // the same model searching three readings instead of taking the first)
+    const model = careful ? ctx.accurate : ctx.fast;
+    const options = { ...(careful && ctx.accurate === ctx.fast ? CAREFUL : OPTIONS), audioCtx: audioCtx(audio.length) };
+    // a model reads one thing at a time: wait for its turn (the live reading goes first)
+    const release = await turn(model, !careful);
     try {
-      return await t.promise;
+      const t = model.transcribeData(clean(audio).buffer as ArrayBuffer, options);
+      jobs.add(t);
+      try {
+        return await t.promise;
+      } finally {
+        jobs.delete(t);
+      }
     } finally {
-      jobs.delete(t);
+      release();
     }
   };
   /** A phrase is finished: keep the fast reading now, and have the accurate model re-read its audio in turn. */
@@ -248,6 +286,7 @@ const OPTIONS = {
   beamSize: 1,
   maxThreads: 4,
 };
-// A finished phrase is read once more with a beam search over five readings (slower, more
-// accurate); the phrase still being recited keeps the quick reading so the page keeps pace.
-const CAREFUL = { ...OPTIONS, beamSize: 3, bestOf: 3 }; // three readings searched: most of the gain of five, at well under half the time
+// A finished phrase is re-read whole (its full context, cut at a pause). Beam search was measured
+// on recitation audio and gave the same words at three times the cost, so every reading is greedy:
+// a slower search would hold up the live reading behind it.
+const CAREFUL = OPTIONS;

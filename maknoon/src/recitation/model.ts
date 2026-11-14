@@ -16,11 +16,7 @@ export async function downloadPro(): Promise<void> {
 export async function removePro(): Promise<void> {}
 
 export const modelStatus = (): ModelStatus => 'unsupported';
-export const modelUri = (): string | null => null;
 export async function modelUris(): Promise<{ fast: string; accurate: string }> {
   throw new Error('The recitation check is available in the iOS/Android app');
 }
-export async function downloadModel(): Promise<void> {
-  throw new Error('The recitation check is available in the iOS/Android app');
-}
-export async function removeModel(): Promise<void> {}
+export function removeOldDownload(): void {}

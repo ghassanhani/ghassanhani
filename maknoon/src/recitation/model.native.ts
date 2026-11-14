@@ -1,5 +1,4 @@
 import { Asset } from 'expo-asset';
-import Constants from 'expo-constants';
 import { Directory, File, FileMode, Paths } from 'expo-file-system';
 import manifest from '../../assets/models/manifest.json';
 import { download } from '@/store/downloads';
@@ -16,44 +15,37 @@ export const recitationModel = (manifest as { recitation: ModelInfo }).recitatio
 /** The more accurate model (whisper-small, Quran), served in parts and joined on the phone. */
 export const recitationPro = (manifest as unknown as { recitationPro: ProInfo }).recitationPro;
 
-// The model is served from the repository (pinned to the commit that added it); packsBaseUrl is the fallback.
-const extra = Constants.expoConfig?.extra as { modelBaseUrl?: unknown; packsBaseUrl?: unknown } | undefined;
-const rawBase = extra?.modelBaseUrl ?? extra?.packsBaseUrl;
-const baseUrl = typeof rawBase === 'string' && /^https:\/\//.test(rawBase) ? rawBase.replace(/\/$/, '') : null;
 const dir = () => new Directory(Paths.document, 'models');
 const file = () => new File(dir(), `${recitationModel.id}.v${recitationModel.version}.bin`);
 
 const proFile = () => new File(dir(), `${recitationPro.id}.v${recitationPro.version}.bin`);
 const proReady = () => getPrefs().recitationPro && proFile().exists;
 
-// The bundled tiny model makes the check always ready; the downloads only make it more accurate.
+// The standard model is bundled with the app, so the check is always ready; the accurate model is an optional download.
 export function modelStatus(): ModelStatus {
   return 'ready';
 }
-/** The model the recitation check uses: the accurate one when it is installed, else the standard one. */
-export const modelUri = (): string | null => (proReady() ? proFile().uri : getPrefs().recitationModel && file().exists ? file().uri : null);
 /**
- * The two models' roles while listening: the fast one reads the words as they are recited (the
- * standard model when installed), the accurate one re-reads every finished phrase (the accurate
- * model when installed). With one model installed it does both.
+ * The two models' roles while listening: the bundled standard model reads the words as they are
+ * recited; the accurate model, when downloaded, re-reads every finished phrase (else the standard
+ * model does both).
  */
 export async function modelUris(): Promise<{ fast: string; accurate: string }> {
-  const base = getPrefs().recitationModel && file().exists ? file().uri : null;
-  const pro = proReady() ? proFile().uri : null;
-  const tiny = await tinyUri();
-  return { fast: tiny, accurate: pro ?? base ?? tiny };
+  removeOldDownload();
+  const base = await bundledUri();
+  return { fast: base, accurate: proReady() ? proFile().uri : base };
 }
 
-/** The tiny Quran model, bundled with the app (no download): the live reading of the words. */
-let tinyPath: Promise<string> | null = null;
-function tinyUri(): Promise<string> {
-  tinyPath ??= (async () => {
-    const a = Asset.fromModule(require('../../assets/models/ggml-tarteel-tiny-ar-quran-q5_1.bin'));
+/** The standard Quran model (Tarteel base), bundled with the app: no download. */
+let basePath: Promise<string> | null = null;
+function bundledUri(): Promise<string> {
+  basePath ??= (async () => {
+    const a = Asset.fromModule(require('../../assets/models/ggml-tarteel-base-ar-quran-q5_1.bin'));
     await a.downloadAsync();
     return a.localUri ?? a.uri;
   })();
-  tinyPath.catch(() => (tinyPath = null));
-  return tinyPath;
+  basePath.catch(() => (basePath = null));
+  return basePath;
 }
 
 export const proStatus = (): 'ready' | 'missing' | 'unavailable' => (proReady() ? 'ready' : recitationPro.base ? 'missing' : 'unavailable');
@@ -106,16 +98,13 @@ export async function removePro(): Promise<void> {
   setPrefs({ recitationPro: false });
 }
 
-/** Download and verify the model (in the background; progress via useDownload('recitation')). Throws on network or checksum errors (nothing is kept). */
-export async function downloadModel(): Promise<void> {
-  if (!baseUrl || !recitationModel.sha256) throw new Error('The recitation model is not published yet');
-  if (!dir().exists) dir().create({ intermediates: true });
-  await download('recitation', `${baseUrl}/${recitationModel.file}`, file(), recitationModel.sha256, recitationModel.title, recitationModel.bytes ?? 0);
-  setPrefs({ recitationModel: true });
-}
-
-export async function removeModel(): Promise<void> {
-  const f = file();
-  if (f.exists) f.delete();
-  setPrefs({ recitationModel: false });
+/** The standard model used to be a download; it is bundled now, so a downloaded copy is removed. */
+export function removeOldDownload(): void {
+  try {
+    const f = file();
+    if (f.exists) f.delete();
+  } catch {
+    // nothing to remove
+  }
+  if (getPrefs().recitationModel) setPrefs({ recitationModel: false });
 }

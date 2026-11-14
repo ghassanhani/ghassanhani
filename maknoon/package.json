@@ -82,7 +82,7 @@
     "import:ratq": "node --no-warnings pipeline/importers/ratq/import.mjs",
     "recitation:eval": "node --no-warnings --experimental-strip-types pipeline/recitation-eval/score.mts",
     "fonts:qcf4": "node --no-warnings --max-old-space-size=3072 pipeline/importers/qcf4/import.mjs",
-    "postinstall": "node --no-warnings --max-old-space-size=3072 pipeline/importers/qcf4/import.mjs --if-needed",
+    "postinstall": "node scripts/patch-whisper.mjs && node --no-warnings --max-old-space-size=3072 pipeline/importers/qcf4/import.mjs --if-needed",
     "hadith:pull": "NODE_USE_ENV_PROXY=1 node pipeline/importers/sunnah/pull.mjs",
     "hadith:build": "node --no-warnings --max-old-space-size=3072 pipeline/importers/sunnah/import.mjs"
   },
