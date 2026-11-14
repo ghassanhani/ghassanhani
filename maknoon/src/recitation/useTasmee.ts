@@ -74,7 +74,9 @@ export function useTasmee(ayahKeys: string[]) {
     const both = second ? new Set(second.flags.map(id)) : null;
     const agreed = (f: (typeof raw.flags)[number]) => !both || both.has(id(f));
     const before = new Set((previous?.flags ?? []).map(id));
-    const kept = raw.flags.filter((f) => agreed(f) && (!listening || (before.has(id(f)) && flat(f) <= raw.last - 2)));
+    // a slip holds when both readings of the audio agree and it was there in the reading before as
+    // well (a word judged once, then not again, is not a slip); while reciting, also two words on
+    const kept = raw.flags.filter((f) => agreed(f) && before.has(id(f)) && (!listening || flat(f) <= raw.last - 2));
     const keep = new Set(kept);
     const states: (WordState | 'unsure')[] = raw.states.map((st) => st);
     for (const f of raw.flags) {
@@ -101,7 +103,9 @@ export function useTasmee(ayahKeys: string[]) {
   const [shownTo, setShownTo] = useState(-1);
   useEffect(() => {
     if (shownTo === last) return;
-    const t = setTimeout(() => setShownTo((v) => (last < v ? last : Math.min(last, v + 1))), last < shownTo ? 0 : 110);
+    // it only moves forward: a later reading that reconsiders a word does not hide it again (no flashing)
+    if (last < shownTo) return;
+    const t = setTimeout(() => setShownTo((v) => Math.min(last, v + 1)), 110);
     return () => clearTimeout(t);
   }, [shownTo, last]);
   // «Mistakes»: slips are shown in colour only when the reader asks, or once listening stops
@@ -246,6 +250,7 @@ export function useTasmee(ayahKeys: string[]) {
     setAlert(null);
     setElapsed(0);
     setHeardPair({ now: '', before: '', alt: '' });
+    setShownTo(-1);
     setHinted([]);
     setListening(false);
     setNote(null);
@@ -262,6 +267,8 @@ export function useTasmee(ayahKeys: string[]) {
     let st = result?.states[flat] ?? 'pending';
     // not reached yet by the word-by-word reveal: still waiting
     if (listening && flat > shownTo && st !== 'pending') st = 'pending';
+    // a word already shown stays shown while the readings settle (no flashing)
+    if (flat <= shownTo && st === 'pending') st = 'ok';
     // while reciting, a slip reads like any recited word unless the reader asked to see them
     if (!showSlips && (st === 'changed' || st === 'missing' || st === 'unsure')) st = 'ok';
     const current = listening ? flat === shownTo && st === 'ok' : st === 'ok' && flat === last;
