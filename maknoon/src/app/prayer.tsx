@@ -188,7 +188,6 @@ function Options({ items, value, onPick }: { items: { key: string; label: string
   );
 }
 
-/** Static compass rose with the qibla bearing (device heading needs a sensor; next step). */
 /**
  * The qibla compass: the dial turns with the phone (its «ش» points to true north, from the phone's
  * own calibrated compass); the needle points to the qibla with the Kaaba at its tip. The fixed mark
@@ -240,11 +239,15 @@ function QiblaCompass({ bearing }: { bearing: number }) {
   }, [facing]);
 
   const dial = useAnimatedStyle(() => ({ transform: [{ rotate: `${-turn.get()}deg` }] }));
-  // the dial turns by −heading; turning the Kaaba back by +heading keeps it upright on screen
-  const upright = useAnimatedStyle(() => ({ transform: [{ rotate: `${turn.get()}deg` }] }));
   const ring = c - 14; // the dial ring, inside the bezel
   const inner = c * 0.56; // the raised centre disc
   const r = ring - 16; // the Kaaba sits on the dial ring
+  // The Kaaba sits at the arrow's tip, placed from the centre by a transform: `left` is mirrored in
+  // the right-to-left layout (it would put the Kaaba opposite the arrow), a transform never is.
+  // The dial turns by −heading; turning the Kaaba back by +heading keeps it upright on screen.
+  const kx = r * Math.sin((bearing * Math.PI) / 180);
+  const ky = -r * Math.cos((bearing * Math.PI) / 180);
+  const upright = useAnimatedStyle(() => ({ transform: [{ translateX: kx }, { translateY: ky }, { rotate: `${turn.get()}deg` }] }));
 
   return (
     <View style={{ alignItems: 'center', gap: 10 }}>
@@ -305,9 +308,11 @@ function QiblaCompass({ bearing }: { bearing: number }) {
               </G>
             </Svg>
             {/* the Kaaba at the arrow's tip, kept upright */}
-            <Animated.View style={[styles.kaaba, { left: c + r * Math.sin((bearing * Math.PI) / 180) - 22, top: c - r * Math.cos((bearing * Math.PI) / 180) - 22 }, upright]}>
-              <Image source={require('../../assets/brand/kaaba.png')} style={{ width: 40, height: 40 }} accessibilityLabel="الكعبة" />
-            </Animated.View>
+            <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]} pointerEvents="none">
+              <Animated.View style={[styles.kaaba, upright]}>
+                <Image source={require('../../assets/brand/kaaba.png')} style={{ width: 40, height: 40 }} accessibilityLabel="الكعبة" />
+              </Animated.View>
+            </View>
           </Animated.View>
           {/* the reading in the middle stays still: where the phone points now (only while the compass runs) */}
           <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]} pointerEvents="none">
@@ -335,7 +340,7 @@ const styles = StyleSheet.create({
   // the compass sits on the card like an object: a soft shadow under the bezel
   bezel: { boxShadow: '0 10px 24px rgba(20,24,40,0.18), 0 2px 4px rgba(20,24,40,0.08)' },
   // the Kaaba on its own, no ring around it
-  kaaba: { position: 'absolute', width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  kaaba: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center' },
   between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   dot: { width: 10, height: 10, borderRadius: 5, borderWidth: 1.5, borderColor: '#C9CAD3' },
