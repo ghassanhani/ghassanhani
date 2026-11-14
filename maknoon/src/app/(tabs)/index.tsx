@@ -112,7 +112,7 @@ export default function HomeScreen() {
       </Pressable>
 
       {/* Ayah of the day */}
-      <Pressable accessibilityRole="button" onPress={() => router.push(`/ayah/${a.surah}:${a.ayah}`)}>
+      <Pressable accessibilityRole="link" onPress={() => router.push(`/ayah/${a.surah}:${a.ayah}`)}>
         <GlassCard soft tint="neutral" style={{ minHeight: 189 }}>
           <View style={styles.between}>
             <Display size={20}>{a.title}</Display>

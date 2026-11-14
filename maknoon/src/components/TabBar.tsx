@@ -44,9 +44,9 @@ export function TabBar({ state, navigateToTab }: BottomTabBarProps) {
                 <PressScale accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={meta.label} onPress={onPress} style={styles.item} scaleTo={0.9}>
                   {focused ? (
                     <View style={styles.active}>
-                      <Icon canvas name={meta.icon} size={24} color={colors.goldWarm} />
+                      <Icon canvas name={meta.icon} size={24} color={colors.white} />
                       <Animated.View entering={fadeIn}>
-                        <Body size={14} weight="bold" color={colors.goldWarm} lineHeight={20}>
+                        <Body size={14} weight="bold" color={colors.white} lineHeight={20}>
                           {meta.label}
                         </Body>
                       </Animated.View>
