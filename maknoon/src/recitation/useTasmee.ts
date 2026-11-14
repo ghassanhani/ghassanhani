@@ -228,6 +228,7 @@ export function useTasmee(ayahKeys: string[]) {
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true, shouldPlayInBackground: false }).catch(() => undefined);
       // listening at once (the page answers the tap); the audio is kept while the model finishes loading
       setListening(true);
+      listeningRef.current = true; // at once, not after the next render: the check below reads it
       const s = await startListening((h) => setHeard(`${kept.current} ${h.text}`.trim(), `${keptAlt.current} ${h.alt}`.trim()));
       // stopped (or left) while the model was still loading: let the microphone go
       if (!listeningRef.current) void s.cancel().catch(() => undefined);
@@ -240,6 +241,7 @@ export function useTasmee(ayahKeys: string[]) {
 
   const stop = async () => {
     stopPreview();
+    listeningRef.current = false;
     setListening(false);
     const s = session.current;
     session.current = null;
@@ -263,6 +265,7 @@ export function useTasmee(ayahKeys: string[]) {
   /** Hide everything again and forget what was heard. */
   const reset = () => {
     stopPreview();
+    listeningRef.current = false;
     void session.current?.cancel().catch(() => {});
     session.current = null;
     kept.current = '';

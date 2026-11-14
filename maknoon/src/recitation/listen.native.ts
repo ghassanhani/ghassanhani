@@ -28,8 +28,8 @@ function whisper(): Promise<WhisperContext> {
     old.then((c) => c.release()).catch(() => undefined);
   }
   if (!context) {
-    // the phone's GPU (Metal) with flash attention: several times faster than the CPU alone
-    const c = initWhisper({ filePath: uri, useGpu: true, useFlashAttn: true });
+    // the phone's GPU (Metal): several times faster than the CPU alone
+    const c = initWhisper({ filePath: uri, useGpu: true });
     c.catch(() => (context = null));
     context = c;
     contextUri = uri;
