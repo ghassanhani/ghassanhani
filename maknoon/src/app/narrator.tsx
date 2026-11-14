@@ -6,13 +6,14 @@ import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
 import { Body, Caption, Display } from '@/components/Typography';
-import { Chip, GlassCard, IconBubble, InnerCard } from '@/components/ui';
+import { Chip, GlassCard, IconBubble, InnerCard, SampleBanner } from '@/components/ui';
 import { narrator as N } from '@/content/modules';
 import { colors } from '@/theme/tokens';
 
 export default function NarratorScreen() {
   return (
     <Screen backdrop="sea" withTabBar={false} header={<PageHeader title={N.title} fallback="/hadith/bukhari-8" />}>
+      <SampleBanner />
       <GlassCard style={{ alignItems: 'center', gap: 8 }}>
         <Squircle radius={36} fill={colors.primary} glow="button" style={styles.avatar}>
           <Display size={30} color={colors.white}>
@@ -85,7 +86,7 @@ export default function NarratorScreen() {
               {n.text}
             </Display>
             <View style={[styles.row, { gap: 8 }]}>
-              {n.chip ? <Chip label={n.chip} tone="reviewed" badge /> : null}
+              {n.chip ? <Chip label={`${n.chip} · بانتظار المراجعة`} tone="pending" /> : null}
               <Caption>{n.ref}</Caption>
             </View>
           </LinkRow>

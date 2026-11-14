@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
 import { Body, Caption, Display } from '@/components/Typography';
-import { Chip, GlassCard, InnerCard, SuggestedChip } from '@/components/ui';
+import { Chip, GlassCard, InnerCard, SuggestedChip, SampleBanner } from '@/components/ui';
 import { seerah as S } from '@/content/modules';
 import { colors, space } from '@/theme/tokens';
 
@@ -19,6 +19,7 @@ export default function SeerahScreen() {
 
   return (
     <Screen backdrop="sea" withTabBar={false} header={<PageHeader title={S.title} fallback="/library" />}>
+      <SampleBanner />
       <Body size={14} color="#4A4B57">
         {S.intro}
       </Body>

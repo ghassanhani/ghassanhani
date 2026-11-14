@@ -324,3 +324,21 @@ export function ReviewNotice() {
     </Squircle>
   );
 }
+
+/**
+ * On the design's sample screens (fiqh, usul, grammar, topic, seerah, narrator): their texts,
+ * sources and rulings are the designer's draft — not reviewed, not to be relied on yet.
+ */
+export function SampleBanner() {
+  return (
+    <InnerCard fill="rgba(252,239,210,0.9)" style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <Icon name="alert" size={16} color="#8A5A00" />
+      <Body size={12} color="#8A5A00" lineHeight={18} style={{ flex: 1 }}>
+        مثال من التصميم · النصوص والمصادر والأحكام بانتظار المراجعة، فلا يُعتمد عليه بعد.
+      </Body>
+    </InnerCard>
+  );
+}
+
+/** The honest status on a sample: nothing on these screens has been reviewed yet. */
+export const PendingChip = () => <Chip label="بانتظار المراجعة" tone="pending" />;

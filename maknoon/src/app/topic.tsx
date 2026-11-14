@@ -3,7 +3,7 @@ import { LinkRow } from '@/components/blocks';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { AyahText, Body, Caption, Display } from '@/components/Typography';
-import { Chip, GlassCard, HeroCard, IconBubble, InnerCard, RoundButton } from '@/components/ui';
+import { Chip, GlassCard, HeroCard, IconBubble, InnerCard, RoundButton, PendingChip, SampleBanner } from '@/components/ui';
 import { topic as T } from '@/content/modules';
 import { F } from '@/theme/fonts';
 import { colors, space } from '@/theme/tokens';
@@ -15,6 +15,7 @@ export default function TopicScreen() {
   const setNote = (t: string) => setPrefs((p) => ({ notes: { ...p.notes, 'topic:sabr': t } }));
   return (
     <Screen backdrop="mint" withTabBar={false} header={<PageHeader title={T.title} action={<RoundButton icon="bookmark" label="حفظ" size={40} iconSize={18} />} />}>
+      <SampleBanner />
       <HeroCard hero="teal" style={{ gap: 6 }}>
         <Body size={13} weight="medium" color={colors.gold}>
           {T.hero.label}
@@ -49,7 +50,7 @@ export default function TopicScreen() {
             )}
             <View style={[styles.row, { justifyContent: 'space-between' }]}>
               <Caption>{q.ref}</Caption>
-              <Chip label={q.tone === 'reviewed' ? 'مُراجَع' : 'مقترح'} tone={q.tone} badge={q.tone === 'reviewed'} />
+              <PendingChip />
             </View>
           </LinkRow>
         ))}
@@ -63,7 +64,7 @@ export default function TopicScreen() {
               {h.text}
             </Display>
             <View style={[styles.row, { gap: 8 }]}>
-              <Chip label={h.chip} tone="reviewed" badge />
+              <Chip label={`${h.chip} · بانتظار المراجعة`} tone="pending" />
               <Caption>{h.ref}</Caption>
             </View>
           </InnerCard>
@@ -79,7 +80,7 @@ export default function TopicScreen() {
                 <Display size={16}>{s.book}</Display>
                 <Caption>{s.author}</Caption>
               </View>
-              <Chip label={s.tone === 'reviewed' ? 'مُراجَع' : 'مقترح'} tone={s.tone} badge={s.tone === 'reviewed'} />
+              <PendingChip />
             </View>
             <Body size={14}>{s.excerpt}</Body>
             <Caption>{s.ref}</Caption>

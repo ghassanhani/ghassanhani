@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
 import { AyahText, Body, Caption, Display } from '@/components/Typography';
-import { Chip, CountBadge, GlassCard, InnerCard, ReviewedChip, RoundButton, Switch } from '@/components/ui';
+import { Chip, CountBadge, GlassCard, InnerCard, PendingChip, RoundButton, Switch, SampleBanner } from '@/components/ui';
 import { fiqh as Q } from '@/content/modules';
 import { ar } from '@/content/quran';
 import { colors } from '@/theme/tokens';
@@ -22,7 +22,8 @@ export default function FiqhScreen() {
   const list = mineFirst ? [...Q.madhhabs.filter((m) => m.id === mine), ...Q.madhhabs.filter((m) => m.id !== mine)] : Q.madhhabs;
 
   return (
-    <Screen backdrop="sea" withTabBar={false} header={<PageHeader title={Q.title} fallback="/library" action={<RoundButton icon="share" label="مشاركة" size={40} iconSize={18} />} />}>
+    <Screen backdrop="sea" withTabBar={false} header={<PageHeader title={Q.title} fallback="/fiqh-index" action={<RoundButton icon="share" label="مشاركة" size={40} iconSize={18} />} />}>
+      <SampleBanner />
       <Breadcrumbs items={Q.crumbs} />
 
       <GlassCard style={{ gap: 12 }}>
@@ -59,7 +60,7 @@ export default function FiqhScreen() {
             </Body>
             <View style={[styles.row, { justifyContent: 'space-between' }]}>
               <Caption>{`${m.ref}${Q.refSuffix}`}</Caption>
-              <ReviewedChip />
+              <PendingChip />
             </View>
           </Squircle>
         );
@@ -84,7 +85,7 @@ export default function FiqhScreen() {
                 {e.text}
               </Body>
             )}
-            {'chip' in e && e.chip ? <Chip label={e.chip} tone="reviewed" badge /> : null}
+            {'chip' in e && e.chip ? <Chip label={`${e.chip} · بانتظار المراجعة`} tone="pending" /> : null}
             <Caption>{e.note}</Caption>
           </LinkRow>
         ))}

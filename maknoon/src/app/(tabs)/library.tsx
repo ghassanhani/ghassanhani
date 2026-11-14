@@ -19,7 +19,7 @@ import { colors } from '@/theme/tokens';
 const SHELF_ROUTES: Record<string, string> = {
   الحديث: '/hadith',
   التفسير: '/tafsir',
-  'الفقه وأصوله': '/fiqh',
+  'الفقه وأصوله': '/fiqh-index',
   'السيرة والتاريخ': '/seerah',
   'التزكية والأخلاق': '/topic',
   'علوم العربية': '/grammar',

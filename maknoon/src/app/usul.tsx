@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { Squircle } from '@/components/Squircle';
 import { Body, Caption, Display } from '@/components/Typography';
-import { CountBadge, GlassCard, HeroCard, IconBubble, ReviewedChip } from '@/components/ui';
+import { CountBadge, GlassCard, HeroCard, IconBubble, PendingChip, SampleBanner } from '@/components/ui';
 import { usul as U } from '@/content/modules';
 import { ar } from '@/content/quran';
 import { colors, space } from '@/theme/tokens';
@@ -15,6 +15,7 @@ import { colors, space } from '@/theme/tokens';
 export default function UsulScreen() {
   return (
     <Screen backdrop="sea" withTabBar={false} header={<PageHeader title={U.title} fallback="/library" />}>
+      <SampleBanner />
       <Breadcrumbs items={U.crumbs} />
 
       <HeroCard hero="teal" style={{ gap: 4 }}>
@@ -30,7 +31,7 @@ export default function UsulScreen() {
       <GlassCard style={{ gap: 12 }}>
         <View style={[styles.row, { justifyContent: 'space-between' }]}>
           <Display size={21.5}>{U.definition.title}</Display>
-          <ReviewedChip />
+          <PendingChip />
         </View>
         <View style={styles.quote}>
           <Display size={19} lineHeight={34}>

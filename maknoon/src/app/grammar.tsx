@@ -5,19 +5,20 @@ import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { AyahText, Body, Caption, Display } from '@/components/Typography';
-import { Chip, CountBadge, GlassCard, InnerCard, ReviewedChip, SoftButton } from '@/components/ui';
+import { Chip, CountBadge, GlassCard, InnerCard, PendingChip, SoftButton, SampleBanner } from '@/components/ui';
 import { grammar as G } from '@/content/modules';
 import { colors } from '@/theme/tokens';
 
 export default function GrammarScreen() {
   return (
     <Screen backdrop="sea" withTabBar={false} header={<PageHeader title={G.title} fallback="/library" />}>
+      <SampleBanner />
       <Breadcrumbs items={G.crumbs} />
 
       <GlassCard style={{ gap: 14 }}>
         <View style={[styles.row, { justifyContent: 'space-between' }]}>
           <Caption style={{ fontSize: 13, flex: 1 }}>{G.label}</Caption>
-          <ReviewedChip />
+          <PendingChip />
         </View>
         <Display size={44} lineHeight={52}>
           {G.rule}
