@@ -11,7 +11,8 @@
       "bundleIdentifier": "app.maknoon",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "يستمع المكنون إلى تلاوتك للتسميع فقط. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "يطلب المكنون الوصول إلى الصور فقط إذا اخترت حفظ صورة من التطبيق. لا يقرأ صورك ولا يرسلها."
       }
     },
     "android": {
