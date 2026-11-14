@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable as RNPressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Pressable } from '@/components/Tap';
 import Svg, { Circle } from 'react-native-svg';
 import { Icon } from '@/components/Icon';
@@ -17,6 +17,7 @@ import { home } from '@/content/design';
 import { colors, space } from '@/theme/tokens';
 import { stripTashkeel } from '@/content/text';
 import { usePrefs } from '@/store/prefs';
+import { haptic } from '@/components/motion';
 import { METHODS, type MethodKey, cityByKey, usePrayerDay } from '@/content/prayer';
 
 type Cat = (typeof adhkarOrder)[number];
@@ -97,7 +98,19 @@ function DhikrCard({ d, count, onTap }: { d: Dhikr; count: number; onTap: () => 
   const pct = Math.min(1, count / d.n);
   const r = 29;
   const circ = 2 * Math.PI * r;
+  // the whole card counts (a light tap each time), not only the ring; the links inside keep their own action
+  const count1 = () => {
+    haptic.tap();
+    onTap();
+  };
   return (
+    <RNPressable
+      accessibilityRole="button"
+      accessibilityLabel={finished ? 'تم، اضغط لإعادة العدّ' : 'عُدّ مرة'}
+      onPress={count1}
+      unstable_pressDelay={0}
+      style={({ pressed }) => pressed && { transform: [{ scale: 0.985 }] }}
+    >
     <GlassCard style={{ gap: 10 }}>
       <View style={[styles.between, { gap: 12 }]}>
         <View style={{ flex: 1, gap: 6 }}>
@@ -110,7 +123,7 @@ function DhikrCard({ d, count, onTap }: { d: Dhikr; count: number; onTap: () => 
             {prefs.hideTashkeel ? stripTashkeel(d.text) : d.text}
           </Display>
         </View>
-        <Pressable accessibilityRole="button" accessibilityLabel={finished ? 'تم، اضغط لإعادة العدّ' : 'عُدّ مرة'} onPress={onTap} style={styles.ring}>
+        <View style={styles.ring}>
           <Svg width={64} height={64} style={{ position: 'absolute' }}>
             <Circle cx={32} cy={32} r={r} stroke="rgba(129,130,144,0.18)" strokeWidth={6} fill="none" />
             <Circle
@@ -133,7 +146,7 @@ function DhikrCard({ d, count, onTap }: { d: Dhikr; count: number; onTap: () => 
               </Body>
             )}
           </View>
-        </Pressable>
+        </View>
       </View>
       {/* the ayat themselves, from the mushaf data, to read here */}
       {d.ayat ? (
@@ -179,6 +192,7 @@ function DhikrCard({ d, count, onTap }: { d: Dhikr; count: number; onTap: () => 
         </View>
       )}
     </GlassCard>
+    </RNPressable>
   );
 }
 
