@@ -53,6 +53,18 @@ export default function SurahPicker() {
     // virtualised list (FlatList) with two sheet heights was laid out empty. The sheet fits this
     // height (one detent, as the ayah sheet that works).
     <View style={[styles.sheet, { height: Math.round(height * 0.86) }]}>
+      <ScrollView
+        style={{ flex: 1 }}
+        keyboardShouldPersistTaps="handled"
+        // opens with the current surah near the top
+        contentOffset={{ x: 0, y: needle ? 0 : Math.max(0, current - 2) * 56 }}
+        // the list starts below the header; the header lies over it, opaque (the iOS sheet can lay the
+        // two on top of each other, so nothing is left to their order)
+        contentContainerStyle={{ paddingTop: HEAD, paddingBottom: insets.bottom + 24 }}
+      >
+        {list.map(row)}
+        {!list.length ? <Caption style={{ padding: 16, textAlign: 'center' }}>لا نتائج</Caption> : null}
+      </ScrollView>
       <View style={styles.top}>
         <View style={styles.head}>
           <Display size={20}>اختر السورة</Display>
@@ -69,16 +81,7 @@ export default function SurahPicker() {
           />
         </View>
       </View>
-      <ScrollView
-        style={{ flex: 1 }}
-        keyboardShouldPersistTaps="handled"
-        // opens with the current surah near the top
-        contentOffset={{ x: 0, y: needle ? 0 : Math.max(0, current - 3) * 56 }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
-      >
-        {list.map(row)}
-        {!list.length ? <Caption style={{ padding: 16, textAlign: 'center' }}>لا نتائج</Caption> : null}
-      </ScrollView>
+
     </View>
   );
 }
@@ -87,7 +90,7 @@ const HEAD = 22 + 44 + 52; // pinned header: top room + title row + search
 
 const styles = StyleSheet.create({
   sheet: { backgroundColor: '#F7F4F1' },
-  top: { height: HEAD, paddingTop: 22, backgroundColor: '#F7F4F1' },
+  top: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 2, height: HEAD, paddingTop: 22, backgroundColor: '#F7F4F1' },
   head: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 10 },
   search: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, marginHorizontal: 20, marginBottom: 8, paddingHorizontal: 14, borderRadius: 22, borderCurve: 'continuous', backgroundColor: '#FFFFFF' },
   input: { flex: 1, minWidth: 0, fontSize: 15, color: colors.ink, textAlign: 'right', paddingVertical: 0 },
