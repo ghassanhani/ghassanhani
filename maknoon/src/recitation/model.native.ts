@@ -1,3 +1,4 @@
+import { Asset } from 'expo-asset';
 import Constants from 'expo-constants';
 import { Directory, File, FileMode, Paths } from 'expo-file-system';
 import manifest from '../../assets/models/manifest.json';
@@ -25,9 +26,9 @@ const file = () => new File(dir(), `${recitationModel.id}.v${recitationModel.ver
 const proFile = () => new File(dir(), `${recitationPro.id}.v${recitationPro.version}.bin`);
 const proReady = () => getPrefs().recitationPro && proFile().exists;
 
+// The bundled tiny model makes the check always ready; the downloads only make it more accurate.
 export function modelStatus(): ModelStatus {
-  if (proReady() || (getPrefs().recitationModel && file().exists)) return 'ready';
-  return baseUrl && recitationModel.sha256 ? 'missing' : 'unavailable';
+  return 'ready';
 }
 /** The model the recitation check uses: the accurate one when it is installed, else the standard one. */
 export const modelUri = (): string | null => (proReady() ? proFile().uri : getPrefs().recitationModel && file().exists ? file().uri : null);
@@ -36,13 +37,24 @@ export const modelUri = (): string | null => (proReady() ? proFile().uri : getPr
  * standard model when installed), the accurate one re-reads every finished phrase (the accurate
  * model when installed). With one model installed it does both.
  */
-export const modelUris = (): { fast: string; accurate: string } | null => {
+export async function modelUris(): Promise<{ fast: string; accurate: string }> {
   const base = getPrefs().recitationModel && file().exists ? file().uri : null;
   const pro = proReady() ? proFile().uri : null;
-  const fast = base ?? pro;
-  const accurate = pro ?? base;
-  return fast && accurate ? { fast, accurate } : null;
-};
+  const tiny = await tinyUri();
+  return { fast: tiny, accurate: pro ?? base ?? tiny };
+}
+
+/** The tiny Quran model, bundled with the app (no download): the live reading of the words. */
+let tinyPath: Promise<string> | null = null;
+function tinyUri(): Promise<string> {
+  tinyPath ??= (async () => {
+    const a = Asset.fromModule(require('../../assets/models/ggml-tarteel-tiny-ar-quran-q5_1.bin'));
+    await a.downloadAsync();
+    return a.localUri ?? a.uri;
+  })();
+  tinyPath.catch(() => (tinyPath = null));
+  return tinyPath;
+}
 
 export const proStatus = (): 'ready' | 'missing' | 'unavailable' => (proReady() ? 'ready' : recitationPro.base ? 'missing' : 'unavailable');
 

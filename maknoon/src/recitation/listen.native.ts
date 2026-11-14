@@ -29,15 +29,15 @@ function load(uri: string): Promise<WhisperContext> {
   return c;
 }
 /** The fast and the accurate model (the same one when only one is installed). */
-function whisper(): Promise<{ fast: WhisperContext; accurate: WhisperContext }> {
-  const u = modelUris();
-  if (!u) throw new Error('Recitation model not installed');
+async function whisper(): Promise<{ fast: WhisperContext; accurate: WhisperContext }> {
+  const u = await modelUris();
   // a model removed since: let it go
   for (const [uri, c] of contexts) if (uri !== u.fast && uri !== u.accurate) {
     contexts.delete(uri);
     c.then((x) => x.release()).catch(() => undefined);
   }
-  return Promise.all([load(u.fast), load(u.accurate)]).then(([fast, accurate]) => ({ fast, accurate }));
+  const [fast, accurate] = await Promise.all([load(u.fast), load(u.accurate)]);
+  return { fast, accurate };
 }
 
 /** Loads the speech model ahead (when the Mushaf opens), so the first «start» is immediate. */
@@ -86,11 +86,13 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
 
   let chunks: Uint8Array[] = [];
   let size = 0;
-  const kept: string[] = []; // finished phrases, in order: the careful reading
-  const keptAlt: string[] = []; // the same phrases, the quick reading (an independent second opinion)
+  // finished phrases, in order: the fast model's reading (`quick`), and the accurate model's re-read of
+  // the same audio (`sure`), done in the background so the live reading never waits for it
+  const phrases: { quick: string; sure: string | null }[] = [];
+  let checking: Promise<void> = Promise.resolve();
+  const jobs = new Set<{ stop: () => Promise<void> }>();
   let open = ''; // the latest reading of the phrase still being recited
   let live = true;
-  let job: { stop: () => Promise<void> } | null = null;
 
   const window = () => {
     const out = new Uint8Array(size);
@@ -108,17 +110,37 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
     chunks = [all.slice(cut)];
     size = all.length - cut;
   };
-  const text = () => [...kept, open].filter(Boolean).join(' ');
-  const alt = () => [...keptAlt, open].filter(Boolean).join(' ');
-  const heard = (): Heard => ({ text: text(), alt: alt() });
+  const text = () => [...phrases.map((p) => p.sure ?? p.quick), open].filter(Boolean).join(' ');
+  // slips are judged only on the finished phrases the accurate model has re-read (from the first, in
+  // order), never on the phrase still being recited
+  const heard = (): Heard => {
+    const done = phrases.slice(0, ((i) => (i < 0 ? phrases.length : i))(phrases.findIndex((p) => p.sure === null)));
+    return { text: text(), alt: done.map((p) => p.quick).filter(Boolean).join(' '), sure: done.map((p) => p.sure).filter(Boolean).join(' ') };
+  };
   /** One reading of `audio` (cleaned first); `careful` searches five readings instead of taking the first. */
   const transcribe = async (audio: Uint8Array, careful: boolean) => {
     // words as they come: the fast model; a finished phrase, re-read to confirm: the accurate one
     const t = (careful ? ctx.accurate : ctx.fast).transcribeData(clean(audio).buffer as ArrayBuffer, careful && ctx.accurate !== ctx.fast ? OPTIONS : careful ? CAREFUL : OPTIONS);
-    job = t;
-    const r = await t.promise;
-    job = null;
-    return r;
+    jobs.add(t);
+    try {
+      return await t.promise;
+    } finally {
+      jobs.delete(t);
+    }
+  };
+  /** A phrase is finished: keep the fast reading now, and have the accurate model re-read its audio in turn. */
+  const finish = (quick: string, audio: Uint8Array) => {
+    const p = { quick, sure: null as string | null };
+    phrases.push(p);
+    checking = checking
+      .then(async () => {
+        const c = await transcribe(audio, true);
+        p.sure = c.isAborted ? quick : tags(c.result);
+      })
+      .catch(() => {
+        p.sure = quick;
+      })
+      .then(() => onHeard?.(heard()));
   };
 
   LiveAudioStream.init({ sampleRate: RATE, channels: 1, bitsPerSample: 16, audioSource: 6, bufferSize: 4096, wavFile: '' });
@@ -145,10 +167,8 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
     if (r.isAborted) return;
     const segs = r.segments.map((g) => ({ ...g, text: tags(g.text) }));
     if (final) {
-      // the last words: the quick reading is the second opinion, then read carefully
-      const c = await transcribe(audio, true);
-      keptAlt.push(tags(r.result));
-      kept.push(tags(c.isAborted ? r.result : c.result));
+      // the last words
+      finish(tags(r.result), audio);
       open = '';
     } else if (audio.length >= CUT_AFTER && (lastPause(audio) > BPS * 1.5 || quietestPoint(audio) > 0)) {
       // cut in the middle of the reciter's last real pause, or — reciting fast, with no pause — at
@@ -158,26 +178,20 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
       const cut = pause > BPS * 1.5 ? pause : quietestPoint(audio);
       const cutMs = (cut / BPS) * 1000;
       const quick = segs.filter((g) => g.t1 * 10 <= cutMs + 150).map((g) => g.text).filter(Boolean).join(' ');
-      const c = await transcribe(audio.slice(0, cut), true);
-      if (c.isAborted) return;
-      kept.push(tags(c.result));
-      keptAlt.push(quick || tags(c.result));
+      finish(quick, audio.slice(0, cut));
       drop(cut);
       open = '';
     } else if (audio.length >= CUT_AFTER && segs.length >= 2) {
       // keep every phrase but the last; the last one is read again with what follows
       const last = segs[segs.length - 1];
-      const done = segs.slice(0, -1).map((g) => g.text).filter(Boolean);
-      kept.push(...done);
-      keptAlt.push(...done);
+      const done = segs.slice(0, -1).map((g) => g.text).filter(Boolean).join(' ');
+      finish(done, audio.slice(0, Math.max(0, Math.round(last.t0 * 10 * (BPS / 1000)) & ~1)));
       open = last.text;
       // t0 is in 10 ms steps and can come a little late: keep OVERLAP_MS before it, so the phrase's
       // first word is read again rather than lost (a word heard twice is not a mistake)
       drop(Math.max(0, Math.round((last.t0 * 10 - OVERLAP_MS) * (BPS / 1000))));
     } else if (audio.length >= HARD_CUT) {
-      const c = await transcribe(audio, true);
-      keptAlt.push(tags(r.result));
-      kept.push(tags(c.isAborted ? r.result : c.result));
+      finish(tags(r.result), audio);
       open = '';
       drop(audio.length);
     } else open = tags(r.result);
@@ -201,7 +215,6 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
     live = false;
     await LiveAudioStream.stop().catch(() => undefined);
     sub?.remove?.();
-    await job?.stop().catch(() => undefined);
     await loop;
   };
 
@@ -209,6 +222,7 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
     async stop() {
       await end();
       if (size >= BPS * 0.3) await read(true).catch(() => undefined); // the last words
+      await checking; // every phrase re-read by the accurate model before the final result
       chunks = [];
       size = 0;
       return heard();
@@ -217,8 +231,8 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
       await end();
       chunks = [];
       size = 0;
-      kept.length = 0;
-      keptAlt.length = 0;
+      await Promise.all([...jobs].map((j) => j.stop().catch(() => undefined)));
+      phrases.length = 0;
     },
   };
 }

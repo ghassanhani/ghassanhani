@@ -41,9 +41,11 @@ export function useTasmee(ayahKeys: string[]) {
 
   // everything heard so far on this page, and the reading before it (a slip counts once it holds in both)
   // `alt`: a second, independent reading of the same audio (a slip counts only where both agree)
-  const [heardPair, setHeardPair] = useState({ now: '', before: '', alt: '' });
+  // `now`: all heard (shows the words); `sure`: finished phrases read by the accurate model (judged);
+  // `alt`: those phrases' quick reading (a slip counts only where both readings agree)
+  const [heardPair, setHeardPair] = useState({ now: '', alt: '', sure: '' });
   const heard = heardPair.now;
-  const setHeard = (t: string, alt = t) => setHeardPair((p) => (p.now === t && p.alt === alt ? p : { now: t, before: p.now, alt }));
+  const setHeard = (t: string, alt = t, sure = t) => setHeardPair((p) => (p.now === t && p.alt === alt && p.sure === sure ? p : { now: t, alt, sure }));
   // Reader's choices in the check: keep unrecited words hidden (recite from memory), and mark slips.
   // «إخفاء الآيات»: unrecited words are hidden at once, before or during listening; starting to
   // listen turns it on (recite from memory), and the reader can turn it off to read along.
@@ -59,41 +61,25 @@ export function useTasmee(ayahKeys: string[]) {
   const preview = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const raw = useMemo(() => (heard ? check(expected, heard) : null), [expected, heard]);
-  const previous = useMemo(() => (heardPair.before ? check(expected, heardPair.before) : null), [expected, heardPair.before]);
-  const second = useMemo(() => (heardPair.alt && heardPair.alt !== heard ? check(expected, heardPair.alt) : null), [expected, heardPair.alt, heard]);
-  // A slip is shown only when it is settled: the same word was flagged in the reading before too
-  // (the model's reading of the phrase being recited still changes), and the reciter is at least
-  // two words past it. Until then the word just waits, neither red nor green.
+  const sureRes = useMemo(() => (heardPair.sure ? check(expected, heardPair.sure) : null), [expected, heardPair.sure]);
+  const altRes = useMemo(() => (heardPair.alt && heardPair.alt !== heardPair.sure ? check(expected, heardPair.alt) : null), [expected, heardPair.alt, heardPair.sure]);
+  // The words shown come from everything heard; slips are judged only on the finished phrases the
+  // accurate model has re-read (never on the phrase still being recited), and only where the quick
+  // reading of the same audio agrees.
   const result = useMemo(() => {
     if (!raw) return null;
     const id = (f: (typeof raw.flags)[number]) => (f.kind === 'skipped-ayah' ? f.ayah : `${f.ayah}:${f.word}`);
-    const flat = (f: (typeof raw.flags)[number]) => {
-      const l = layout.map.get(f.ayah);
-      return l ? (f.kind === 'skipped-ayah' ? l.offset + l.count - 1 : l.offset + f.word) : Infinity;
-    };
-    // both readings must agree on a slip; a word one reading heard right is right
-    const both = second ? new Set(second.flags.map(id)) : null;
-    const agreed = (f: (typeof raw.flags)[number]) => !both || both.has(id(f));
-    const before = new Set((previous?.flags ?? []).map(id));
-    // a slip holds when both readings of the audio agree and it was there in the reading before as
-    // well (a word judged once, then not again, is not a slip); while reciting, also two words on
-    const kept = raw.flags.filter((f) => agreed(f) && before.has(id(f)) && (!listening || flat(f) <= raw.last - 2));
-    const keep = new Set(kept);
-    const states: (WordState | 'unsure')[] = raw.states.map((st) => st);
-    for (const f of raw.flags) {
+    const both = altRes ? new Set(altRes.flags.map(id)) : null;
+    const slips = (sureRes?.flags ?? []).filter((f) => !both || both.has(id(f)));
+    const states: (WordState | 'unsure')[] = raw.states.map((st) => (st === 'changed' || st === 'missing' ? 'ok' : st));
+    for (const f of slips) {
       const l = layout.map.get(f.ayah);
       if (!l) continue;
-      if (keep.has(f)) {
-        // one close-sounding letter: shown to look at, not counted as a slip
-        if (f.kind !== 'skipped-ayah' && f.unsure) states[l.offset + f.word] = 'unsure';
-        continue;
-      }
-      const to = agreed(f) ? 'pending' : 'ok';
-      if (f.kind === 'skipped-ayah') for (let k = 0; k < l.count; k++) states[l.offset + k] = to;
-      else states[l.offset + f.word] = to;
+      if (f.kind === 'skipped-ayah') for (let k = 0; k < l.count; k++) states[l.offset + k] = 'missing';
+      else states[l.offset + f.word] = f.unsure ? 'unsure' : f.kind;
     }
-    return { ...raw, flags: kept, states };
-  }, [raw, previous, second, layout, listening]);
+    return { ...raw, flags: slips, states };
+  }, [raw, sureRes, altRes, layout]);
   const last = result?.last ?? -1;
   const listeningRef = useRef(false);
   useEffect(() => {
@@ -229,7 +215,7 @@ export function useTasmee(ayahKeys: string[]) {
       // listening at once (the page answers the tap); the audio is kept while the model finishes loading
       setListening(true);
       listeningRef.current = true; // at once, not after the next render: the check below reads it
-      const s = await startListening((h) => setHeard(`${kept.current} ${h.text}`.trim(), `${keptAlt.current} ${h.alt}`.trim()));
+      const s = await startListening((h) => setHeard(`${kept.current} ${h.text}`.trim(), `${keptAlt.current} ${h.alt}`.trim(), `${kept.current} ${h.sure}`.trim()));
       // stopped (or left) while the model was still loading: let the microphone go
       if (!listeningRef.current) void s.cancel().catch(() => undefined);
       else session.current = s;
@@ -250,7 +236,7 @@ export function useTasmee(ayahKeys: string[]) {
       const h = await s.stop();
       kept.current = `${kept.current} ${h.text}`.trim();
       keptAlt.current = `${keptAlt.current} ${h.alt}`.trim();
-      setHeard(kept.current, keptAlt.current);
+      setHeard(kept.current, keptAlt.current, kept.current);
     } catch {
       // the last words could not be read: what was heard before stays; the mic itself worked
     }
@@ -273,7 +259,7 @@ export function useTasmee(ayahKeys: string[]) {
     announced.current.clear();
     setAlert(null);
     setElapsed(0);
-    setHeardPair({ now: '', before: '', alt: '' });
+    setHeardPair({ now: '', alt: '', sure: '' });
     setShownTo(-1);
     setHinted([]);
     setListening(false);

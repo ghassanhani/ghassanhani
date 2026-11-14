@@ -3,7 +3,9 @@
  */
 /** What was heard: the careful reading of every finished phrase, and a second, independent reading
  * of the same audio (a slip counts only where both agree). */
-export type Heard = { text: string; alt: string };
+/** `text`: everything heard so far (for showing the words); `sure`: the finished phrases, read by the
+ * accurate model (slips are judged on these only); `alt`: the same phrases' quick reading. */
+export type Heard = { text: string; alt: string; sure: string };
 export type Listening = {
   /** stop the microphone and return everything that was heard */
   stop(): Promise<Heard>;

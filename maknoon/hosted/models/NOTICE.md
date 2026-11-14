@@ -32,3 +32,15 @@ download. The app downloads both parts, joins them and checks the whole file's S
   `225f6fec1129050902d5d8d51cc9dca09a4e2815e14826b53508a6c82024361e`
   (part0: 95,000,000 bytes · `33d7cf2c80e45ca271cd93ebca2236a608eda2a5ccc1a6851cf504b3c463c30b`;
   part1: 95,085,504 bytes · `ba3aa259360359a162cb4fa68f45de627dfa3072ea24bdccc9942ec0a45b96bf`)
+
+# assets/models/ggml-tarteel-tiny-ar-quran-q5_1.bin (bundled in the app)
+
+The live model of the recitation check: it reads the words as they are recited (slips are confirmed
+by the larger model). Bundled, so the check works without a download.
+
+- **Original:** `tarteel-ai/whisper-tiny-ar-quran` (Hugging Face, revision
+  `c3d7e624af5c81bef25a10a2af3a5a84cb4dd0f0`, `pytorch_model.bin` SHA-256
+  `f26c96202427524ec015bcf25bd932414df0474e538d765c16759f1095757688`), © Tarteel AI, Apache-2.0.
+- **Changes:** converted to GGML and quantized to q5_1 with `pipeline/models/whisper_to_ggml.py`
+  (verified byte-for-byte against whisper.cpp's own tools, see above). Not retrained.
+- **Size / SHA-256:** 32,152,673 bytes · `af8dfdd73c60b32e4e6d72e98e095e33fbeb04b9d39508580d051aa28202c646`
