@@ -11,6 +11,7 @@ import { Body, Caption, Display } from '@/components/Typography';
 import { Chip, GlassCard, HeroCard, IconBubble } from '@/components/ui';
 import { ar } from '@/content/quran';
 import { adhkar, adhkarOrder, adhkarScreen as A, type Dhikr } from '@/content/worship';
+import { home } from '@/content/design';
 import { colors, space } from '@/theme/tokens';
 import { stripTashkeel } from '@/content/text';
 import { usePrefs } from '@/store/prefs';
@@ -37,7 +38,8 @@ export default function AdhkarScreen() {
           <Body size={14} weight="medium" color={colors.gold}>
             {pd.prev ? `الآن بعد ${pd.prev.name}` : 'الآن قبل الفجر'}
           </Body>
-          <IconBubble name="moonCloud" iconSize={20} color={colors.white} fill="rgba(255,255,255,0.18)" />
+          {/* the category's own icon (as on the home screen), white on the translucent bubble, no glow */}
+          <IconBubble name={home.adhkarRail.find((r) => r.cat === tab)?.icon ?? 'tasbih'} iconSize={20} color={colors.white} fill="rgba(255,255,255,0.18)" glow={false} />
         </View>
         <Display size={28} color={colors.white} lineHeight={40}>
           {cat.title}
