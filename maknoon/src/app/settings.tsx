@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { router, useLocalSearchParams } from 'expo-router';
 import { type ComponentRef, Fragment, useRef, useState } from 'react';
 import { ActivityIndicator, type ScrollView, StyleSheet, View } from 'react-native';
@@ -248,7 +249,7 @@ export default function SettingsScreen() {
       <Body size={12} weight="medium" color="#7A5C24" style={{ paddingHorizontal: 6 }}>
         {S.disclaimer}
       </Body>
-      <Caption style={{ textAlign: 'center' }}>{S.version}</Caption>
+      <Caption style={{ textAlign: 'center' }}>{appVersion()}</Caption>
     </Screen>
   );
 }
@@ -359,6 +360,13 @@ function PackRow({ slug, title, bytes, bundled, installed }: { slug: string; tit
       ) : null}
     </View>
   );
+}
+
+/** «الإصدار ١٫٠٫٠ · 3b6848a»: the app version, and the commit it was built from (as `git log` shows it). */
+function appVersion() {
+  const version = Constants.expoConfig?.version ?? '0.0.0';
+  const commit = (Constants.expoConfig?.extra as { commit?: unknown } | undefined)?.commit;
+  return `الإصدار ${ar(version).replace(/\./g, '٫')}${typeof commit === 'string' ? ` · ${commit}` : ''}`;
 }
 
 function ToggleRow({ title, sub, value, onChange }: { title: string; sub: string; value: boolean; onChange: (v: boolean) => void }) {
