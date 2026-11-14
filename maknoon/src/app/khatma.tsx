@@ -10,7 +10,7 @@ import { Cta, GlassCard, HeroCard, IconBubble, InnerCard, ProgressBar, Segmented
 import { ar, getAyah } from '@/content/quran';
 import { bookMeta } from '@/content/hadith';
 import { quranIndex } from '@/content/worship';
-import { getPrefs } from '@/store/prefs';
+import { getPrefs, usePrefs } from '@/store/prefs';
 import { type Plan, type Wird, juzOfPage, markWird, planLabel, planWirds, setReminder, startKhatma, stopKhatma, useKhatma, wirdEnds, wirdRange } from '@/store/khatma';
 import { MadinahAyah } from '@/components/MadinahAyah';
 import { juzNameVoweled, readingAt } from '@/store/reading';
@@ -32,6 +32,7 @@ export default function KhatmaScreen() {
     <Screen backdrop="mint" withTabBar={false} header={<PageHeader title="الختمة" fallback="/quran" />}>
       {k && today ? <Current /> : <Setup />}
       <Sunan />
+      <SunanAlerts />
       <Stats count={history.length} last={history[history.length - 1]?.finishedAt ?? null} seconds={seconds} />
       {k ? (
         <Pressable
@@ -297,6 +298,44 @@ function Sunan() {
             <Pressable accessibilityRole="link" accessibilityLabel="الحديث في فضلها" hitSlop={6} onPress={() => router.push(`/hadith/${x.hadith}`)}>
               <Caption color={colors.primary}>{`${bookMeta(slug)?.name ?? ''} ${ar(num)} ‹`}</Caption>
             </Pressable>
+          </View>
+        );
+      })}
+    </GlassCard>
+  );
+}
+
+/** «منبّهات السنن»: a daily reminder for al-Mulk and al-Baqarah, each with its own time. */
+function SunanAlerts() {
+  const [prefs, setPrefs] = usePrefs();
+  const clock = (m: number) => `${ar(((Math.floor(m / 60) + 11) % 12) + 1)}:${ar(String(m % 60).padStart(2, '0'))} ${m < 720 ? 'ص' : 'م'}`;
+  const set = (n: string, patch: Partial<{ on: boolean; at: number }>) =>
+    setPrefs((p) => ({ sunanAlerts: { ...p.sunanAlerts, [n]: { ...(p.sunanAlerts[n] ?? { on: false, at: 21 * 60 }), ...patch } } }));
+  return (
+    <GlassCard style={{ paddingVertical: 8 }}>
+      <Display size={17} style={{ paddingTop: 8, paddingBottom: 4 }}>
+        منبّهات السنن
+      </Display>
+      {(['67', '2'] as const).map((n) => {
+        const a = prefs.sunanAlerts[n] ?? { on: false, at: 21 * 60 };
+        const name = quranIndex.surahs[Number(n) - 1]?.name ?? '';
+        return (
+          <View key={n} style={[styles.stat, { gap: 10 }]}>
+            <View style={styles.between}>
+              <View style={[styles.row, { gap: 10, flex: 1 }]}>
+                <Icon name="bell" size={20} color={colors.primary} />
+                <Display size={16}>{`منبّه سُورَةُ ${name}`}</Display>
+              </View>
+              <Switch
+                label={`منبّه سورة ${name}`}
+                value={a.on}
+                onChange={(on) => {
+                  set(n, { on });
+                  if (on) void askAlertPermission();
+                }}
+              />
+            </View>
+            {a.on ? <Stepper label={`وقت سورة ${name}`} value={clock(a.at)} onDec={() => set(n, { at: (a.at + 1410) % 1440 })} onInc={() => set(n, { at: (a.at + 30) % 1440 })} /> : <Caption>{`كل يوم ${clock(a.at)} · متوقف`}</Caption>}
           </View>
         );
       })}

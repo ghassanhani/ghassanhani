@@ -3,6 +3,10 @@ import { AndroidImportance } from 'expo-notifications';
 import { Platform } from 'react-native';
 import { getPrefs } from '@/store/prefs';
 import { PRAYERS, cityByKey, placeDay, timesFor } from './prayer-core';
+import { quranIndex } from '@/content/worship';
+
+const SURAH_NAMES: Record<number, string> = Object.fromEntries(quranIndex.surahs.map((s) => [s.n, s.name.replace(/[\u064B-\u0652\u0670]/g, '')]));
+const SURAH_PAGES: Record<number, number> = Object.fromEntries(quranIndex.surahs.map((s) => [s.n, s.page]));
 
 /**
  * Prayer-time alerts: local notifications scheduled on the device from the on-device times
@@ -64,6 +68,9 @@ export function syncPrayerAlerts(): Promise<void> {
         extra.push({ at: new Date(t.fajr.getTime() + 30 * 60000), title: 'أذكار الصباح', body: 'وقت أذكار الصباح', route: '/adhkar?cat=sabah' });
         extra.push({ at: new Date(t.asr.getTime() + 30 * 60000), title: 'أذكار المساء', body: 'وقت أذكار المساء', route: '/adhkar?cat=sabah' });
       }
+      // «منبّهات السنن»: reading a surah at the time the reader chose
+      for (const [n, a] of Object.entries(p.sunanAlerts ?? {}))
+        if (a.on) extra.push({ at: new Date(day.getFullYear(), day.getMonth(), day.getDate(), Math.floor(a.at / 60), a.at % 60), title: `سورة ${SURAH_NAMES[Number(n)] ?? ''}`, body: 'حان وقت قراءتها', route: `/mushaf?page=${SURAH_PAGES[Number(n)] ?? 1}` });
       // the khatma's daily wird, at the hour the reader chose
       if (p.khatma && p.khatma.remind !== null) extra.push({ at: new Date(day.getFullYear(), day.getMonth(), day.getDate(), p.khatma.remind, 0), title: 'ورد اليوم', body: 'ورد اليوم من ختمتك بانتظارك', route: '/khatma' });
       if (hifzOn) extra.push({ at: new Date(day.getFullYear(), day.getMonth(), day.getDate(), 20, 30), title: 'مراجعة الحفظ', body: 'خطة اليوم بانتظارك', route: '/hifz' });

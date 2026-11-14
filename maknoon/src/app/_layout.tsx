@@ -44,7 +44,7 @@ export default function RootLayout() {
   const [splash, setSplash] = useState(true);
   // Prayer alerts are rebuilt on the device whenever the app opens or a prayer setting changes.
   const [prefs] = usePrefs();
-  const alertKey = JSON.stringify([prefs.prayerAlerts, prefs.city, prefs.asr, prefs.prayerMethod, prefs.notifs, prefs.khatma?.remind ?? null]);
+  const alertKey = JSON.stringify([prefs.prayerAlerts, prefs.city, prefs.asr, prefs.prayerMethod, prefs.notifs, prefs.khatma?.remind ?? null, prefs.sunanAlerts]);
   useEffect(() => {
     if (prefsReady) void syncPrayerAlerts();
   }, [prefsReady, alertKey]);
