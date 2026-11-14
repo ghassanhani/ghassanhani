@@ -61,6 +61,11 @@ export default function AyahActions() {
       },
     },
     {
+      icon: 'note',
+      label: prefs.notes[`ayah:${key}`] ? 'عدّل ملاحظتك' : 'أضف ملاحظة',
+      run: () => open(`/note/${key}`),
+    },
+    {
       icon: 'copy',
       label: 'نسخ',
       run: () => {

@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { MadinahAyah } from '@/components/MadinahAyah';
 import { StyleSheet, View } from 'react-native';
 import { Pressable } from '@/components/Tap';
@@ -13,17 +13,22 @@ import { quranIndex } from '@/content/worship';
 import { setPrefs, usePrefs } from '@/store/prefs';
 import { colors, space } from '@/theme/tokens';
 
-/** The ayat the reader bookmarked (long press on an ayah in the mushaf), newest first. Kept on the device. */
+/**
+ * The ayat the reader bookmarked, or (?kind=highlights) highlighted — long press on an ayah in the
+ * mushaf — newest first. Kept on the device.
+ */
 export default function BookmarksScreen() {
   const [prefs] = usePrefs();
-  const list = [...prefs.bookmarks].reverse();
+  const lit = useLocalSearchParams<{ kind?: string }>().kind === 'highlights';
+  const field = lit ? 'highlights' : 'bookmarks';
+  const list = [...prefs[field]].reverse();
   return (
-    <Screen backdrop="mint" withTabBar={false} header={<PageHeader title="العلامات" fallback="/quran" />}>
+    <Screen backdrop="mint" withTabBar={false} header={<PageHeader title={lit ? 'التظليلات' : 'العلامات'} fallback="/quran" />}>
       {list.length === 0 ? (
         <GlassCard style={{ alignItems: 'center', gap: 6, paddingVertical: 28 }}>
-          <Icon name="bookmark" size={26} color={colors.primary} />
-          <Display size={18}>لا علامات بعد</Display>
-          <Caption style={{ textAlign: 'center' }}>اضغط مطوّلًا على أي آية في المصحف واختر «أضف إشارة مرجعية».</Caption>
+          <Icon name={lit ? 'brush' : 'bookmark'} size={26} color={colors.primary} />
+          <Display size={18}>{lit ? 'لا تظليلات بعد' : 'لا علامات بعد'}</Display>
+          <Caption style={{ textAlign: 'center' }}>{`اضغط مطوّلًا على أي آية في المصحف واختر «${lit ? 'ظلّل الآية' : 'أضف إشارة مرجعية'}».`}</Caption>
         </GlassCard>
       ) : (
         list.map((key) => {
@@ -40,9 +45,9 @@ export default function BookmarksScreen() {
                   </Body>
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel="أزل الإشارة المرجعية"
+                    accessibilityLabel={lit ? 'أزل التظليل' : 'أزل الإشارة المرجعية'}
                     hitSlop={10}
-                    onPress={() => setPrefs((p) => ({ bookmarks: p.bookmarks.filter((k) => k !== key) }))}
+                    onPress={() => setPrefs((p) => ({ [field]: p[field].filter((k) => k !== key) }))}
                   >
                     <Icon name="close" size={18} color={colors.muted} />
                   </Pressable>
