@@ -199,30 +199,20 @@ test('one close-sounding letter is «unsure», any other difference is a slip', 
   assert.equal(closeOnly('سمر', 'سمرا'), false);
 });
 
-test('reciting fast: a short word the model dropped is «unsure»; a long word dropped stays a slip', () => {
-  let shortCases = 0;
-  let longCases = 0;
+test('a word left out is a slip, short or long', () => {
+  let cases = 0;
   for (const k of sample) {
     const w = words(k);
     if (w.length < 6) continue;
-    for (let i = 2; i < w.length - 2; i++) {
-      const len = fold(w[i]).length;
-      if (len > 3 && len < 5) continue;
-      if (w.some((x, j) => j !== i && fold(x) === fold(w[i]))) continue; // a word that repeats in the ayah is ambiguous
-      const r = checkAyah(ayah(k), [...w.slice(0, i), ...w.slice(i + 1)].join(' '));
-      const f = r.flags.find((x) => x.kind === 'missing');
-      if (!f || f.kind !== 'missing') continue;
-      if (len <= 3) {
-        assert.equal(f.unsure, true, `${k} short «${w[i]}»`);
-        shortCases++;
-      } else {
-        assert.ok(!f.unsure, `${k} long «${w[i]}»`);
-        longCases++;
-      }
-      break;
-    }
+    const i = 2;
+    if (w.some((x, j) => j !== i && fold(x) === fold(w[i]))) continue;
+    const r = checkAyah(ayah(k), [...w.slice(0, i), ...w.slice(i + 1)].join(' '));
+    const f = r.flags.find((x) => x.kind === 'missing');
+    if (!f || f.kind !== 'missing') continue;
+    assert.ok(!('unsure' in f && f.unsure), `${k} «${w[i]}»`);
+    cases++;
   }
-  assert.ok(shortCases > 20 && longCases > 20, `${shortCases} short · ${longCases} long`);
+  assert.ok(cases > 40, `${cases}`);
 });
 
 test('a letter swallowed is «unsure»; another letter in its place is still a slip', async () => {

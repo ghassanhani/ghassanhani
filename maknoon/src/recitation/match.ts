@@ -218,8 +218,8 @@ export function check(ayat: ExpectedAyah[], heardText: string, opts: Options = {
       const st = state[k];
       if (st === 'ok') continue;
       if (st === 'missing') {
-        const between = state[k - 1] === 'ok' && state[k + 1] === 'ok';
-        flags.push({ kind: 'missing', ayah: ayat[ai].key, word: E[k].index, expected: E[k].raw, unsure: (between && E[k].full.length <= 3) || undefined });
+        // a word left out is a slip, short or long (the two readings that must agree guard against the model)
+        flags.push({ kind: 'missing', ayah: ayat[ai].key, word: E[k].index, expected: E[k].raw });
       } else flags.push({ kind: 'changed', ayah: ayat[ai].key, word: E[k].index, expected: E[k].raw, heard: st.heard, unsure: closeOnly(E[k].full, st.heard) || oneLetterShort(E[k].full, st.heard) || undefined });
     }
   }

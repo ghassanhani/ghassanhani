@@ -4,6 +4,7 @@ import { type Listening, listeningSupported, startListening, warmUp } from './li
 import { type ExpectedAyah, type WordState, check, wordCount } from './match';
 import { modelStatus } from './model';
 import { setAudioModeAsync } from 'expo-audio';
+import { haptic } from '@/components/motion';
 import { setPrefs } from '@/store/prefs';
 import { stop as stopRecitation } from './player';
 
@@ -119,7 +120,7 @@ export function useTasmee(ayahKeys: string[]) {
     return () => clearTimeout(t);
   }, [shownTo, reached]);
   // «Mistakes»: slips are shown in colour only when the reader asks, or once listening stops
-  const [review, setReview] = useState(false);
+  const [review, setReview] = useState(true); // slips show as they are confirmed; the badge hides them
   const showSlips = review || !listening;
   const active = listening || !!heard || hinted.length > 0 || hideText;
   useEffect(() => {
@@ -169,8 +170,9 @@ export function useTasmee(ayahKeys: string[]) {
         return { slips: [...keep, ...add].slice(-200) };
       });
     const f = fresh[fresh.length - 1];
-    // as calm as the reading itself: no banner, no vibration while reciting — slips are counted on
-    // the badge and shown when the reader asks (or stops)
+    // told at once, quietly: the word turns red and the phone taps lightly — no banner over the page
+    // while reciting (the banner names the word once the reader has stopped)
+    haptic.warn();
     if (!listeningRef.current) setAlert({ word: f.kind === 'skipped-ayah' ? '' : f.expected, kind: f.kind });
   }, [result, last, layout]);
   useEffect(() => {
