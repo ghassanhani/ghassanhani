@@ -45,10 +45,12 @@ export default function AssistantScreen() {
     setTurns((t) => [...t, { id, q: question, answer: null }]);
     const answer = await ask(question);
     // level 2: a short on-device summary above the sources, when the model is installed and on
+    // The whole answer appears at once: while the summary is written and checked, only the typing
+    // dots show; then the summary and the sources together.
     const summing = answer.kind === 'sources' && summaryStatus() === 'ready' && prefs.aiSummary;
-    patch({ answer, summary: summing ? 'loading' : undefined });
+    const summary = summing && answer.kind === 'sources' ? await summarize(question, [...answer.nodes, ...answer.tafsir]) : undefined;
+    patch({ answer, summary });
     setBusy(false);
-    if (summing) patch({ summary: await summarize(question, [...answer.nodes, ...answer.tafsir]) });
   };
 
   return (
