@@ -12,12 +12,15 @@ import { quranHub as q } from '@/content/design';
 import { ar } from '@/content/quran';
 import { recitationById, togglePage, usePlayer } from '@/recitation/player';
 import { usePrefs } from '@/store/prefs';
+import { planLabel, useKhatma, wirdRange } from '@/store/khatma';
 import { readingAt, readingMeta } from '@/store/reading';
 import { colors, space } from '@/theme/tokens';
 
 export default function QuranHubScreen() {
   // Everything on this tab follows the reading position kept on the device.
   const [prefs] = usePrefs();
+  const kh = useKhatma();
+  const khRead = kh.k ? kh.wirds.slice(0, kh.k.done).reduce((n, w) => n + w.pages, 0) : 0;
   const r = readingAt(prefs.lastPage);
   const audio = usePlayer();
   const listening = audio.playing === 'page';
@@ -48,27 +51,29 @@ export default function QuranHubScreen() {
         </View>
       </HeroCard>
 
-      {/* Khatma */}
-      <GlassCard>
-        <View style={styles.between}>
-          <View>
-            <Display size={24}>{q.khatma.title}</Display>
-            <Body size={13} color={colors.primary}>
-              {q.khatma.plan}
-            </Body>
+      {/* Khatma: the reader's own (see /khatma); before one is started, an invitation to start */}
+      <Pressable accessibilityRole="link" accessibilityLabel="الختمة" onPress={() => router.push('/khatma')}>
+        <GlassCard>
+          <View style={styles.between}>
+            <View style={{ flex: 1 }}>
+              <Display size={24}>{q.khatma.title}</Display>
+              <Body size={13} color={colors.primary}>
+                {kh.k ? planLabel(kh.k.plan) : 'لم تبدأ ختمة بعد'}
+              </Body>
+            </View>
+            {kh.k ? <Ring value={khRead / 604} label={ar(kh.k.done)} unit="ورد" /> : null}
           </View>
-          <Ring value={r.progress} label={ar(r.juz - 1)} unit={q.khatma.unit} />
-        </View>
-        <InnerCard style={[styles.between, { marginTop: 14, alignItems: 'center' }]}>
-          <View>
-            <Caption color={colors.ink}>{q.khatma.wirdLabel}</Caption>
-            <Body size={14} weight="bold">
-              {`الجزء ${ar(r.juz)} · نحو ٢٠ صفحة`}
-            </Body>
-          </View>
-          <Cta label={q.khatma.cta} height={42} compact style={{ minWidth: 101 }} onPress={openMushaf} />
-        </InnerCard>
-      </GlassCard>
+          <InnerCard style={[styles.between, { marginTop: 14, alignItems: 'center' }]}>
+            <View style={{ flex: 1 }}>
+              <Caption color={colors.ink}>{kh.today ? q.khatma.wirdLabel : 'ابدأ ختمتك'}</Caption>
+              <Body size={14} weight="bold" numberOfLines={2}>
+                {kh.today ? wirdRange(kh.today) : 'بالمدة التي تختارها أو بورد يومي'}
+              </Body>
+            </View>
+            <Cta label={kh.today ? q.khatma.cta : 'ابدأ'} height={42} compact style={{ minWidth: 101 }} onPress={() => (kh.today ? router.push({ pathname: '/mushaf', params: { page: String(kh.today.from) } }) : router.push('/khatma'))} />
+          </InnerCard>
+        </GlassCard>
+      </Pressable>
 
       {/* Shortcuts rail */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.rail} contentContainerStyle={styles.railContent}>

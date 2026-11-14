@@ -32,6 +32,7 @@ import { Breathe, haptic, isRTL, PressScale, Ripple, fadeIn, fadeOut } from '@/c
 import { type TasmeeNote, useTasmee } from '@/recitation/useTasmee';
 import { getPrefs, setPrefs, usePrefs } from '@/store/prefs';
 import { juzNameVoweled, readingAt } from '@/store/reading';
+import { noticePage } from '@/store/khatma';
 
 /**
  * Mushaf reading (page ٥٠, آل عمران ١–٩ in the design).
@@ -130,7 +131,18 @@ function MushafPage({ page }: { page: number }) {
   // The reading position: the page on screen is remembered (on the device only).
   useEffect(() => {
     if (getPrefs().lastPage !== page) setPrefs({ lastPage: page });
+    noticePage(page); // turning past the end of today's khatma wird counts it as read
   }, [page]);
+  // time with the mushaf open (khatma statistics), counted while this screen is in front
+  useFocusEffect(
+    useCallback(() => {
+      const t0 = Date.now();
+      return () => {
+        const s = Math.round((Date.now() - t0) / 1000);
+        if (s >= 5) setPrefs((p) => ({ mushafSeconds: p.mushafSeconds + Math.min(s, 4 * 3600) }));
+      };
+    }, []),
+  );
   const size = (prefs.quranSize - 3) * (zoom / 100); // Settings size 24 → the design's 21pt page
 
   // A page of the Madinah mushaf from the page data. Without ?page= it is the design's page ٥٠ (آل عمران ١–٩).

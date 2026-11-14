@@ -64,6 +64,8 @@ export function syncPrayerAlerts(): Promise<void> {
         extra.push({ at: new Date(t.fajr.getTime() + 30 * 60000), title: 'أذكار الصباح', body: 'وقت أذكار الصباح', route: '/adhkar?cat=sabah' });
         extra.push({ at: new Date(t.asr.getTime() + 30 * 60000), title: 'أذكار المساء', body: 'وقت أذكار المساء', route: '/adhkar?cat=sabah' });
       }
+      // the khatma's daily wird, at the hour the reader chose
+      if (p.khatma && p.khatma.remind !== null) extra.push({ at: new Date(day.getFullYear(), day.getMonth(), day.getDate(), p.khatma.remind, 0), title: 'ورد اليوم', body: 'ورد اليوم من ختمتك بانتظارك', route: '/khatma' });
       if (hifzOn) extra.push({ at: new Date(day.getFullYear(), day.getMonth(), day.getDate(), 20, 30), title: 'مراجعة الحفظ', body: 'خطة اليوم بانتظارك', route: '/hifz' });
       for (const pr of PRAYERS) {
         if (!adhan || !p.prayerAlerts[pr.key]) continue;

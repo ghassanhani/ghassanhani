@@ -37,7 +37,13 @@ export type Prefs = {
   recitationModel: boolean; // the optional speech-model pack is downloaded and verified
   recitationPro: boolean;
   /** «دفتر المتشابهات»: words the recitation check confirmed as slips, newest last (on the device only) */
-  slips: { key: string; word: number; expected: string; heard?: string; at: number }[]; // the more accurate speech model is downloaded, joined and verified (then used)
+  slips: { key: string; word: number; expected: string; heard?: string; at: number }[];
+  /** the khatma being read (see src/store/khatma.ts), or null */
+  khatma: { plan: { start: number; unit: 'days' | 'juz' | 'hizb' | 'pages'; amount: number }; startedAt: number; done: number; doneAt: number[]; remind: number | null } | null;
+  /** finished khatmas */
+  khatmaHistory: { startedAt: number; finishedAt: number }[];
+  /** seconds spent with the mushaf open */
+  mushafSeconds: number; // the more accurate speech model is downloaded, joined and verified (then used)
   reciter: number; // RATQ recitation id (assets/content/recitations.json)
   lastPage: number | null; // the mushaf page last open (reading position), on the device only
   bookmarks: string[]; // bookmarked ayat, "surah:ayah", newest last
@@ -75,6 +81,9 @@ export const DEFAULT_PREFS: Prefs = {
   recitationModel: false,
   recitationPro: false,
   slips: [],
+  khatma: null,
+  khatmaHistory: [],
+  mushafSeconds: 0,
   reciter: 35, // إبراهيم الدوسري: complete ayah timings on RATQ
   lastPage: null,
   bookmarks: [],
