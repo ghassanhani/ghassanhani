@@ -61,7 +61,7 @@ export default function TafsirScreen() {
         {packs.map((p, i) => {
           const have = isInstalled(p.slug);
           return (
-            <Pressable key={p.slug} accessibilityRole="button" onPress={() => !have && router.push('/settings')} style={[styles.row, styles.item, i > 0 && styles.sep]}>
+            <Pressable key={p.slug} accessibilityRole="button" onPress={() => router.push(have ? `/tafsir-book/${p.slug}` : '/settings')} style={[styles.row, styles.item, i > 0 && styles.sep]}>
               <View style={{ flex: 1 }}>
                 <Display size={16}>{p.title}</Display>
                 {p.publisher ? <Caption>{p.publisher}</Caption> : null}

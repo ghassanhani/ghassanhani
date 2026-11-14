@@ -155,11 +155,11 @@ function TafsirCard({ entry }: { entry: TafsirEntry & { text: string } }) {
   const remaining = total - end;
   return (
     <InnerCard style={{ gap: 6 }}>
-      <View style={[styles.row, { gap: 8, flexWrap: 'wrap' }]}>
+      <Pressable accessibilityRole="button" accessibilityState={{ expanded: !!shown }} onPress={() => setShown((v) => (v ? 0 : PAGE))} style={[styles.row, { gap: 8, flexWrap: 'wrap' }]}>
         <Display size={15}>{entry.title}</Display>
         {/* Status = the publisher's own editorial stage in the Itqan file. */}
         {entry.stage === 'approved' ? <ReviewedChip /> : entry.stage === 'in-review' ? <SuggestedChip /> : null}
-      </View>
+      </Pressable>
       {shown ? (
         chunks(entry.text, end).map(([a, b]) => <TafsirText key={a} text={entry.text.slice(a, b)} />)
       ) : (
