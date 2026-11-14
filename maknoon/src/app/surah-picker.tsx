@@ -54,7 +54,8 @@ export default function SurahPicker() {
     // height (one detent, as the ayah sheet that works).
     <View style={[styles.sheet, { height: Math.round(height * 0.86) }]}>
       <ScrollView
-        style={{ flex: 1 }}
+        // an explicit height, never flex: inside the iOS sheet a flexible list is given no height
+        style={{ height: Math.round(height * 0.86) }}
         keyboardShouldPersistTaps="handled"
         // opens with the current surah near the top
         contentOffset={{ x: 0, y: needle ? 0 : Math.max(0, current - 2) * 56 }}
