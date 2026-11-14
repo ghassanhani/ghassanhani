@@ -6,8 +6,9 @@ import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { Body, Caption, Display } from '@/components/Typography';
-import { Cta, GlassCard, HeroCard, InnerCard, ProgressBar, Segmented, SoftButton, Stepper, Switch } from '@/components/ui';
+import { Cta, GlassCard, HeroCard, IconBubble, InnerCard, ProgressBar, Segmented, SoftButton, Stepper, Switch } from '@/components/ui';
 import { ar, getAyah } from '@/content/quran';
+import { bookMeta } from '@/content/hadith';
 import { quranIndex } from '@/content/worship';
 import { getPrefs } from '@/store/prefs';
 import { type Plan, type Wird, juzOfPage, markWird, planLabel, planWirds, setReminder, startKhatma, stopKhatma, useKhatma, wirdEnds, wirdRange } from '@/store/khatma';
@@ -30,6 +31,7 @@ export default function KhatmaScreen() {
   return (
     <Screen backdrop="mint" withTabBar={false} header={<PageHeader title="الختمة" fallback="/quran" />}>
       {k && today ? <Current /> : <Setup />}
+      <Sunan />
       <Stats count={history.length} last={history[history.length - 1]?.finishedAt ?? null} seconds={seconds} />
       {k ? (
         <Pressable
@@ -261,6 +263,44 @@ function WirdRow({ w, note }: { w: Wird; note?: string }) {
       </View>
       <Caption>{`الورد ${ar(w.index + 1)}`}</Caption>
     </Pressable>
+  );
+}
+
+/**
+ * «سنن قرآنية»: surahs the Sunnah singles out. Each opens in the mushaf; its virtue is not written
+ * here but linked to the hadith itself (Sunnah.com, with its grading) — only hadith in the app's
+ * books are cited (the Friday reading of al-Kahf is narrated outside them, so it is not claimed).
+ */
+const SUNAN: { surah: number; icon: 'bookmark' | 'bookOpen' | 'quran'; hadith: string; about: string }[] = [
+  { surah: 18, icon: 'bookmark', hadith: 'muslim:809', about: 'حفظ العشر الأوائل منها' },
+  { surah: 67, icon: 'bookOpen', hadith: 'tirmidhi:2891', about: 'تشفع لصاحبها' },
+  { surah: 2, icon: 'quran', hadith: 'muslim:780', about: 'قراءتها في البيت' },
+];
+function Sunan() {
+  return (
+    <GlassCard style={{ paddingVertical: 8 }}>
+      <Display size={17} style={{ paddingTop: 8, paddingBottom: 4 }}>
+        سنن قرآنية
+      </Display>
+      {SUNAN.map((x) => {
+        const s = quranIndex.surahs[x.surah - 1];
+        const [slug, num] = x.hadith.split(':');
+        return (
+          <View key={x.surah} style={[styles.between, styles.stat, { gap: 10 }]}>
+            <Pressable accessibilityRole="link" accessibilityLabel={`سورة ${s.name}`} onPress={() => openPage(s.page)} style={[styles.row, { gap: 12, flex: 1 }]}>
+              <IconBubble name={x.icon} size={36} iconSize={18} color={colors.primary} />
+              <View style={{ flex: 1 }}>
+                <Display size={16}>{`سُورَةُ ${s.name}`}</Display>
+                <Caption>{`${x.about} · صفحة ${ar(s.page)}`}</Caption>
+              </View>
+            </Pressable>
+            <Pressable accessibilityRole="link" accessibilityLabel="الحديث في فضلها" hitSlop={6} onPress={() => router.push(`/hadith/${x.hadith}`)}>
+              <Caption color={colors.primary}>{`${bookMeta(slug)?.name ?? ''} ${ar(num)} ‹`}</Caption>
+            </Pressable>
+          </View>
+        );
+      })}
+    </GlassCard>
   );
 }
 
