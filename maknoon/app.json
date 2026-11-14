@@ -80,6 +80,16 @@
           "enableEntitlements": false,
           "enableOpenCLAndHexagon": false
         }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "يستمع المكنون إلى تلاوتك للتسميع فقط. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل.",
+          "speechRecognitionPermission": "يتعرّف المكنون على كلمات تلاوتك على جهازك فقط ليُظهرها أثناء التسميع. لا يُرسل الصوت ولا يُحفظ.",
+          "androidSpeechServicePackages": [
+            "com.google.android.as"
+          ]
+        }
       ]
     ],
     "scheme": "maknoon",

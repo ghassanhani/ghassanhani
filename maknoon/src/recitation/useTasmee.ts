@@ -3,6 +3,7 @@ import plain from '../../assets/content/quran-search.json';
 import { type Listening, listeningSupported, startListening, warmUp } from './listen';
 import { type ExpectedAyah, type WordState, check, wordCount } from './match';
 import { modelStatus } from './model';
+import { type Stream, startStream } from './stream';
 import { setAudioModeAsync } from 'expo-audio';
 import { haptic } from '@/components/motion';
 import { setPrefs } from '@/store/prefs';
@@ -58,6 +59,13 @@ export function useTasmee(ayahKeys: string[]) {
   const kept = useRef(''); // text from earlier listening spells (the reciter may pause and resume)
   const keptAlt = useRef(''); // the second reading of the same spells
   const session = useRef<Listening | null>(null);
+  // the phone's own recognizer, streaming words as they are said (moves the reveal only)
+  const stream = useRef<Stream | null>(null);
+  const [streamHeard, setStreamHeard] = useState('');
+  const endStream = () => {
+    stream.current?.stop();
+    stream.current = null;
+  };
   const preview = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const raw = useMemo(() => (heard ? check(expected, heard) : null), [expected, heard]);
@@ -90,12 +98,17 @@ export function useTasmee(ayahKeys: string[]) {
   const [shownTo, setShownTo] = useState(-1);
   // how far the reciter has got: the last word the model heard at all — right or not quite right — so
   // a word heard a little differently still appears at once (whether it is a slip is decided apart)
+  // the phone's recognizer hears each word as it is said, before Whisper has read it: whichever
+  // got further moves the reveal (slips are never judged on it)
+  const streamRaw = useMemo(() => (listening && streamHeard ? check(expected, streamHeard) : null), [expected, streamHeard, listening]);
   const reached = useMemo(() => {
     // from the raw alignment: a word not yet settled as a slip is still a word the reciter said
-    const st = raw?.states ?? [];
-    for (let i = st.length - 1; i >= 0; i--) if (st[i] === 'ok' || st[i] === 'changed') return i;
-    return -1;
-  }, [raw]);
+    const far = (st: WordState[] | undefined) => {
+      for (let i = (st?.length ?? 0) - 1; i >= 0; i--) if (st![i] === 'ok' || st![i] === 'changed') return i;
+      return -1;
+    };
+    return Math.max(far(raw?.states), far(streamRaw?.states));
+  }, [raw, streamRaw]);
   // The model hears words in small groups (one reading every half second or so); shown as they
   // come, they would jump in bursts. Instead each group is spread over the time the next reading
   // usually takes, so the words flow at the reciter's own pace.
@@ -194,6 +207,7 @@ export function useTasmee(ayahKeys: string[]) {
   useEffect(
     () => () => {
       stopPreview();
+      endStream();
       void session.current?.cancel().catch(() => {});
     },
     [],
@@ -233,7 +247,14 @@ export function useTasmee(ayahKeys: string[]) {
       const s = await startListening((h) => setHeard(`${kept.current} ${h.text}`.trim(), `${keptAlt.current} ${h.alt}`.trim(), `${kept.current} ${h.sure}`.trim()));
       // stopped (or left) while the model was still loading: let the microphone go
       if (!listeningRef.current) void s.cancel().catch(() => undefined);
-      else session.current = s;
+      else {
+        session.current = s;
+        // the smooth live words: on-device only; where unavailable, Whisper alone
+        const pageWords = expected.flatMap((e) => e.text.split(/\s+/).filter(Boolean));
+        const st = await startStream(pageWords, (t) => setStreamHeard(`${kept.current} ${t}`.trim()));
+        if (!listeningRef.current) st?.stop();
+        else stream.current = st;
+      }
     } catch {
       setListening(false);
       setNote('mic-failed');
@@ -242,6 +263,8 @@ export function useTasmee(ayahKeys: string[]) {
 
   const stop = async () => {
     stopPreview();
+    endStream();
+    setStreamHeard('');
     listeningRef.current = false;
     setListening(false);
     const s = session.current;
@@ -266,6 +289,8 @@ export function useTasmee(ayahKeys: string[]) {
   /** Hide everything again and forget what was heard. */
   const reset = () => {
     stopPreview();
+    endStream();
+    setStreamHeard('');
     listeningRef.current = false;
     void session.current?.cancel().catch(() => {});
     session.current = null;
