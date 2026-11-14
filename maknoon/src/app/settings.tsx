@@ -185,14 +185,14 @@ export default function SettingsScreen() {
             <View style={[styles.row, { justifyContent: 'space-between', gap: 12 }]}>
               <View style={{ flex: 1 }}>
                 <Display size={16}>{summaryModel.title}</Display>
-                <Caption>{sumStatus === 'ready' ? 'مثبّت · يعمل دون اتصال' : `${ar((summaryModel.bytes / 1e9).toFixed(1))} غ.ب · تنزيل اختياري`}</Caption>
+                <Caption>{sumStatus === 'ready' ? 'مثبّت · يعمل دون اتصال' : `${ar((summaryModel.bytes / 1e9).toFixed(1))} غ.ب · تنزيل اختياري · يحتاج هاتفًا حديثًا`}</Caption>
               </View>
               {sumStatus === 'missing' && !sumDl ? <SoftButton label="تنزيل" onPress={() => void downloadSummaryModel().catch(() => undefined)} /> : sumStatus === 'ready' ? <SoftButton label="حذف" onPress={() => void removeSummaryModel()} /> : null}
             </View>
             <DownloadProgress d={sumDl} retry={() => void downloadSummaryModel().catch(() => undefined)} />
             {sumStatus === 'ready' ? <ToggleRow title="اعرض الملخّص في المساعد" sub="جمل قصيرة فوق المصادر، كل جملة برقم مصدرها" value={prefs.aiSummary} onChange={(v) => setPrefs({ aiSummary: v })} /> : null}
             <Caption>
-              نموذج لغوي صغير (Qwen2.5 · Apache-2.0) يعمل على هاتفك فقط، فلا يُرسل سؤالك إلى أي مكان. يكتب جملًا قصيرة عن المصادر التي وجدها البحث، ثم يحذف التطبيق كل جملة بلا رقم مصدر، أو فيها اقتباس، أو حكم فقهي. قد يخطئ، فالمرجع دائمًا النصوص المعروضة تحته.
+              نموذج لغوي (Qwen3-4B · Apache-2.0) يعمل على هاتفك فقط، فلا يُرسل سؤالك إلى أي مكان. يكتب جملًا قصيرة عن المصادر التي وجدها البحث، ثم يحذف التطبيق كل جملة بلا رقم مصدر، أو فيها اقتباس، أو حكم فقهي. قد يخطئ، فالمرجع دائمًا النصوص المعروضة تحته.
             </Caption>
           </GlassCard>
         </>

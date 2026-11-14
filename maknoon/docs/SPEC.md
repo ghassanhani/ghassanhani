@@ -153,7 +153,7 @@ Version 1 is lexical and runs offline at no cost. The semantic layer comes after
 |---|---|---|---|
 | Recitation check | User's device | Free | User, labelled experimental |
 | Semantic search | Local GPU once + small CPU server | About €5–10 a month | Ranking only; shows real sources |
-| Assistant summary (level 2, optional) | User's device (Qwen2.5-1.5B-Instruct, Apache-2.0, ~1.1 GB download) | Free | 2–3 sentences above the sources, each citing a source number; filtered by `guard.ts`; labelled automatic |
+| Assistant summary (level 2, optional) | User's device (Qwen3-4B, Apache-2.0, ~2.5 GB download) | Free | 2–3 sentences above the sources, each citing a source number; filtered by `guard.ts`; labelled automatic |
 | Link mining (e.g. hadith cited inside Ibn Kathir → canonical hadith IDs) | Founder's machine (RTX 5070 Ti) or the founder's Claude plan | Free | `edge` rows with `status = 'suggested'`, then human review |
 | Entity extraction, parallel-narration clustering, topic tagging | Same | Free | Suggested rows, then human review |
 

@@ -65,7 +65,10 @@ export function guardSummary(raw: string, sources: number, quoted: (sentence: st
     const body = s.replace(/\s*\[\d{1,2}\]/g, '').replace(/\s+([.،؛!؟])/g, '$1').trim();
     if (body.length < 8) continue;
     if (QUOTES.test(body) || isRuling(body) || quoted(body)) continue;
-    if (asked && !content(body).some((w) => asked.has(w) || cites.some((c) => cited[c - 1]?.has(w)))) continue;
+    const said = content(body);
+    // too short to say anything, or not about the question and its sources
+    if (ground && said.length < 3) continue;
+    if (asked && !said.some((w) => asked.has(w) || cites.some((c) => cited[c - 1]?.has(w)))) continue;
     out.push({ text: body, cites });
     if (out.length >= max) break;
   }

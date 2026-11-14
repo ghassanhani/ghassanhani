@@ -50,3 +50,9 @@ test('a template sentence that says nothing about the sources is dropped', () =>
   assert.equal(out.length, 1);
   assert.match(out[0].text, /الصبر/);
 });
+
+test('a sentence that only repeats a source label is dropped', () => {
+  const key = Object.keys(plain).find((k) => plain[k].includes('الصبر'))!;
+  const out = guardSummary('آية · المائدة 6 [1]. آية · النساء 43 [1].', 1, quoted, 3, { question: 'مسح الجراب', texts: [plain[key]] });
+  assert.equal(out.length, 0);
+});

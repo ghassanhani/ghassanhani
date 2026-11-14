@@ -9,13 +9,13 @@ import type { Summary, SummaryInfo, SummaryStatus } from './summary';
 
 /**
  * Assistant level 2 (founder decision 2026-11-13): a short automatic summary above the sources.
- * A small open model (Qwen2.5-1.5B-Instruct, Apache-2.0) runs on the phone; the question and the
+ * A small open model (Qwen3-4B, Apache-2.0) runs on the phone; the question and the
  * sources never leave it. It is given only the numbered sources the search found, asked to say in
  * 2–3 sentences how they answer the question, citing each by its number, and its output then passes
  * guard.ts (no quoting, no rulings, every sentence cited). The sources themselves are always shown
  * below, from the database, exactly as before.
  *
- * The model is an optional download (about 1.1 GB, official file from Hugging Face pinned to one
+ * The model is an optional download (about 2.5 GB, official file from Hugging Face pinned to one
  * revision, checked against its SHA-256 before use).
  */
 export type { Line } from './guard';
@@ -84,9 +84,11 @@ export async function summarize(question: string, sources: Node[]): Promise<Summ
     const res = await c.completion({
       messages: [
         { role: 'system', content: SYSTEM },
-        { role: 'user', content: `المصادر:\n${numbered}\n\nالسؤال: ${question}` },
+        { role: 'user', content: `السؤال: ${question}\n\nالمصادر:\n${numbered}\n\nأجب عن السؤال من هذه المصادر في جملتين أو ثلاث، كل جملة برقم مصدرها. /no_think` },
       ],
-      n_predict: 220,
+      jinja: true,
+      enable_thinking: false, // Qwen3: answer straight away, no reasoning block
+      n_predict: 260,
       temperature: 0.2,
       top_p: 0.9,
       stop: ['<|im_end|>', '<|endoftext|>'],
@@ -97,6 +99,7 @@ export async function summarize(question: string, sources: Node[]): Promise<Summ
   }
   quotes ??= quoteCheck(allAyahPlain());
   const own = quoteCheck(list.map(sourceText));
-  const lines = guardSummary(text, list.length, (s) => quotes!(s) || own(s), 3, { question, texts: list.map((n) => `${n.title} ${sourceText(n)}`) });
+  // grounded in the sources' own words only — not their labels («آية · المائدة ٦» says nothing)
+  const lines = guardSummary(text, list.length, (s) => quotes!(s) || own(s), 3, { question, texts: list.map((n) => sourceText(n)) });
   return lines.length ? { lines } : { lines: [], why: text.trim() ? 'filtered' : 'empty' };
 }
