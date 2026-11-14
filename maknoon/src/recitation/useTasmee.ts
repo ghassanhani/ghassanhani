@@ -101,13 +101,23 @@ export function useTasmee(ayahKeys: string[]) {
   // Words appear one after another, a little apart, as they are recited (several recognised at once
   // are not dropped on the page together): `shownTo` walks up to the last recited word.
   const [shownTo, setShownTo] = useState(-1);
+  // how far the reciter has got: the last word the model heard at all — right or not quite right — so
+  // a word heard a little differently still appears at once (whether it is a slip is decided apart)
+  const reached = useMemo(() => {
+    // from the raw alignment: a word not yet settled as a slip is still a word the reciter said
+    const st = raw?.states ?? [];
+    for (let i = st.length - 1; i >= 0; i--) if (st[i] === 'ok' || st[i] === 'changed') return i;
+    return -1;
+  }, [raw]);
   useEffect(() => {
-    if (shownTo === last) return;
+    if (shownTo === reached) return;
     // it only moves forward: a later reading that reconsiders a word does not hide it again (no flashing)
-    if (last < shownTo) return;
-    const t = setTimeout(() => setShownTo((v) => Math.min(last, v + 1)), 110);
+    if (reached < shownTo) return;
+    // one by one, but never far behind: the further the reveal lags, the quicker it catches up
+    const behind = reached - shownTo;
+    const t = setTimeout(() => setShownTo((v) => Math.min(reached, v + (behind > 6 ? 3 : 1))), behind > 3 ? 35 : 90);
     return () => clearTimeout(t);
-  }, [shownTo, last]);
+  }, [shownTo, reached]);
   // «Mistakes»: slips are shown in colour only when the reader asks, or once listening stops
   const [review, setReview] = useState(false);
   const showSlips = review || !listening;

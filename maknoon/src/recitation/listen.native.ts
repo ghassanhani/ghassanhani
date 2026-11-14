@@ -28,7 +28,8 @@ function whisper(): Promise<WhisperContext> {
     old.then((c) => c.release()).catch(() => undefined);
   }
   if (!context) {
-    const c = initWhisper({ filePath: uri });
+    // the phone's GPU (Metal) with flash attention: several times faster than the CPU alone
+    const c = initWhisper({ filePath: uri, useGpu: true, useFlashAttn: true });
     c.catch(() => (context = null));
     context = c;
     contextUri = uri;
@@ -55,7 +56,7 @@ async function microphoneAllowed(): Promise<boolean> {
 const RATE = 16000;
 const BPS = RATE * 2;
 const MIN_BYTES = BPS * 0.5; // wait for half a second of sound before the first reading
-const CUT_AFTER = BPS * 6; // past 6 s, finished phrases are set aside and the window moves on
+const CUT_AFTER = BPS * 4; // past 4 s, finished phrases are set aside and the window moves on
 const HARD_CUT = BPS * 14; // a phrase that never pauses is set aside whole at 14 s
 const OVERLAP_MS = 800; // audio kept before a cut, so the next phrase keeps its first word
 // whisper.cpp writes noise and silence as bracketed tags: never part of what was recited
@@ -187,8 +188,8 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
       }
       const before = size;
       await read(false).catch(() => undefined);
-      // nothing new arrived while reading: wait a moment instead of reading the same audio again
-      if (size === before) await new Promise((ok) => setTimeout(ok, 150));
+      // read again once there is a little new audio (a word's worth), not for every few milliseconds
+      while (live && size - before < BPS * 0.35) await new Promise((ok) => setTimeout(ok, 60));
     }
   })();
 
@@ -231,4 +232,4 @@ const OPTIONS = {
 };
 // A finished phrase is read once more with a beam search over five readings (slower, more
 // accurate); the phrase still being recited keeps the quick reading so the page keeps pace.
-const CAREFUL = { ...OPTIONS, beamSize: 5, bestOf: 5 };
+const CAREFUL = { ...OPTIONS, beamSize: 3, bestOf: 3 }; // three readings searched: most of the gain of five, at well under half the time
