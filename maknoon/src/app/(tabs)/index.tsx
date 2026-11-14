@@ -56,7 +56,7 @@ export default function HomeScreen() {
         <View style={[styles.row, { gap: 10 }]}>
           <RoundButton icon="search" label="ابحث" onPress={() => router.navigate('/search')} />
           <View>
-            <RoundButton icon="bell" label="التنبيهات" />
+            <RoundButton icon="bell" label="التنبيهات" onPress={() => router.push({ pathname: '/settings', params: { section: 'alerts' } })} />
             <View style={styles.dot} />
           </View>
         </View>

@@ -1,5 +1,6 @@
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router/stack';
+import { router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -9,7 +10,7 @@ import Animated, { FadeOut } from 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { hydratePrefs, usePrefs } from '@/store/prefs';
-import { syncPrayerAlerts } from '@/worship/prayerAlerts';
+import { onAlertOpened, syncPrayerAlerts } from '@/worship/prayerAlerts';
 import { fontAssets } from '@/theme/fonts';
 
 // Arabic-first: the whole app is right-to-left.
@@ -43,10 +44,11 @@ export default function RootLayout() {
   const [splash, setSplash] = useState(true);
   // Prayer alerts are rebuilt on the device whenever the app opens or a prayer setting changes.
   const [prefs] = usePrefs();
-  const alertKey = JSON.stringify([prefs.prayerAlerts, prefs.city, prefs.asr, prefs.prayerMethod]);
+  const alertKey = JSON.stringify([prefs.prayerAlerts, prefs.city, prefs.asr, prefs.prayerMethod, prefs.notifs]);
   useEffect(() => {
     if (prefsReady) void syncPrayerAlerts();
   }, [prefsReady, alertKey]);
+  useEffect(() => onAlertOpened((route) => router.push(route as never)), []);
   const ready = (loaded || !!error) && prefsReady;
   useEffect(() => {
     if (!ready) return;

@@ -4,3 +4,6 @@ export async function askAlertPermission(): Promise<boolean> {
   return false;
 }
 export async function previewAdhan(): Promise<void> {}
+export function onAlertOpened(_open: (route: string) => void): () => void {
+  return () => undefined;
+}

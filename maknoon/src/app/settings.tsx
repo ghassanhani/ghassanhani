@@ -1,6 +1,7 @@
-import { router } from 'expo-router';
-import { Fragment, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { type ComponentRef, Fragment, useRef, useState } from 'react';
+import { ActivityIndicator, type ScrollView, StyleSheet, View } from 'react-native';
+import { askAlertPermission, syncPrayerAlerts } from '@/worship/prayerAlerts';
 import { Pressable } from '@/components/Tap';
 import { Icon } from '@/components/Icon';
 import { PageHeader } from '@/components/PageHeader';
@@ -32,7 +33,17 @@ export default function SettingsScreen() {
   const theme = prefs.theme as string;
   const setTheme = (v: string) => setPrefs({ theme: v as typeof prefs.theme });
   const notifs = prefs.notifs;
-  const setNotifs = (f: (a: boolean[]) => boolean[]) => setPrefs((p) => ({ notifs: f(p.notifs) }));
+  const setNotifs = (f: (a: boolean[]) => boolean[]) => {
+    const next = f(prefs.notifs);
+    setPrefs({ notifs: next });
+    // turning a reminder on asks, once, to allow notifications (they are scheduled on the device)
+    if (next.some((v, i) => v && !prefs.notifs[i])) void askAlertPermission().then(() => syncPrayerAlerts());
+  };
+  // opened from the bell on Home: straight to the alerts
+  const { section } = useLocalSearchParams<{ section?: string }>();
+  const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+  const alertsRef = useRef<ComponentRef<typeof View>>(null);
+  const jumped = useRef(false);
   const suggested = prefs.showSuggested;
   const setSuggested = (v: boolean) => setPrefs({ showSuggested: v });
   const city = cityByKey(prefs.city);
@@ -67,7 +78,7 @@ export default function SettingsScreen() {
   const madhhabSub = prefs.madhhab === 'all' ? S.content.madhhab.sub : `${MADHHAB_NAMES[prefs.madhhab]} · تبقى المذاهب كلها ظاهرة`;
 
   return (
-    <Screen backdrop="sand" withTabBar={false} header={<PageHeader title={S.title} fallback="/me" />}>
+    <Screen backdrop="sand" withTabBar={false} header={<PageHeader title={S.title} fallback="/me" />} scrollRef={scroll}>
       <Display size={21.5}>{S.reading.title}</Display>
       <GlassCard style={{ gap: 12 }}>
         <View style={[styles.row, { justifyContent: 'space-between' }]}>
@@ -96,7 +107,17 @@ export default function SettingsScreen() {
         <LinkItem title={S.prayer.location.title} sub={`${city.name} · مدينة محددة`} route="/prayer" />
       </GlassCard>
 
-      <Display size={21.5}>{S.notifications.title}</Display>
+      <View
+        ref={alertsRef}
+        onLayout={() => {
+          if (section !== 'alerts' || jumped.current) return;
+          jumped.current = true;
+          // each card is wrapped (it rises in): measure on the screen once it has settled, then scroll
+          setTimeout(() => alertsRef.current?.measureInWindow((_x, y) => scroll.current?.scrollTo({ y: Math.max(0, y - 120), animated: true })), 350);
+        }}
+      >
+        <Display size={21.5}>{S.notifications.title}</Display>
+      </View>
       <GlassCard style={{ paddingVertical: 8 }}>
         {S.notifications.items.map((n, i) => (
           <Fragment key={n.title}>

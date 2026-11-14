@@ -18,6 +18,8 @@ export type Prefs = {
   hideTashkeel: boolean;
   theme: 'light' | 'dark' | 'auto';
   notifs: boolean[];
+  /** 2: the reminders work (before, the switches were stored only, with the design's defaults) */
+  notifsV?: number;
   showSuggested: boolean;
   meaningSearch: boolean; // send the search phrase to the Maknoon Worker for meaning ranking
   analytics: boolean;
@@ -54,7 +56,8 @@ export const DEFAULT_PREFS: Prefs = {
   quranSize: 24,
   hideTashkeel: false,
   theme: 'auto',
-  notifs: [true, true, false, true],
+  notifs: [true, false, false, false], // [adhan, ayah of the day, adhkar, hifz]: reminders only when the reader turns them on
+  notifsV: 2,
   showSuggested: false, // CLAUDE.md rule 4: reviewed links only by default
   meaningSearch: true,
   analytics: false,
@@ -95,6 +98,8 @@ export async function hydratePrefs() {
   try {
     const raw = await AsyncStorage.getItem(KEY);
     if (raw) state = { ...DEFAULT_PREFS, ...(JSON.parse(raw) as Partial<Prefs>) };
+    // the reminder switches used to do nothing: once they work, only the adhan keeps its stored state
+    if (raw && (state.notifsV ?? 1) < 2) state = { ...state, notifs: [state.notifs[0] ?? true, false, false, false], notifsV: 2 };
   } catch {
     state = DEFAULT_PREFS; // corrupt or unavailable storage → start fresh
   }

@@ -53,10 +53,20 @@ export function syncPrayerAlerts(): Promise<void> {
     const s = { lat: city.lat, lng: city.lng, method: (p.prayerMethod ?? city.method) as typeof city.method, asr: p.asr, tz: city.tz };
     const now = new Date();
     const jobs: Promise<string>[] = [];
+    // the reader's switches in Settings → التنبيهات: [adhan, ayah of the day, adhkar, hifz review]
+    const [adhan, ayahOfDay, adhkarOn, hifzOn] = p.notifs;
+    const extra: { at: Date; title: string; body: string; route: string }[] = [];
     for (let d = 0; d < DAYS; d++) {
       const t = timesFor(s, placeDay(now, city.tz, d));
+      const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d);
+      if (ayahOfDay) extra.push({ at: new Date(day.getFullYear(), day.getMonth(), day.getDate(), 8, 0), title: 'آية اليوم', body: 'آية جديدة تنتظرك في المكنون', route: '/' });
+      if (adhkarOn) {
+        extra.push({ at: new Date(t.fajr.getTime() + 30 * 60000), title: 'أذكار الصباح', body: 'وقت أذكار الصباح', route: '/adhkar?cat=sabah' });
+        extra.push({ at: new Date(t.asr.getTime() + 30 * 60000), title: 'أذكار المساء', body: 'وقت أذكار المساء', route: '/adhkar?cat=sabah' });
+      }
+      if (hifzOn) extra.push({ at: new Date(day.getFullYear(), day.getMonth(), day.getDate(), 20, 30), title: 'مراجعة الحفظ', body: 'خطة اليوم بانتظارك', route: '/hifz' });
       for (const pr of PRAYERS) {
-        if (!p.prayerAlerts[pr.key]) continue;
+        if (!adhan || !p.prayerAlerts[pr.key]) continue;
         const at = t[pr.key];
         if (at.getTime() <= now.getTime() + 5000) continue;
         jobs.push(
@@ -65,12 +75,22 @@ export function syncPrayerAlerts(): Promise<void> {
               title: pr.key === 'sunrise' ? 'الشروق' : `حان الآن وقت صلاة ${pr.name}`,
               body: city.name,
               sound: ADHAN_SOUND ?? true,
-              data: { kind: KIND, prayer: pr.key },
+              data: { kind: KIND, prayer: pr.key, route: '/prayer' },
             },
             trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at, channelId: 'prayer' },
           }),
         );
       }
+    }
+    // prayers first; the reminders fill what is left of iOS's 64 pending notifications
+    for (const e of extra) {
+      if (e.at.getTime() <= now.getTime() + 5000 || jobs.length >= 60) continue;
+      jobs.push(
+        Notifications.scheduleNotificationAsync({
+          content: { title: e.title, body: e.body, sound: true, data: { kind: KIND, route: e.route } },
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: e.at, channelId: 'prayer' },
+        }),
+      );
     }
     await Promise.all(jobs.slice(0, 60));
   }).catch(() => undefined);
@@ -85,4 +105,13 @@ export async function previewAdhan(): Promise<void> {
     content: { title: 'تجربة تنبيه الأذان', body: 'هكذا يصلك تنبيه الصلاة', sound: ADHAN_SOUND ?? true, data: { kind: 'preview' } },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 2, channelId: 'prayer' },
   });
+}
+
+/** Opening a notification opens its screen (prayer times, adhkar, the day's ayah, hifz). */
+export function onAlertOpened(open: (route: string) => void): () => void {
+  const sub = Notifications.addNotificationResponseReceivedListener((r) => {
+    const route = r.notification.request.content.data?.route;
+    if (typeof route === 'string') open(route);
+  });
+  return () => sub.remove();
 }
