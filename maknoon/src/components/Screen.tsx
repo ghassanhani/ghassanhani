@@ -1,4 +1,4 @@
-import { Children, type ComponentRef, type ReactNode, type Ref, isValidElement } from 'react';
+import { Children, type ComponentRef, Fragment, type ReactNode, type Ref, isValidElement } from 'react';
 import Animated from 'react-native-reanimated';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -67,7 +67,8 @@ export function Screen({
         ]}
       >
         {/* Each card rises in shortly after the one before it (only when it first appears). */}
-        {Children.toArray(children).map((child, i) => {
+        {/* cards given in a group (<>…</>, or a part of the screen returning several) are spaced like the rest */}
+        {flatten(children).map((child, i) => {
           const key = isValidElement(child) && child.key != null ? child.key : i;
           return (
             <Animated.View key={key} entering={WEB ? undefined : enterAt(i)}>
@@ -98,3 +99,8 @@ export function Screen({
 }
 
 const styles = StyleSheet.create({ root: { flex: 1 } });
+
+/** The screen's cards, with fragments opened up (so every card gets the same gap). */
+function flatten(children: ReactNode): ReactNode[] {
+  return Children.toArray(children).flatMap((c) => (isValidElement<{ children?: ReactNode }>(c) && c.type === Fragment ? flatten(c.props.children) : [c]));
+}

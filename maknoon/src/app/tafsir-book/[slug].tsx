@@ -16,7 +16,7 @@ import { quranIndex } from '@/content/worship';
 import { usePrefs } from '@/store/prefs';
 import { readingAt } from '@/store/reading';
 import { F } from '@/theme/fonts';
-import { colors } from '@/theme/tokens';
+import { colors, space } from '@/theme/tokens';
 
 const STEP = 10;
 const norm = (s: string) => s.replace(/[ً-ٰٟ]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
@@ -93,7 +93,8 @@ function SurahTafsir({ slug, surah, back }: { slug: string; surah: number; back:
   }, [slug, surah, count, meta.ayat]);
 
   return (
-    <>
+    // its cards spaced as the screen spaces its own
+    <View style={{ gap: space.gap }}>
       <Pressable accessibilityRole="button" onPress={back}>
         <Body size={13} color={colors.primary}>
           ‹ كل السور
@@ -114,7 +115,7 @@ function SurahTafsir({ slug, surah, back }: { slug: string; surah: number; back:
           </Body>
         </Pressable>
       ) : null}
-    </>
+    </View>
   );
 }
 

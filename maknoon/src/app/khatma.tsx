@@ -14,7 +14,7 @@ import { getPrefs, usePrefs } from '@/store/prefs';
 import { type Plan, type Wird, juzOfPage, markWird, planLabel, planWirds, setReminder, startKhatma, stopKhatma, useKhatma, wirdEnds, wirdRange } from '@/store/khatma';
 import { MadinahAyah } from '@/components/MadinahAyah';
 import { juzNameVoweled, readingAt } from '@/store/reading';
-import { colors } from '@/theme/tokens';
+import { colors, space } from '@/theme/tokens';
 import { askAlertPermission } from '@/worship/prayerAlerts';
 
 const day = (t: number) => ar(new Date(t).toLocaleDateString('en-GB'));
@@ -68,7 +68,8 @@ function Setup() {
   const plan: Plan = by === 'days' ? { start, unit: 'days', amount: days } : { start, unit, amount };
   const n = planWirds(plan).length;
   return (
-    <>
+    // its cards spaced as the screen spaces its own
+    <View style={{ gap: space.gap }}>
       <HeroCard hero="teal" style={{ gap: 6 }}>
         <Display size={24} color={colors.white}>
           ختمة جديدة
@@ -135,7 +136,7 @@ function Setup() {
         </InnerCard>
         <Cta label="ابدأ الختمة" onPress={() => startKhatma(plan)} />
       </GlassCard>
-    </>
+    </View>
   );
 }
 
@@ -146,7 +147,8 @@ function Current() {
   if (!k || !today) return null;
   const read = wirds.slice(0, k.done).reduce((n, w) => n + w.pages, 0);
   return (
-    <>
+    // its cards spaced as the screen spaces its own
+    <View style={{ gap: space.gap }}>
       <HeroCard hero="teal" style={{ gap: 10 }}>
         <View style={styles.between}>
           <Display size={24} color={colors.white}>
@@ -188,7 +190,7 @@ function Current() {
           <Stepper label="وقت التنبيه" value={hourLabel(k.remind)} onDec={() => setReminder(((k.remind ?? 20) + 23) % 24)} onInc={() => setReminder(((k.remind ?? 20) + 1) % 24)} />
         ) : null}
       </GlassCard>
-    </>
+    </View>
   );
 }
 
