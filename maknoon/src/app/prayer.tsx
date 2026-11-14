@@ -227,8 +227,9 @@ function QiblaCompass({ bearing }: { bearing: number }) {
     }
   }, [bearing, turn]);
   useEffect(() => {
-    // already allowed: start at once, without asking (on the next tick, outside the render pass)
-    const t = Platform.OS !== 'web' ? setTimeout(() => void start(false), 0) : undefined;
+    // runs by default: starts at once when the page opens (asking for permission the first time),
+    // on the next tick, outside the render pass
+    const t = Platform.OS !== 'web' ? setTimeout(() => void start(true), 0) : undefined;
     return () => {
       if (t) clearTimeout(t);
       sub.current?.remove();
