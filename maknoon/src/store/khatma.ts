@@ -82,3 +82,12 @@ export function useKhatma() {
   return { k, wirds, today: k ? (wirds[k.done] ?? null) : null, history: prefs.khatmaHistory, seconds: prefs.mushafSeconds };
 }
 
+
+/** Where a wird begins and ends: its first and last ayah, and its pages. */
+export function wirdEnds(w: Wird) {
+  const firstPage = ayatOnPage(w.from);
+  const lastPage = ayatOnPage(w.to);
+  return { first: firstPage[0] ?? { surah: 1, ayah: 1 }, last: lastPage[lastPage.length - 1] ?? { surah: 114, ayah: 6 } };
+}
+/** The juz a page is in. */
+export const juzOfPage = (page: number) => [...quranIndex.juz].reverse().find((j) => j.page <= page)?.juz ?? 1;

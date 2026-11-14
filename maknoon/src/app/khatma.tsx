@@ -7,11 +7,12 @@ import { PageHeader } from '@/components/PageHeader';
 import { Screen } from '@/components/Screen';
 import { Body, Caption, Display } from '@/components/Typography';
 import { Cta, GlassCard, HeroCard, InnerCard, ProgressBar, Segmented, SoftButton, Stepper, Switch } from '@/components/ui';
-import { ar } from '@/content/quran';
+import { ar, getAyah } from '@/content/quran';
 import { quranIndex } from '@/content/worship';
 import { getPrefs } from '@/store/prefs';
-import { type Plan, type Wird, markWird, planLabel, planWirds, setReminder, startKhatma, stopKhatma, useKhatma, wirdRange } from '@/store/khatma';
-import { readingAt } from '@/store/reading';
+import { type Plan, type Wird, juzOfPage, markWird, planLabel, planWirds, setReminder, startKhatma, stopKhatma, useKhatma, wirdEnds, wirdRange } from '@/store/khatma';
+import { MadinahAyah } from '@/components/MadinahAyah';
+import { juzNameVoweled, readingAt } from '@/store/reading';
 import { colors } from '@/theme/tokens';
 import { askAlertPermission } from '@/worship/prayerAlerts';
 
@@ -155,18 +156,7 @@ function Current() {
         <Caption color="rgba(255,255,255,0.8)">{`${ar(read)} من ٦٠٤ صفحة`}</Caption>
       </HeroCard>
 
-      <GlassCard style={{ gap: 10 }}>
-        <Display size={18}>ورد اليوم</Display>
-        <Body size={15} weight="medium">
-          {wirdRange(today)}
-        </Body>
-        <Caption>{`صفحة ${ar(today.from)} إلى ${ar(today.to)} · ${ar(today.pages)} صفحة`}</Caption>
-        <View style={[styles.row, { gap: 10 }]}>
-          <Cta label="اقرأ الورد" height={44} compact style={{ flex: 1 }} onPress={() => openPage(today.from)} />
-          <SoftButton label="أتممت الورد" onPress={markWird} />
-        </View>
-        <Caption>يُحسب الورد مقروءًا أيضًا حين تقلب الصفحة بعد آخر صفحاته في المصحف.</Caption>
-      </GlassCard>
+      <TodayWird w={today} done={k.done} total={wirds.length} read={read} />
 
       <GlassCard style={{ paddingVertical: 8 }}>
         <ListHead title="الأوراد السابقة" n={k.done} open={open === 'past'} onPress={() => setOpen(open === 'past' ? null : 'past')} />
@@ -196,6 +186,53 @@ function Current() {
         ) : null}
       </GlassCard>
     </>
+  );
+}
+
+/** Today's wird: its opening ayah, the juz, where it begins and ends, and the khatma's progress. */
+function TodayWird({ w, done, total, read }: { w: Wird; done: number; total: number; read: number }) {
+  const { first, last } = wirdEnds(w);
+  // the opening ayah; a short one is followed by the next, as the printed wird cards do
+  const second = (getAyah(first.surah, first.ayah)?.text.length ?? 99) < 60 && first.ayah < (quranIndex.surahs[first.surah - 1]?.ayat ?? 0);
+  const name = (n: number) => quranIndex.surahs[n - 1]?.name ?? '';
+  return (
+    <GlassCard style={{ gap: 12 }}>
+      <View style={styles.between}>
+        <Display size={18}>ورد اليوم</Display>
+        <Body size={13} weight="bold" color={colors.primary}>
+          {juzNameVoweled(juzOfPage(w.from))}
+        </Body>
+      </View>
+      <InnerCard style={{ gap: 6 }}>
+        <Caption color={colors.primary}>من قوله تعالى</Caption>
+        <MadinahAyah surah={first.surah} ayah={first.ayah} size={21} align="center" numberOfLines={second ? undefined : 3} />
+        {second ? <MadinahAyah surah={first.surah} ayah={first.ayah + 1} size={21} align="center" /> : null}
+      </InnerCard>
+      <View style={styles.ends}>
+        <View style={styles.between}>
+          <Body size={14}>{`من سورة ${name(first.surah)} · آية ${ar(first.ayah)}`}</Body>
+          <Caption>{`صفحة ${ar(w.from)}`}</Caption>
+        </View>
+        <View style={styles.sep} />
+        <View style={styles.between}>
+          <Body size={14}>{`إلى سورة ${name(last.surah)} · آية ${ar(last.ayah)}`}</Body>
+          <Caption>{`صفحة ${ar(w.to)}`}</Caption>
+        </View>
+      </View>
+      <View style={[styles.row, { gap: 10 }]}>
+        <Cta label="اقرأ الورد" height={46} compact style={{ flex: 1 }} onPress={() => openPage(w.from)} />
+        <SoftButton label="أتممت القراءة" onPress={markWird} />
+      </View>
+      <View style={{ gap: 6, marginTop: 4 }}>
+        <Caption color={colors.ink}>الختمة الحالية</Caption>
+        <ProgressBar value={read / 604} height={8} fill={colors.primary} track={colors.primary} trackOpacity={0.12} />
+        <View style={styles.between}>
+          <Caption>{`الأوراد السابقة: ${ar(done)}`}</Caption>
+          <Caption>{`الأوراد القادمة: ${ar(Math.max(0, total - done - 1))}`}</Caption>
+        </View>
+      </View>
+      <Caption>يُحسب الورد مقروءًا أيضًا حين تقلب الصفحة بعد آخر صفحاته في المصحف.</Caption>
+    </GlassCard>
   );
 }
 
@@ -258,6 +295,7 @@ const styles = StyleSheet.create({
   between: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sep: { height: 1, backgroundColor: colors.hairline },
   count: { minWidth: 34, height: 26, paddingHorizontal: 8, borderRadius: 8, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  ends: { gap: 8, paddingVertical: 4 },
   wird: { paddingVertical: 10, borderTopWidth: 1, borderTopColor: colors.hairline, gap: 8 },
   stat: { paddingVertical: 12, borderTopWidth: 1, borderTopColor: colors.hairline },
 });
