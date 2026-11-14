@@ -20,6 +20,7 @@ import { LANGS, type Lang, translationOf } from '@/content/translation';
 import { prefetchAyah, recitationCredit, toggleAyah, usePlayer } from '@/recitation/player';
 import { quranIndex } from '@/content/worship';
 import { ayahOfDay } from '@/store/reading';
+import { F } from '@/theme/fonts';
 import { colors } from '@/theme/tokens';
 
 /** Ayah detail ("آية اليوم"): canonical text on top, link drawers below. */
@@ -235,7 +236,7 @@ function Chevron({ open }: { open: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  ltr: { writingDirection: 'ltr', textAlign: 'left', fontFamily: undefined },
+  ltr: { writingDirection: 'ltr', textAlign: 'left', fontFamily: F.sans },
   row: { flexDirection: 'row', alignItems: 'center' },
   between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   // teal glass bubble, as on the canvas: a plain native shape, cheap to draw

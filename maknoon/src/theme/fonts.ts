@@ -17,8 +17,9 @@ import { thmanyahFonts } from './thmanyah.local';
  * the font is bundled inside the app; hosting/sharing the files or making them
  * extractable (e.g. served to a browser) is not. So: native builds only, files never
  * committed. Download from font.thmanyah.com into assets/fonts/thmanyah and run
- * `npm run fonts:link`. Until then — and always on web — Amiri (display) and
- * IBM Plex Sans Arabic (sans) are used.
+ * `npm run fonts:link`. Until then Amiri (display) and IBM Plex Sans Arabic (sans) are used. The
+ * founder's own web development preview gets Thmanyah too (src/theme/thmanyah.local.ts, __DEV__ only);
+ * a published web build must not include it.
  */
 export const fontAssets = {
   Amiri_400Regular,
