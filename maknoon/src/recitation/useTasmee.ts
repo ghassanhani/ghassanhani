@@ -96,13 +96,28 @@ export function useTasmee(ayahKeys: string[]) {
     for (let i = st.length - 1; i >= 0; i--) if (st[i] === 'ok' || st[i] === 'changed') return i;
     return -1;
   }, [raw]);
+  // The model hears words in small groups (one reading every half second or so); shown as they
+  // come, they would jump in bursts. Instead each group is spread over the time the next reading
+  // usually takes, so the words flow at the reciter's own pace.
+  const pace = useRef({ at: 0, gap: 600, to: -1 });
+  useEffect(() => {
+    const p = pace.current;
+    if (reached <= p.to) return;
+    const now = Date.now();
+    if (p.at) p.gap = Math.round(0.6 * p.gap + 0.4 * Math.min(1500, Math.max(250, now - p.at)));
+    p.at = now;
+    p.to = reached;
+  }, [reached]);
   useEffect(() => {
     if (shownTo === reached) return;
     // it only moves forward: a later reading that reconsiders a word does not hide it again (no flashing)
     if (reached < shownTo) return;
-    // one by one, but never far behind: the further the reveal lags, the quicker it catches up
+    // far behind (a long phrase settled at once): catch up quickly; else one word at a time, evenly
     const behind = reached - shownTo;
-    const t = setTimeout(() => setShownTo((v) => Math.min(reached, v + (behind > 6 ? 3 : 1))), behind > 3 ? 35 : 90);
+    const t = setTimeout(
+      () => setShownTo((v) => Math.min(reached, v + (behind > 8 ? 3 : 1))),
+      behind > 8 ? 30 : Math.min(220, Math.max(60, pace.current.gap / behind)),
+    );
     return () => clearTimeout(t);
   }, [shownTo, reached]);
   // «Mistakes»: slips are shown in colour only when the reader asks, or once listening stops
@@ -261,6 +276,7 @@ export function useTasmee(ayahKeys: string[]) {
     setElapsed(0);
     setHeardPair({ now: '', alt: '', sure: '' });
     setShownTo(-1);
+    pace.current = { at: 0, gap: 600, to: -1 };
     setHinted([]);
     setListening(false);
     setNote(null);

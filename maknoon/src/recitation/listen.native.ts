@@ -88,7 +88,7 @@ async function microphoneAllowed(): Promise<boolean> {
 const RATE = 16000;
 const BPS = RATE * 2;
 const MIN_BYTES = BPS * 0.5; // wait for half a second of sound before the first reading
-const CUT_AFTER = BPS * 4; // past 4 s, finished phrases are set aside and the window moves on
+const CUT_AFTER = BPS * 3; // past 3 s, finished phrases are set aside and the window moves on
 const HARD_CUT = BPS * 14; // a phrase that never pauses is set aside whole at 14 s
 const OVERLAP_MS = 800; // audio kept before a cut, so the next phrase keeps its first word
 // whisper.cpp writes noise and silence as bracketed tags: never part of what was recited
@@ -168,6 +168,12 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
   };
   /** A phrase is finished: keep the fast reading now, and have the accurate model re-read its audio in turn. */
   const finish = (quick: string, audio: Uint8Array) => {
+    // with one model only, a re-read of the same audio by the same model adds nothing but a wait
+    // in front of the live reading: the phrase is settled as read
+    if (ctx.accurate === ctx.fast) {
+      phrases.push({ quick, sure: quick });
+      return;
+    }
     const p = { quick, sure: null as string | null };
     phrases.push(p);
     checking = checking
@@ -244,8 +250,8 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
       }
       const before = size;
       await read(false).catch(() => undefined);
-      // read again once there is a little new audio (a word's worth), not for every few milliseconds
-      while (live && size - before < BPS * 0.35) await new Promise((ok) => setTimeout(ok, 60));
+      // read again once there is a little new audio (a fifth of a second), not for every few milliseconds
+      while (live && size - before < BPS * 0.2) await new Promise((ok) => setTimeout(ok, 60));
     }
   })();
 
