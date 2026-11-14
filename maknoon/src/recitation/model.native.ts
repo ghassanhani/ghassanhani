@@ -6,9 +6,9 @@ import { getPrefs, setPrefs } from '@/store/prefs';
 import type { ModelInfo, ModelStatus, ProInfo } from './model';
 
 /**
- * The optional speech-model pack for the recitation check (SPEC §2.12): downloaded once
- * from `expo.extra.modelBaseUrl` (GitHub, pinned to a commit), verified against the manifest's SHA-256, kept on the device.
- * Until the converted model is published (manifest sha256 = null) the feature reports 'unavailable'.
+ * The speech models of the recitation check (SPEC §2.12): the standard one is bundled with the app;
+ * the accurate one is an optional download from the public ghassanhani/maknoon-models repository
+ * (manifest `recitationPro.base`, pinned to a commit), verified against the manifest's SHA-256, kept on the device.
  */
 export type { ModelInfo, ModelStatus, ProInfo } from './model';
 export const recitationModel = (manifest as { recitation: ModelInfo }).recitation;
