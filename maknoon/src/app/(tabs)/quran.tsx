@@ -170,7 +170,7 @@ export default function QuranHubScreen() {
                   {it.meta}
                 </Body>
               </View>
-              <Icon name="chevronLeft" size={20} color={colors.ink} />
+              {'route' in it ? <Icon name="chevronLeft" size={20} color={colors.ink} /> : null}
             </Pressable>
           </Fragment>
         ))}

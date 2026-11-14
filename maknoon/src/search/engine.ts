@@ -22,3 +22,13 @@ export function searchQuran(query: string, limit = 20): AyahHit[] {
 
 /** Root card for a one-word (or spaced «ر ح م») query: the root, how many ayat, and its derived words. */
 export const rootInfo = (query: string) => rootInfoIn(IDX, query);
+
+/** Every ayah whose words come from the root of `query` («ر ح م» or a word from it), in mushaf order. */
+export function ayatOfRoot(query: string): { info: NonNullable<ReturnType<typeof rootInfo>>; keys: string[] } | null {
+  const info = rootInfoIn(IDX, query);
+  if (!info) return null;
+  const postings = (IDX as unknown as { roots: Record<string, number[]> }).roots[info.root] ?? [];
+  const docs: number[] = [];
+  for (let i = 0; i < postings.length; i += 2) docs.push(postings[i]);
+  return { info, keys: [...new Set(docs)].sort((a, b) => a - b).map((d) => IDX.keys[d]) };
+}
