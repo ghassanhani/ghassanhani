@@ -1,4 +1,4 @@
-import { Children, type ComponentRef, Fragment, type ReactNode, type Ref, isValidElement } from 'react';
+import { Children, cloneElement, type ComponentRef, Fragment, type ReactNode, type Ref, isValidElement } from 'react';
 import Animated from 'react-native-reanimated';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -101,6 +101,11 @@ export function Screen({
 const styles = StyleSheet.create({ root: { flex: 1 } });
 
 /** The screen's cards, with fragments opened up (so every card gets the same gap). */
-function flatten(children: ReactNode): ReactNode[] {
-  return Children.toArray(children).flatMap((c) => (isValidElement<{ children?: ReactNode }>(c) && c.type === Fragment ? flatten(c.props.children) : [c]));
+function flatten(children: ReactNode, prefix = ''): ReactNode[] {
+  return Children.toArray(children).flatMap((c, i) => {
+    const key = `${prefix}${isValidElement(c) && c.key != null ? c.key : i}`;
+    if (isValidElement<{ children?: ReactNode }>(c) && c.type === Fragment) return flatten(c.props.children, `${key}/`);
+    // keys stay unique once a group's cards sit beside the screen's own
+    return [isValidElement(c) ? cloneElement(c, { key }) : c];
+  });
 }
