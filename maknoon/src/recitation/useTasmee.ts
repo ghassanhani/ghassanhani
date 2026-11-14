@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import plain from '../../assets/content/quran-search.json';
-import { type Listening, listeningSupported, startListening } from './listen';
+import { type Listening, listeningSupported, startListening, warmUp } from './listen';
 import { type ExpectedAyah, type WordState, check, wordCount } from './match';
 import { modelStatus } from './model';
 import { setAudioModeAsync } from 'expo-audio';
@@ -173,6 +173,10 @@ export function useTasmee(ayahKeys: string[]) {
     if (preview.current) clearInterval(preview.current);
     preview.current = null;
   };
+  // The speech model is loaded as soon as the page opens, not when the reader taps «start».
+  useEffect(() => {
+    if (listeningSupported && modelStatus() === 'ready') warmUp();
+  }, []);
   // Leaving the page stops the microphone and drops whatever was captured.
   useEffect(
     () => () => {
@@ -210,9 +214,14 @@ export function useTasmee(ayahKeys: string[]) {
       // a recitation playing would hold the audio session for playback only: stop it and open the mic
       stopRecitation();
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true, shouldPlayInBackground: false }).catch(() => undefined);
-      session.current = await startListening((h) => setHeard(`${kept.current} ${h.text}`.trim(), `${keptAlt.current} ${h.alt}`.trim()));
+      // listening at once (the page answers the tap); the audio is kept while the model finishes loading
       setListening(true);
+      const s = await startListening((h) => setHeard(`${kept.current} ${h.text}`.trim(), `${keptAlt.current} ${h.alt}`.trim()));
+      // stopped (or left) while the model was still loading: let the microphone go
+      if (!listeningRef.current) void s.cancel().catch(() => undefined);
+      else session.current = s;
     } catch {
+      setListening(false);
       setNote('mic-failed');
     }
   };

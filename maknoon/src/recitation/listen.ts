@@ -15,3 +15,5 @@ export const listeningSupported = false;
 export async function startListening(_onHeard?: (soFar: Heard) => void): Promise<Listening> {
   throw new Error('The recitation check is available in the iOS/Android app');
 }
+
+export function warmUp() {}

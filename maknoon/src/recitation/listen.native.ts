@@ -36,6 +36,15 @@ function whisper(): Promise<WhisperContext> {
   return context;
 }
 
+/** Loads the speech model ahead (when the Mushaf opens), so the first «start» is immediate. */
+export function warmUp() {
+  try {
+    void whisper().catch(() => undefined);
+  } catch {
+    // no model installed: nothing to load
+  }
+}
+
 async function microphoneAllowed(): Promise<boolean> {
   if (Platform.OS !== 'android') return true; // iOS asks when the stream starts (NSMicrophoneUsageDescription)
   const r = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO);
