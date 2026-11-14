@@ -31,6 +31,18 @@ export function modelStatus(): ModelStatus {
 }
 /** The model the recitation check uses: the accurate one when it is installed, else the standard one. */
 export const modelUri = (): string | null => (proReady() ? proFile().uri : getPrefs().recitationModel && file().exists ? file().uri : null);
+/**
+ * The two models' roles while listening: the fast one reads the words as they are recited (the
+ * standard model when installed), the accurate one re-reads every finished phrase (the accurate
+ * model when installed). With one model installed it does both.
+ */
+export const modelUris = (): { fast: string; accurate: string } | null => {
+  const base = getPrefs().recitationModel && file().exists ? file().uri : null;
+  const pro = proReady() ? proFile().uri : null;
+  const fast = base ?? pro;
+  const accurate = pro ?? base;
+  return fast && accurate ? { fast, accurate } : null;
+};
 
 export const proStatus = (): 'ready' | 'missing' | 'unavailable' => (proReady() ? 'ready' : recitationPro.base ? 'missing' : 'unavailable');
 

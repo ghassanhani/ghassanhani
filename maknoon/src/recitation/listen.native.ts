@@ -3,7 +3,7 @@ import { initWhisper, type WhisperContext } from 'whisper.rn/index';
 // @ts-expect-error: the package ships its typings under another module name
 import LiveAudioStream from '@fugood/react-native-audio-pcm-stream';
 import type { Heard, Listening } from './listen';
-import { modelUri } from './model';
+import { modelUris } from './model';
 import { clean, lastPause, quietestPoint } from './pause';
 
 /**
@@ -16,25 +16,28 @@ import { clean, lastPause, quietestPoint } from './pause';
 export type { Heard, Listening } from './listen';
 export const listeningSupported = true;
 
-let context: Promise<WhisperContext> | null = null;
-let contextUri: string | null = null;
-function whisper(): Promise<WhisperContext> {
-  const uri = modelUri();
-  if (!uri) throw new Error('Recitation model not installed');
-  // another model chosen (the accurate one installed or removed): let the old one go
-  if (context && contextUri !== uri) {
-    const old = context;
-    context = null;
-    old.then((c) => c.release()).catch(() => undefined);
-  }
-  if (!context) {
+// One context per model file, kept while it is installed.
+const contexts = new Map<string, Promise<WhisperContext>>();
+function load(uri: string): Promise<WhisperContext> {
+  let c = contexts.get(uri);
+  if (!c) {
     // the phone's GPU (Metal): several times faster than the CPU alone
-    const c = initWhisper({ filePath: uri, useGpu: true });
-    c.catch(() => (context = null));
-    context = c;
-    contextUri = uri;
+    c = initWhisper({ filePath: uri, useGpu: true });
+    c.catch(() => contexts.delete(uri));
+    contexts.set(uri, c);
   }
-  return context;
+  return c;
+}
+/** The fast and the accurate model (the same one when only one is installed). */
+function whisper(): Promise<{ fast: WhisperContext; accurate: WhisperContext }> {
+  const u = modelUris();
+  if (!u) throw new Error('Recitation model not installed');
+  // a model removed since: let it go
+  for (const [uri, c] of contexts) if (uri !== u.fast && uri !== u.accurate) {
+    contexts.delete(uri);
+    c.then((x) => x.release()).catch(() => undefined);
+  }
+  return Promise.all([load(u.fast), load(u.accurate)]).then(([fast, accurate]) => ({ fast, accurate }));
 }
 
 /** Loads the speech model ahead (when the Mushaf opens), so the first «start» is immediate. */
@@ -110,7 +113,8 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
   const heard = (): Heard => ({ text: text(), alt: alt() });
   /** One reading of `audio` (cleaned first); `careful` searches five readings instead of taking the first. */
   const transcribe = async (audio: Uint8Array, careful: boolean) => {
-    const t = ctx.transcribeData(clean(audio).buffer as ArrayBuffer, careful ? CAREFUL : OPTIONS);
+    // words as they come: the fast model; a finished phrase, re-read to confirm: the accurate one
+    const t = (careful ? ctx.accurate : ctx.fast).transcribeData(clean(audio).buffer as ArrayBuffer, careful && ctx.accurate !== ctx.fast ? OPTIONS : careful ? CAREFUL : OPTIONS);
     job = t;
     const r = await t.promise;
     job = null;

@@ -17,6 +17,7 @@ export async function removePro(): Promise<void> {}
 
 export const modelStatus = (): ModelStatus => 'unsupported';
 export const modelUri = (): string | null => null;
+export const modelUris = (): { fast: string; accurate: string } | null => null;
 export async function downloadModel(): Promise<void> {
   throw new Error('The recitation check is available in the iOS/Android app');
 }
