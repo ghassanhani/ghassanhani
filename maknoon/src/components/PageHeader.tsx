@@ -5,11 +5,12 @@ import { Display } from './Typography';
 import { RoundButton } from './ui';
 
 /** Back (start) · centred title · optional action (end) — the row-2 artboard header. */
-export function PageHeader({ title, action, fallback = '/' }: { title: string; action?: ReactNode; fallback?: string }) {
+/** `onBack`: the screen steps back inside itself (e.g. from a chapter to its book) before leaving. */
+export function PageHeader({ title, action, fallback = '/', onBack }: { title: string; action?: ReactNode; fallback?: string; onBack?: () => void }) {
   return (
     <View style={styles.row}>
       <View style={styles.side}>
-        <RoundButton icon="arrowRight" label="رجوع" size={40} iconSize={22} onPress={() => (router.canGoBack() ? router.back() : router.replace(fallback as never))} />
+        <RoundButton icon="arrowRight" label="رجوع" size={40} iconSize={22} onPress={() => (onBack ? onBack() : router.canGoBack() ? router.back() : router.replace(fallback as never))} />
       </View>
       <Display size={22} style={styles.title} numberOfLines={1}>
         {title}

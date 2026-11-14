@@ -28,7 +28,7 @@ export default function HadithBook() {
     <View style={{ flex: 1 }}>
       <Backdrop name="dune" />
       <View style={{ paddingTop: insets.top + 8, paddingHorizontal: space.gutter }}>
-        <PageHeader title={section && pack ? pack.books[section] : meta?.name ?? ''} fallback="/hadith" />
+        <PageHeader title={section && pack ? pack.books[section] : meta?.name ?? ''} fallback="/hadith" onBack={section ? () => setSection(null) : undefined} />
       </View>
       {!section ? (
         <FlatList
