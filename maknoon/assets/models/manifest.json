@@ -38,7 +38,7 @@
     "sha256": "ba3aa259360359a162cb4fa68f45de627dfa3072ea24bdccc9942ec0a45b96bf"
    }
   ],
-  "base": "https://raw.githubusercontent.com/ghassanhani/ghassanhani/39b0a159b701183d229d5b906019c94c92282e29/maknoon/hosted/models",
+  "base": "https://raw.githubusercontent.com/ghassanhani/maknoon-models/9f8a13ce76883a279abd005138021c34d3bee569",
   "bytes": 190085504,
   "sha256": "225f6fec1129050902d5d8d51cc9dca09a4e2815e14826b53508a6c82024361e",
   "license": "Apache-2.0",
