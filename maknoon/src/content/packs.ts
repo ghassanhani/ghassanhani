@@ -176,13 +176,17 @@ export async function searchTafsirPack(query: string, limit: number): Promise<No
   const p = packs.find((x) => x.slug === 'tafsir-almokhtassar');
   if (!p || !query.trim()) return [];
   mukhtasarIdx ??= require('../../assets/content/search-mukhtasar.json') as Index;
-  return searchIndex(mukhtasarIdx, query, limit).map((h) => ({
+  const hits = searchIndex(mukhtasarIdx, query, limit);
+  // each passage's own text, as published (shown as a short excerpt; the full text opens with the ayah)
+  const rows = await Promise.all(hits.map((h) => readTafsir(p.slug, h.surah, h.ayah).catch(() => null)));
+  return hits.map((h, i) => ({
     id: `tafsir:${p.slug}:${h.key}`,
     kind: 'tafsir' as const,
     title: p.title,
     ref: h.key,
     route: `/ayah/${h.key}`,
     tone: null,
+    text: rows[i]?.text ?? undefined,
     norm: '',
     surah: h.surah,
     ayah: h.ayah,

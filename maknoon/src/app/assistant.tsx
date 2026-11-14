@@ -3,6 +3,7 @@ import { MadinahAyah } from '@/components/MadinahAyah';
 import { type ComponentRef, useRef, useState } from 'react';
 import { type ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Pressable } from '@/components/Tap';
+import { TafsirText } from '@/components/TafsirText';
 import type { Node } from '@/assistant/corpus';
 import { ask, type Answer } from '@/assistant/engine';
 import { type Summary, summarize, summaryStatus } from '@/assistant/summary';
@@ -225,6 +226,8 @@ function SourceCard({ n, num }: { n: Node; num?: number }) {
       </View>
       {ayah ? (
         <MadinahAyah surah={n.surah!} ayah={n.ayah!} size={20} />
+      ) : n.kind === 'tafsir' && n.text ? (
+        <TafsirText text={n.text} numberOfLines={4} />
       ) : n.text ? (
         <Display size={16} lineHeight={28}>
           {n.text}

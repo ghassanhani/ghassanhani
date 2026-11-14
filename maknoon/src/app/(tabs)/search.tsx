@@ -3,6 +3,7 @@ import { MadinahAyah } from '@/components/MadinahAyah';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Pressable } from '@/components/Tap';
+import { TafsirText } from '@/components/TafsirText';
 import { curatedNodes, type Node } from '@/assistant/corpus';
 import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
@@ -196,6 +197,8 @@ export default function SearchScreen() {
                 <Display size={18}>{n.title}</Display>
                 <Caption>{`${quranIndex.surahs[n.surah! - 1].name} · ${ar(n.ayah!)}`}</Caption>
               </View>
+              {/* the start of the passage, exactly as published */}
+              {n.text ? <TafsirText text={n.text} numberOfLines={3} /> : null}
               <Caption>اضغط لقراءة التفسير كاملًا مع الآية</Caption>
             </GlassCard>
           </Pressable>
