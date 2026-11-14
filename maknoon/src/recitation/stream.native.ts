@@ -15,10 +15,32 @@ import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 export type Stream = { stop: () => void };
 const LANG = 'ar-SA';
 
+/**
+ * Android: the on-device recognizer needs Google's Arabic language pack. When it is missing, the
+ * system is asked once to fetch it (Android shows its own prompt or downloads it in the
+ * background; only the pack comes down, nothing of the reciter goes up), and this listening runs
+ * on Whisper alone.
+ */
+let askedForPack = false;
+async function arabicInstalled(): Promise<boolean> {
+  try {
+    const { installedLocales } = await ExpoSpeechRecognitionModule.getSupportedLocales({ androidRecognitionServicePackage: 'com.google.android.as' });
+    if (installedLocales.some((l) => l.toLowerCase().startsWith('ar'))) return true;
+    if (!askedForPack) {
+      askedForPack = true;
+      await ExpoSpeechRecognitionModule.androidTriggerOfflineModelDownload({ locale: LANG }).catch(() => undefined);
+    }
+  } catch {
+    // the service cannot say: treat as missing
+  }
+  return false;
+}
+
 export async function startStream(pageWords: string[], onText: (soFar: string) => void): Promise<Stream | null> {
   try {
     if (Platform.OS === 'android' && (typeof Platform.Version !== 'number' || Platform.Version < 33)) return null;
     if (Platform.OS === 'android' && !ExpoSpeechRecognitionModule.supportsOnDeviceRecognition()) return null;
+    if (Platform.OS === 'android' && !(await arabicInstalled())) return null;
     if (!ExpoSpeechRecognitionModule.isRecognitionAvailable()) return null;
     const perm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
     if (!perm.granted) return null;
