@@ -229,7 +229,7 @@ function SourceCard({ n, num }: { n: Node; num?: number }) {
       ) : n.kind === 'tafsir' && n.text ? (
         <TafsirText text={n.text} numberOfLines={4} />
       ) : n.text ? (
-        <Display size={16} lineHeight={28}>
+        <Display size={16} lineHeight={28} numberOfLines={n.kind === 'hadith' ? 5 : undefined}>
           {n.text}
         </Display>
       ) : null}
