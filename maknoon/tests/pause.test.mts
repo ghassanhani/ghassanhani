@@ -46,3 +46,16 @@ test('cleaning removes hum and lifts a quiet voice, never clipping', async () =>
   for (let i = n / 2; i < n; i++) peak = Math.max(peak, Math.abs(out[i]));
   assert.ok(peak > 1500 && peak <= 32767, `peak ${peak}`);
 });
+
+test('fast recitation without a pause is cut at the dip between two words', async () => {
+  const { quietestPoint } = await import('../src/recitation/pause.ts');
+  // words of 0.5 s with 60 ms dips (too short to be a pause); one dip is a little quieter
+  const parts: [kind: 'tone' | 'quiet', seconds: number][] = [];
+  for (let i = 0; i < 12; i++) parts.push(['tone', 0.5], ['quiet', 0.06]);
+  const audio = make(parts);
+  assert.equal(lastPause(audio), -1);
+  const cut = quietestPoint(audio) / 2 / RATE;
+  // the cut is inside one of the dips, never inside a word
+  const inDip = Array.from({ length: 12 }, (_, i) => (i + 1) * 0.56 - 0.06).some((d) => cut >= d - 0.02 && cut <= d + 0.08);
+  assert.ok(inDip, `cut at ${cut.toFixed(2)} s`);
+});

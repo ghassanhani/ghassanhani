@@ -4,7 +4,7 @@ import { initWhisper, type WhisperContext } from 'whisper.rn/index';
 import LiveAudioStream from '@fugood/react-native-audio-pcm-stream';
 import type { Heard, Listening } from './listen';
 import { modelUri } from './model';
-import { clean, lastPause } from './pause';
+import { clean, lastPause, quietestPoint } from './pause';
 
 /**
  * Microphone → on-device Whisper (SPEC §2.12, M10).
@@ -128,10 +128,12 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
       keptAlt.push(tags(r.result));
       kept.push(tags(c.isAborted ? r.result : c.result));
       open = '';
-    } else if (audio.length >= CUT_AFTER && lastPause(audio) > BPS * 1.5) {
-      // cut in the middle of the reciter's last real pause: what came before is read once more,
-      // carefully and whole, and kept; the quick reading of the same stretch is kept beside it
-      const cut = lastPause(audio);
+    } else if (audio.length >= CUT_AFTER && (lastPause(audio) > BPS * 1.5 || quietestPoint(audio) > 0)) {
+      // cut in the middle of the reciter's last real pause, or — reciting fast, with no pause — at
+      // the quietest dip between two words: never inside a word. What came before is read once
+      // more, carefully and whole, and kept; the quick reading of the same stretch beside it
+      const pause = lastPause(audio);
+      const cut = pause > BPS * 1.5 ? pause : quietestPoint(audio);
       const cutMs = (cut / BPS) * 1000;
       const quick = segs.filter((g) => g.t1 * 10 <= cutMs + 150).map((g) => g.text).filter(Boolean).join(' ');
       const c = await transcribe(audio.slice(0, cut), true);

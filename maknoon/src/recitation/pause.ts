@@ -66,3 +66,34 @@ export function clean(audio: Uint8Array): Uint8Array {
   for (let i = 0; i < n; i++) res[i] = Math.max(-32768, Math.min(32767, Math.round(out[i] * gain)));
   return new Uint8Array(res.buffer);
 }
+
+/**
+ * For fast recitation with no real pause: the quietest moment between 1.5 s from the start and
+ * a second before the end — the small dip between two words that even a fast reciter leaves.
+ * Energy is smoothed over 60 ms so a single quiet frame inside a word does not count. Returns a
+ * byte offset, or -1 when the window is too short.
+ */
+export function quietestPoint(audio: Uint8Array): number {
+  const pcm = new Int16Array(audio.buffer, audio.byteOffset, Math.floor(audio.length / 2));
+  const n = Math.floor(pcm.length / FRAME);
+  const from = Math.ceil((1.5 * RATE) / FRAME);
+  const to = Math.floor((audio.length - TAIL) / 2 / FRAME) - 1;
+  if (to - from < 3) return -1;
+  const rms = new Float32Array(n);
+  for (let f = 0; f < n; f++) {
+    let sum = 0;
+    for (let i = f * FRAME; i < (f + 1) * FRAME; i++) sum += pcm[i] * pcm[i];
+    rms[f] = Math.sqrt(sum / FRAME);
+  }
+  let best = -1;
+  let low = Infinity;
+  // the latest of the quietest moments: ties go to the later one, so the window moves on furthest
+  for (let f = from + 1; f < to; f++) {
+    const e = rms[f - 1] + rms[f] + rms[f + 1];
+    if (e <= low) {
+      low = e;
+      best = f;
+    }
+  }
+  return best < 0 ? -1 : (best * FRAME + FRAME / 2) * 2;
+}
