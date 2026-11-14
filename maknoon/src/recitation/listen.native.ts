@@ -17,13 +17,21 @@ export type { Heard, Listening } from './listen';
 export const listeningSupported = true;
 
 let context: Promise<WhisperContext> | null = null;
+let contextUri: string | null = null;
 function whisper(): Promise<WhisperContext> {
   const uri = modelUri();
   if (!uri) throw new Error('Recitation model not installed');
+  // another model chosen (the accurate one installed or removed): let the old one go
+  if (context && contextUri !== uri) {
+    const old = context;
+    context = null;
+    old.then((c) => c.release()).catch(() => undefined);
+  }
   if (!context) {
     const c = initWhisper({ filePath: uri });
     c.catch(() => (context = null));
     context = c;
+    contextUri = uri;
   }
   return context;
 }

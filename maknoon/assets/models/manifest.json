@@ -21,5 +21,29 @@
   "source": "Qwen/Qwen2.5-1.5B-Instruct-GGUF (Hugging Face), the official GGUF published by Qwen, pinned to a revision",
   "modified": "Unmodified",
   "version": 1
+ },
+ "recitationPro": {
+  "id": "deepdml-whisper-small-ar-quran",
+  "title": "نموذج التسميع الدقيق",
+  "file": "ggml-small-ar-quran-q5_1.bin",
+  "parts": [
+   {
+    "file": "ggml-small-ar-quran-q5_1.bin.part0",
+    "bytes": 95000000,
+    "sha256": "33d7cf2c80e45ca271cd93ebca2236a608eda2a5ccc1a6851cf504b3c463c30b"
+   },
+   {
+    "file": "ggml-small-ar-quran-q5_1.bin.part1",
+    "bytes": 95085504,
+    "sha256": "ba3aa259360359a162cb4fa68f45de627dfa3072ea24bdccc9942ec0a45b96bf"
+   }
+  ],
+  "base": "https://raw.githubusercontent.com/ghassanhani/ghassanhani/39b0a159b701183d229d5b906019c94c92282e29/maknoon/hosted/models",
+  "bytes": 190085504,
+  "sha256": "225f6fec1129050902d5d8d51cc9dca09a4e2815e14826b53508a6c82024361e",
+  "license": "Apache-2.0",
+  "source": "deepdml/whisper-small-ar-quran-mix-norm (Hugging Face), converted to GGML for whisper.cpp",
+  "modified": "Converted from the published weights to the GGML format and quantized (q5_1) with pipeline/models/whisper_to_ggml.py; the weights were not retrained.",
+  "version": 1
  }
 }
