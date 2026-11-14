@@ -4,7 +4,6 @@ import { type Listening, listeningSupported, startListening } from './listen';
 import { type ExpectedAyah, type WordState, check, wordCount } from './match';
 import { modelStatus } from './model';
 import { setAudioModeAsync } from 'expo-audio';
-import { haptic } from '@/components/motion';
 import { setPrefs } from '@/store/prefs';
 import { stop as stopRecitation } from './player';
 
@@ -93,6 +92,21 @@ export function useTasmee(ayahKeys: string[]) {
     return { ...raw, flags: kept, states };
   }, [raw, previous, second, layout, listening]);
   const last = result?.last ?? -1;
+  const listeningRef = useRef(false);
+  useEffect(() => {
+    listeningRef.current = listening;
+  }, [listening]);
+  // Words appear one after another, a little apart, as they are recited (several recognised at once
+  // are not dropped on the page together): `shownTo` walks up to the last recited word.
+  const [shownTo, setShownTo] = useState(-1);
+  useEffect(() => {
+    if (shownTo === last) return;
+    const t = setTimeout(() => setShownTo((v) => (last < v ? last : Math.min(last, v + 1))), last < shownTo ? 0 : 110);
+    return () => clearTimeout(t);
+  }, [shownTo, last]);
+  // «Mistakes»: slips are shown in colour only when the reader asks, or once listening stops
+  const [review, setReview] = useState(false);
+  const showSlips = review || !listening;
   const active = listening || !!heard || hinted.length > 0 || hideText;
   useEffect(() => {
     if (!listening) return;
@@ -141,8 +155,9 @@ export function useTasmee(ayahKeys: string[]) {
         return { slips: [...keep, ...add].slice(-200) };
       });
     const f = fresh[fresh.length - 1];
-    haptic.warn();
-    setAlert({ word: f.kind === 'skipped-ayah' ? '' : f.expected, kind: f.kind });
+    // as calm as the reading itself: no banner, no vibration while reciting — slips are counted on
+    // the badge and shown when the reader asks (or stops)
+    if (!listeningRef.current) setAlert({ word: f.kind === 'skipped-ayah' ? '' : f.expected, kind: f.kind });
   }, [result, last, layout]);
   useEffect(() => {
     if (!alert) return;
@@ -244,8 +259,12 @@ export function useTasmee(ayahKeys: string[]) {
     // The search spelling splits a few ayat (61 of 6,236) differently from the displayed text: map by position.
     const i = l.count === shown ? index : Math.min(l.count - 1, Math.round((index * (l.count - 1)) / Math.max(1, shown - 1)));
     const flat = l.offset + i;
-    const st = result?.states[flat] ?? 'pending';
-    const current = st === 'ok' && flat === last;
+    let st = result?.states[flat] ?? 'pending';
+    // not reached yet by the word-by-word reveal: still waiting
+    if (listening && flat > shownTo && st !== 'pending') st = 'pending';
+    // while reciting, a slip reads like any recited word unless the reader asked to see them
+    if (!showSlips && (st === 'changed' || st === 'missing' || st === 'unsure')) st = 'ok';
+    const current = listening ? flat === shownTo && st === 'ok' : st === 'ok' && flat === last;
     // A word shown by the hint button stays marked, even once it is recited.
     if (hinted.includes(flat) && !current) return { state: 'hinted', current: false };
     // with the text shown, words not yet recited read normally; with marks off, slips read normally
@@ -262,5 +281,5 @@ export function useTasmee(ayahKeys: string[]) {
     return f ? (f.kind === 'changed' ? f.heard : '') : null;
   };
 
-  return { active, listening, note, alert, start, stop, hint, reset, wordState, heardAt, done: !!result?.complete, errors: confirmed.length, position, elapsed, hideText, setHideText };
+  return { active, listening, note, alert, start, stop, hint, reset, wordState, heardAt, review: showSlips, toggleReview: () => setReview((v) => !v), done: !!result?.complete, errors: confirmed.length, position, elapsed, hideText, setHideText };
 }

@@ -509,12 +509,15 @@ function MushafPage({ page }: { page: number }) {
               {tasmee.listening || tasmee.elapsed > 0 ? (
                 <View style={styles.chips}>
                   {/* slips found so far · where you are · time listening */}
-                  <View style={[styles.chip, { backgroundColor: tasmee.errors ? '#C0392B' : 'rgba(192,57,43,0.55)' }]} accessibilityLabel={`${ar(tasmee.errors)} مواضع للمراجعة`}>
-                    <Icon name="alert" size={14} color="#FFFFFF" outline />
-                    <Body size={13} weight="bold" color="#FFFFFF" lineHeight={18}>
-                      {ar(tasmee.errors)}
-                    </Body>
-                  </View>
+                  {/* «الأخطاء»: counted quietly while reciting; tap to show them on the page */}
+                  <Pressable accessibilityRole="button" accessibilityState={{ selected: tasmee.review }} accessibilityLabel={`${ar(tasmee.errors)} مواضع للمراجعة · ${tasmee.review ? 'إخفاء' : 'إظهار'}`} onPress={tasmee.toggleReview}>
+                    <View style={[styles.chip, { backgroundColor: tasmee.review ? '#C0392B' : tasmee.errors ? 'rgba(192,57,43,0.8)' : 'rgba(192,57,43,0.55)' }]}>
+                      <Icon name="alert" size={14} color="#FFFFFF" outline />
+                      <Body size={13} weight="bold" color="#FFFFFF" lineHeight={18}>
+                        {ar(tasmee.errors)}
+                      </Body>
+                    </View>
+                  </Pressable>
                   {tasmee.position ? (
                     <View style={[styles.chip, { backgroundColor: '#7CB342' }]}>
                       <Body size={13} weight="bold" color="#FFFFFF" lineHeight={18}>
@@ -957,7 +960,8 @@ const styles = StyleSheet.create({
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pager: { height: 48, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, maxWidth: 220 },
   listenBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-  wCurrent: { color: '#1F7A33', backgroundColor: '#CDE9C3' },
+  // the word just recited: blue ink, nothing around it (as calm as the page)
+  wCurrent: { color: '#1E88C9' },
   // a word to re-check: clearly marked, as a teacher's red pencil would
   // one close-sounding letter the listening model may have misheard: to look at, not a slip
   wUnsure: { color: '#8A5A00', backgroundColor: '#FCEFD2' },
