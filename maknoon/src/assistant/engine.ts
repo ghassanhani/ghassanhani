@@ -18,7 +18,7 @@ export type Answer =
   | { kind: 'empty'; query: string };
 
 // "Is it permissible for me…", "must I…", "what should I do…" → personal ruling (fatwa).
-const PERSONAL = /(هل يجوز|هل يحل|هل يحرم|هل يجب|هل علي|هل يصح|هل تصح|هل تجوز|ماذا افعل|ما حكم|يجوز لي|علي ان|افتني|فتوي|هل يلزمني|هل اثم)/;
+const PERSONAL = /(^حكم |^ما حكم|هل يجوز|هل يحل|هل يحرم|هل يجب|هل علي|هل يصح|هل تصح|هل تجوز|ماذا افعل|ما حكم|يجوز لي|علي ان|افتني|فتوي|هل يلزمني|هل اثم)/;
 // «does X break the fast / the wudu / the prayer?» asks for a ruling too.
 const BREAKS = /^هل .*(يفطر|تفطر|يبطل|تبطل|ينقض|تنقض|يفسد|تفسد)/;
 // Out of scope (plan §8.2 rule 6).
@@ -45,7 +45,9 @@ export async function ask(question: string): Promise<Answer> {
   // Root-aware BM25 over all ayat (same engine as the Search tab).
   // Hybrid: root-aware BM25 fused with meaning-based ranking (when the Worker is reachable).
   const semantic = await searchByMeaning(q, 20).catch(() => []);
-  const ayat = fuse(searchQuran(q, 20), semantic, 5)
+  // ayat that share only one word of a longer question («رأس» of «حكم مسح الرأس») say nothing about it
+  const words = searchQuran(q, 20).filter((h) => !(h.partial && toks.length >= 2));
+  const ayat = fuse(words, semantic, 5)
     .map((h) => AYAH_BY_KEY.get(h.key))
     .filter((n): n is Node => !!n);
 

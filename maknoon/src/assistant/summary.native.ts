@@ -4,7 +4,7 @@ import manifest from '../../assets/models/manifest.json';
 import { download } from '@/store/downloads';
 import { getPrefs, setPrefs } from '@/store/prefs';
 import { allAyahPlain, ayahPlain, type Node } from './corpus';
-import { guardSummary, type Line, quoteCheck } from './guard';
+import { guardSummary, quoteCheck } from './guard';
 import type { Summary, SummaryInfo, SummaryStatus } from './summary';
 
 /**

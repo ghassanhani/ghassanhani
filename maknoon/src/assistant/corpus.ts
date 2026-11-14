@@ -1,7 +1,6 @@
 import searchIndex from '../../assets/content/quran-search.json';
 import { adhkar, adhkarOrder, quranIndex } from '@/content/worship';
 import { fiqh, grammar, topic, usul } from '@/content/modules';
-import { hadith } from '@/content/design';
 import { fold } from './normalize';
 import { ar } from '@/content/quran';
 
@@ -34,35 +33,34 @@ export const ayatNodes: Node[] = Object.entries(SEARCH).map(([k, t]) => {
 
 // Curated nodes from the app's modules (design-sample content; statuses as shown there).
 const curated: Node[] = [
+  // Two hadith by reference only: the text is read on the hadith screen, from Sunnah.com, never typed here.
   {
     id: 'hadith:bukhari-8',
     kind: 'hadith',
-    title: hadith.title,
-    ref: hadith.chapter,
+    title: 'حديث بناء الإسلام على خمس',
+    ref: 'صحيح البخاري ٨',
     route: '/hadith/bukhari:8',
-    tone: 'reviewed',
-    chip: 'صحيح · البخاري ومسلم',
-    text: hadith.matn,
-    norm: fold(`${hadith.matn} ${hadith.chapter} اركان الاسلام الشهاده الصلاه الزكاه الحج الصوم رمضان`),
+    tone: 'pending',
+    chip: 'في صحيح البخاري',
+    norm: fold('بني الاسلام خمس اركان الاسلام الشهاده الصلاه الزكاه الحج الصوم رمضان'),
   },
   {
     id: 'hadith:rahimun',
     kind: 'hadith',
-    title: 'حديث',
-    ref: 'الترمذي ١٩٢٤ · أبو داود ٤٩٤١',
-    route: null,
-    tone: 'reviewed',
-    chip: 'حسن صحيح · الترمذي',
-    text: '«الرَّاحِمُونَ يَرْحَمُهُمُ الرَّحْمَنُ…»',
-    norm: fold('رحمه الرحمه بالخلق رحم'),
+    title: 'حديث الرحمة بالخلق',
+    ref: 'جامع الترمذي ١٩٢٤',
+    route: '/hadith/tirmidhi:1924',
+    tone: 'pending',
+    chip: 'حسن · كما في Sunnah.com',
+    norm: fold('رحمه الرحمه بالخلق رحم الراحمون'),
   },
   {
     id: 'fiqh:mash-ras',
     kind: 'fiqh',
     title: fiqh.issue,
-    ref: `${fiqh.section} · ${fiqh.disputed}`,
+    ref: `${fiqh.section} · ${fiqh.disputed} · مثال من التصميم`,
     route: '/fiqh',
-    tone: 'reviewed',
+    tone: 'pending',
     norm: fold(`${fiqh.issue} ${fiqh.section} مسح الراس الوضوء الطهاره ${fiqh.madhhabs.map((m) => m.pos).join(' ')}`),
   },
   { id: 'usul:amr', kind: 'usul', title: usul.hero.title, ref: usul.hero.label, route: '/usul', tone: 'reviewed', norm: fold(`${usul.hero.title} ${usul.definition.brief} الامر الوجوب اصول الفقه`) },
