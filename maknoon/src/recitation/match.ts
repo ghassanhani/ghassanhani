@@ -18,7 +18,8 @@ import { fold } from '../search/arabic.ts';
  */
 export type ExpectedAyah = { key: string; text: string }; // text = plain spelling, used for matching only
 export type Flag =
-  | { kind: 'missing'; ayah: string; word: number; expected: string }
+  /** `unsure`: a short word (≤ 3 letters) between two words recited right — the model drops them when the reciter is fast */
+  | { kind: 'missing'; ayah: string; word: number; expected: string; unsure?: boolean }
   /** `unsure`: the only difference is one letter the model is known to mix up (see CLOSE) */
   | { kind: 'changed'; ayah: string; word: number; expected: string; heard: string; unsure?: boolean }
   | { kind: 'skipped-ayah'; ayah: string };
@@ -81,6 +82,14 @@ function expectedWords(ayat: ExpectedAyah[]): Word[] {
  */
 const CLOSE = ['سث', 'سص', 'زذ', 'زظ', 'ذظ', 'دض', 'ضظ', 'تط', 'كق', 'هح', 'عا', 'اه'];
 const close = (a: string, b: string) => CLOSE.some((p) => (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a));
+/** One letter more or less than the text and otherwise the same (a fast reciter's letter the model swallowed), in a word of 4+ letters. */
+export function oneLetterShort(expected: string, heard: string): boolean {
+  const [a, b] = expected.length > heard.length ? [expected, heard] : [heard, expected];
+  if (a.length - b.length !== 1 || b.length < 3) return false;
+  for (let i = 0; i < a.length; i++) if (a.slice(0, i) + a.slice(i + 1) === b) return true;
+  return false;
+}
+
 export function closeOnly(expected: string, heard: string): boolean {
   if (expected.length !== heard.length) return false;
   let diff = 0;
@@ -208,8 +217,10 @@ export function check(ayat: ExpectedAyah[], heardText: string, opts: Options = {
     for (const k of idx) {
       const st = state[k];
       if (st === 'ok') continue;
-      if (st === 'missing') flags.push({ kind: 'missing', ayah: ayat[ai].key, word: E[k].index, expected: E[k].raw });
-      else flags.push({ kind: 'changed', ayah: ayat[ai].key, word: E[k].index, expected: E[k].raw, heard: st.heard, unsure: closeOnly(E[k].full, st.heard) || undefined });
+      if (st === 'missing') {
+        const between = state[k - 1] === 'ok' && state[k + 1] === 'ok';
+        flags.push({ kind: 'missing', ayah: ayat[ai].key, word: E[k].index, expected: E[k].raw, unsure: (between && E[k].full.length <= 3) || undefined });
+      } else flags.push({ kind: 'changed', ayah: ayat[ai].key, word: E[k].index, expected: E[k].raw, heard: st.heard, unsure: closeOnly(E[k].full, st.heard) || oneLetterShort(E[k].full, st.heard) || undefined });
     }
   }
   const states: WordState[] = E.map((_, k) => {

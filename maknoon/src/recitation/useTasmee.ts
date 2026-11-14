@@ -82,7 +82,7 @@ export function useTasmee(ayahKeys: string[]) {
       if (!l) continue;
       if (keep.has(f)) {
         // one close-sounding letter: shown to look at, not counted as a slip
-        if (f.kind === 'changed' && f.unsure) states[l.offset + f.word] = 'unsure';
+        if (f.kind !== 'skipped-ayah' && f.unsure) states[l.offset + f.word] = 'unsure';
         continue;
       }
       const to = agreed(f) ? 'pending' : 'ok';
@@ -129,7 +129,7 @@ export function useTasmee(ayahKeys: string[]) {
     () =>
       (result?.flags ?? []).filter((f) => {
         const l = layout.map.get(f.ayah);
-        if (!l || (f.kind === 'changed' && f.unsure)) return false;
+        if (!l || (f.kind !== 'skipped-ayah' && f.unsure)) return false;
         return (f.kind === 'skipped-ayah' ? l.offset + l.count - 1 : l.offset + f.word) < last;
       }),
     [result, layout, last],
@@ -138,7 +138,7 @@ export function useTasmee(ayahKeys: string[]) {
     if (!result) return;
     const fresh = result.flags.filter((f) => {
       const l = layout.map.get(f.ayah);
-      if (!l || (f.kind === 'changed' && f.unsure)) return false;
+      if (!l || (f.kind !== 'skipped-ayah' && f.unsure)) return false;
       const flat = f.kind === 'skipped-ayah' ? l.offset + l.count - 1 : l.offset + f.word;
       const id = f.kind === 'skipped-ayah' ? f.ayah : `${f.ayah}:${f.word}`;
       return flat < last && !announced.current.has(id);
