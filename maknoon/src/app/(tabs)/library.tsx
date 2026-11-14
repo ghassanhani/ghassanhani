@@ -8,6 +8,11 @@ import { atStart } from '@/components/motion';
 import { Body, Caption, Display } from '@/components/Typography';
 import { GlassCard, HeroCard } from '@/components/ui';
 import { library as l } from '@/content/design';
+import { hadithIndex } from '@/content/hadith';
+import { isInstalled, packs } from '@/content/packs';
+import { ar } from '@/content/quran';
+import { adhkar, adhkarOrder } from '@/content/worship';
+import { usePrefs } from '@/store/prefs';
 import { colors } from '@/theme/tokens';
 
 // Each shelf opens its module's sample screen from the canvas.
@@ -21,7 +26,30 @@ const SHELF_ROUTES: Record<string, string> = {
   الأذكار: '/adhkar',
 };
 
+/**
+ * What each shelf really holds today (the design's filler line and «٣٠٪» were the same on every
+ * shelf). The meter is the share of links a scholar has reviewed (CLAUDE.md rule 4): none yet, so
+ * it reads «لم يُراجَع بعد» with an empty bar until reviews exist.
+ */
+function shelfMeta(title: string): string {
+  switch (title) {
+    case 'الحديث':
+      return `${ar(hadithIndex.books.length)} كتابًا · ${ar(hadithIndex.books.reduce((n, b) => n + b.count, 0).toLocaleString('en').replace(/,/g, '٬'))} حديثًا`;
+    case 'التفسير': {
+      const have = packs.filter((p) => isInstalled(p.slug)).length;
+      return `${ar(packs.length)} تفاسير · ${ar(have)} على جهازك`;
+    }
+    case 'الأذكار':
+      return `${ar(adhkarOrder.reduce((n, c) => n + adhkar[c].items.length, 0))} ذكرًا من مصادرها`;
+    case 'العقيدة':
+      return 'قريبًا';
+    default:
+      return 'نموذج أولي · قيد البناء';
+  }
+}
+
 export default function LibraryScreen() {
+  usePrefs(); // installed tafsir packs can change in Settings
   return (
     <Screen backdrop="sea">
       <Display size={30} lineHeight={44} style={{ marginTop: 8 }}>
@@ -42,16 +70,16 @@ export default function LibraryScreen() {
             <GlassCard style={styles.shelf}>
               <Display size={21}>{s.title}</Display>
               <Body size={12} color={colors.primary} lineHeight={17}>
-                {s.meta}
+                {shelfMeta(s.title)}
               </Body>
               <View style={{ marginTop: 'auto', gap: 8 }}>
                 {/* coverage meter: share of links reviewed by scholars */}
                 <View style={styles.track}>
                   {/* the design's frosted glass fill (soft inner light, grain), as the wird bar on Home */}
-                  <Squircle radius={9} fill="rgba(51,95,89,0.82)" glow="frost" noise={51.2} style={[styles.fill, atStart(0), { width: `${s.coverageFraction * 100}%` }]} />
+                  {REVIEWED > 0 ? <Squircle radius={9} fill="rgba(51,95,89,0.82)" glow="frost" noise={51.2} style={[styles.fill, atStart(0), { width: `${REVIEWED * 100}%` }]} /> : null}
                 </View>
                 <Body size={12} weight="medium" color={colors.primary} lineHeight={16}>
-                  {s.coverage}
+                  {REVIEWED > 0 ? `${ar(Math.round(REVIEWED * 100))}٪ مُراجَع` : 'لم يُراجَع بعد'}
                 </Body>
               </View>
             </GlassCard>
@@ -80,6 +108,9 @@ export default function LibraryScreen() {
     </Screen>
   );
 }
+
+// share of links reviewed by a scholar: no reviews have been made yet
+const REVIEWED = 0;
 
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 16 },
