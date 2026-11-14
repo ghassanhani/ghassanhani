@@ -81,7 +81,8 @@ export default function RootLayout() {
           name="surah-picker"
           options={{
             presentation: 'formSheet',
-            sheetAllowedDetents: 'fitToContents',
+            // one fixed height: a sheet holding a scrolling list is sized by its detent, not its content
+            sheetAllowedDetents: [0.86],
             sheetGrabberVisible: true,
             sheetCornerRadius: 28,
             contentStyle: { backgroundColor: '#F7F4F1' },

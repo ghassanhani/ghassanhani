@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Pressable } from '@/components/Tap';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/components/Icon';
@@ -19,7 +19,6 @@ import { colors } from '@/theme/tokens';
  */
 export default function SurahPicker() {
   const insets = useSafeAreaInsets();
-  const { height } = useWindowDimensions();
   const { current: c } = useLocalSearchParams<{ current?: string }>();
   const current = Number(c) || 1;
   const [q, setQ] = useState('');
@@ -49,24 +48,10 @@ export default function SurahPicker() {
     </Pressable>
   );
   return (
-    // A fixed height and a plain scroll view of all 114 rows: inside the iOS form sheet a
-    // virtualised list (FlatList) with two sheet heights was laid out empty. The sheet fits this
-    // height (one detent, as the ayah sheet that works).
-    <View style={[styles.sheet, { height: Math.round(height * 0.86) }]}>
-      <ScrollView
-        // an explicit height, never flex: inside the iOS sheet a flexible list is given no height
-        style={{ height: Math.round(height * 0.86) }}
-        keyboardShouldPersistTaps="handled"
-        // opens with the current surah near the top
-        contentOffset={{ x: 0, y: needle ? 0 : Math.max(0, current - 2) * 56 }}
-        // the list starts below the header; the header lies over it, opaque (the iOS sheet can lay the
-        // two on top of each other, so nothing is left to their order)
-        contentContainerStyle={{ paddingTop: HEAD, paddingBottom: insets.bottom + 24 }}
-      >
-        {list.map(row)}
-        {!list.length ? <Caption style={{ padding: 16, textAlign: 'center' }}>لا نتائج</Caption> : null}
-      </ScrollView>
-      <View style={styles.top}>
+    // As react-native-screens wants a form sheet with a list: exactly two views, a header that must
+    // not be collapsed, then the ScrollView, which the sheet itself sizes and scrolls.
+    <>
+      <View collapsable={false} style={styles.top}>
         <View style={styles.head}>
           <Display size={20}>اختر السورة</Display>
         </View>
@@ -82,16 +67,25 @@ export default function SurahPicker() {
           />
         </View>
       </View>
-
-    </View>
+      <ScrollView
+        style={styles.list}
+        keyboardShouldPersistTaps="handled"
+        // opens with the current surah near the top
+        contentOffset={{ x: 0, y: needle ? 0 : Math.max(0, current - 2) * 56 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+      >
+        {list.map(row)}
+        {!list.length ? <Caption style={{ padding: 16, textAlign: 'center' }}>لا نتائج</Caption> : null}
+      </ScrollView>
+    </>
   );
 }
 
 const HEAD = 22 + 44 + 52; // pinned header: top room + title row + search
 
 const styles = StyleSheet.create({
-  sheet: { backgroundColor: '#F7F4F1' },
-  top: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 2, height: HEAD, paddingTop: 22, backgroundColor: '#F7F4F1' },
+  top: { height: HEAD, paddingTop: 22, backgroundColor: '#F7F4F1' },
+  list: { flex: 1, backgroundColor: '#F7F4F1' },
   head: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 10 },
   search: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, marginHorizontal: 20, marginBottom: 8, paddingHorizontal: 14, borderRadius: 22, borderCurve: 'continuous', backgroundColor: '#FFFFFF' },
   input: { flex: 1, minWidth: 0, fontSize: 15, color: colors.ink, textAlign: 'right', paddingVertical: 0 },

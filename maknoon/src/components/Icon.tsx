@@ -128,7 +128,7 @@ export function Icon({ name, size = 24, color = colors.ink, strokeWidth = 1.7, c
   // A glossy glyph is drawn for white-on-colour; asked for any other colour (a dark icon on a light
   // bubble, an inactive tab) it is shown as one solid shape in that colour, as the canvas does there.
   const mono = !!glyph?.glossy && !isWhite(color);
-  const xml = useMemo(() => (glyph ? (mono ? solidOf(glyph.xml) : glyph.xml) : ''), [glyph, mono]);
+  const xml = useMemo(() => (glyph ? (mono ? solidOf(glyph.xml, color) : glyph.xml) : ''), [glyph, mono, color]);
   // Fixed-size, non-shrinking box so flex rows never squeeze the glyph.
   return (
     <View style={{ width: size, height: size, flexShrink: 0 }}>
@@ -143,16 +143,18 @@ export function Icon({ name, size = 24, color = colors.ink, strokeWidth = 1.7, c
 
 const isWhite = (c: string) => /^(#fff(fff)?|white|rgba?\(\s*255\s*,\s*255\s*,\s*255)/i.test(c.trim());
 
-/** Every white or gradient paint becomes the icon colour; dark details stay as drawn. */
+/** Every white or gradient paint becomes the icon colour; dark details stay as drawn. The colour is
+ * written in itself (gradient stops do not accept currentColor). */
 const SOLID = new Map<string, string>();
-function solidOf(xml: string) {
-  let out = SOLID.get(xml);
+function solidOf(xml: string, color: string) {
+  const id = `${color}|${xml}`;
+  let out = SOLID.get(id);
   if (!out) {
     out = xml
-      .replace(/(fill|stroke)="url\(#[^)]*\)"/g, '$1="currentColor"')
-      .replace(/(fill|stroke)="rgba\(255,\s*255,\s*255,\s*1\)"/g, '$1="currentColor"')
-      .replace(/stop-color="[^"]*"/g, 'stop-color="currentColor"');
-    SOLID.set(xml, out);
+      .replace(/(fill|stroke)="url\(#[^)]*\)"/g, `$1="${color}"`)
+      .replace(/(fill|stroke)="rgba\(255,\s*255,\s*255,\s*1\)"/g, `$1="${color}"`)
+      .replace(/stop-color="[^"]*"/g, `stop-color="${color}"`);
+    SOLID.set(id, out);
   }
   return out;
 }
