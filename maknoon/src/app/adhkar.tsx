@@ -10,6 +10,8 @@ import { Squircle } from '@/components/Squircle';
 import { Body, Caption, Display } from '@/components/Typography';
 import { Chip, GlassCard, HeroCard, IconBubble } from '@/components/ui';
 import { ar } from '@/content/quran';
+import { pageOfAyah } from '@/content/qcf4';
+import { MadinahAyah } from '@/components/MadinahAyah';
 import { adhkar, adhkarOrder, adhkarScreen as A, type Dhikr } from '@/content/worship';
 import { home } from '@/content/design';
 import { colors, space } from '@/theme/tokens';
@@ -133,8 +135,28 @@ function DhikrCard({ d, count, onTap }: { d: Dhikr; count: number; onTap: () => 
           </View>
         </Pressable>
       </View>
+      {/* the ayat themselves, from the mushaf data, to read here */}
+      {d.ayat ? (
+        <View style={{ gap: 6 }}>
+          {d.ayat.flatMap((r) => {
+            const [s, span] = r.split(':');
+            const [from, to] = span.split('-').map(Number);
+            return Array.from({ length: (to || from) - from + 1 }, (_, i) => <MadinahAyah key={`${s}:${from + i}`} surah={Number(s)} ayah={from + i} size={19} />);
+          })}
+        </View>
+      ) : null}
       {d.ayah ? (
-        <Pressable accessibilityRole="link" style={[styles.row, { gap: 4 }]}>
+        <Pressable
+          accessibilityRole="link"
+          disabled={!d.ayat}
+          onPress={() => {
+            const first = d.ayat?.[0];
+            if (!first) return;
+            const [s, span] = first.split(':');
+            router.push({ pathname: '/mushaf', params: { page: String(pageOfAyah(`${s}:${span.split('-')[0]}`) ?? 1) } });
+          }}
+          style={[styles.row, { gap: 4 }]}
+        >
           <Body size={13} weight="medium" color={colors.primary}>
             {A.mushafLink}
           </Body>

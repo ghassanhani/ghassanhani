@@ -132,15 +132,16 @@ import { type Grade, gradeLabel, graderName } from './hadithGrades';
 
 const P: Src = { pending: true };
 const S = (src: string, chip = 'صحيح'): Src => ({ src, chip });
-export type Dhikr = { id: string; label?: string; text: string; n: number; virtue?: string; ayah?: boolean; s: Src };
+/** `ayat`: the ayat this dhikr is (shown from the mushaf data, never typed): «s:a» or «s:a-b» (whole surah: «s:1-n»). */
+export type Dhikr = { id: string; label?: string; text: string; n: number; virtue?: string; ayah?: boolean; ayat?: string[]; s: Src };
 export type AdhkarCat = { label: string; title: string; sub: string; items: Dhikr[] };
 
 export const adhkarScreen = { title: 'الأذكار', now: 'الآن بعد العصر', done: 'أنجزت', mushafLink: 'اقرأ النص في المصحف', virtue: 'فضله:', pending: 'المصدر والحكم بانتظار المراجعة', note: 'العدّاد لعدد المرات فقط، لا يُحفظ ولا يُقارن. النصوص المنتهية بـ «...» تنتظر نصها الكامل، وكل ذكر يُراجَع قبل الإطلاق.' };
 
 export const adhkar: Record<'sabah' | 'mutlaq' | 'salah' | 'nawm' | 'occ', AdhkarCat> = {
   sabah: { label: 'الصباح والمساء', title: 'أذكار الصباح والمساء', sub: 'الصباح بعد الفجر، والمساء بعد العصر', items: [
-    { id: 's1', label: 'آية الكرسي · البقرة ٢٥٥', text: 'تُقرأ مرة واحدة', ayah: true, n: 1, s: P },
-    { id: 's2', label: 'المعوذات', text: 'الإخلاص والفلق والناس', ayah: true, n: 3, s: P },
+    { id: 's1', label: 'آية الكرسي · البقرة ٢٥٥', text: 'تُقرأ مرة واحدة', ayah: true, ayat: ['2:255'], n: 1, s: P },
+    { id: 's2', label: 'المعوذات', text: 'الإخلاص والفلق والناس', ayah: true, ayat: ['112:1-4', '113:1-5', '114:1-6'], n: 3, s: P },
     { id: 's3', label: 'سيد الاستغفار', text: '«اللهم أنت ربي لا إله إلا أنت، خلقتني وأنا عبدك...»', n: 1, s: S('أخرجه البخاري') },
     { id: 's4', text: 'أصبحنا وأصبح الملك لله... / أمسينا وأمسى الملك لله...', n: 1, s: S('أخرجه مسلم') },
     { id: 's5', label: 'للمراجعة: صيغة المساء تُروى «وإليك المصير»', text: 'اللهم بك أصبحنا وبك أمسينا، وبك نحيا وبك نموت وإليك النشور', n: 1, s: S('الترمذي', '[الحكم]') },
@@ -163,11 +164,11 @@ export const adhkar: Record<'sabah' | 'mutlaq' | 'salah' | 'nawm' | 'occ', Adhka
     { id: 'p1', text: 'أستغفر الله', n: 3, s: P },
     { id: 'p2', text: 'اللهم أنت السلام ومنك السلام، تباركت يا ذا الجلال والإكرام', n: 1, s: P },
     { id: 'p3', text: 'سبحان الله ٣٣، الحمد لله ٣٣، الله أكبر ٣٣، وتمام المئة: لا إله إلا الله وحده لا شريك له...', n: 100, s: S('أخرجه مسلم') },
-    { id: 'p4', label: 'آية الكرسي · البقرة ٢٥٥', text: 'تُقرأ بعد الصلاة', ayah: true, n: 1, s: P },
-    { id: 'p5', label: 'المعوذات', text: 'الإخلاص والفلق والناس', ayah: true, n: 1, s: P },
+    { id: 'p4', label: 'آية الكرسي · البقرة ٢٥٥', text: 'تُقرأ بعد الصلاة', ayah: true, ayat: ['2:255'], n: 1, s: P },
+    { id: 'p5', label: 'المعوذات', text: 'الإخلاص والفلق والناس', ayah: true, ayat: ['112:1-4', '113:1-5', '114:1-6'], n: 1, s: P },
   ] },
   nawm: { label: 'النوم والاستيقاظ', title: 'أذكار النوم والاستيقاظ', sub: 'قبل النوم وعند الاستيقاظ', items: [
-    { id: 'n1', label: 'قبل النوم', text: 'آية الكرسي، والمعوذات مع النفث في الكفين والمسح على الجسد ٣ مرات، وآخر آيتين من سورة البقرة', ayah: true, n: 3, s: P },
+    { id: 'n1', label: 'قبل النوم', text: 'آية الكرسي، والمعوذات مع النفث في الكفين والمسح على الجسد ٣ مرات، وآخر آيتين من سورة البقرة', ayah: true, ayat: ['2:255', '112:1-4', '113:1-5', '114:1-6', '2:285-286'], n: 3, s: P },
     { id: 'n2', label: 'تسبيح فاطمة', text: 'سبحان الله ٣٣، الحمد لله ٣٣، الله أكبر ٣٤', n: 100, s: S('متفق عليه') },
     { id: 'n3', text: 'باسمك اللهم أموت وأحيا', n: 1, s: P },
     { id: 'n4', label: 'عند الاستيقاظ', text: 'الحمد لله الذي أحيانا بعد ما أماتنا وإليه النشور', n: 1, s: S('أخرجه البخاري') },
