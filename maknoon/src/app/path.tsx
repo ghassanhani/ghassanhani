@@ -49,7 +49,7 @@ export default function PathScreen() {
           </Body>
           <Caption color={colors.gold}>{P.hero.saved}</Caption>
         </View>
-        <Segments segments={P.stations.map((_, i) => (done.has(i) ? 'on' : i === open ? 'part' : 'off'))} />
+        <Segments segments={P.stations.map((_, i) => (done.has(i) || i === open ? 'on' : 'off'))} />
       </HeroCard>
 
       <View>
