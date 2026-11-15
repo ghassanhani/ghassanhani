@@ -21,19 +21,19 @@ const file = () => new File(dir(), `${recitationModel.id}.v${recitationModel.ver
 const proFile = () => new File(dir(), `${recitationPro.id}.v${recitationPro.version}.bin`);
 const proReady = () => getPrefs().recitationPro && proFile().exists;
 
-// The standard model is bundled with the app, so the check is always ready; the accurate model is an optional download.
+// The standard model is bundled with the app, so the check is always ready.
 export function modelStatus(): ModelStatus {
   return 'ready';
 }
 /**
- * The two models' roles while listening: the bundled standard model reads the words as they are
- * recited; the accurate model, when downloaded, re-reads every finished phrase (else the standard
- * model does both).
+ * The model of the check: the bundled standard model does both the live reading and the re-read of
+ * finished phrases. The larger «accurate» model is no longer used (founder, 2026-11-15: on the
+ * phone it made the check much worse); a copy downloaded earlier can be removed in Settings.
  */
 export async function modelUris(): Promise<{ fast: string; accurate: string }> {
   removeOldDownload();
   const base = await bundledUri();
-  return { fast: base, accurate: proReady() ? proFile().uri : base };
+  return { fast: base, accurate: base };
 }
 
 /** The standard Quran model (Tarteel base), bundled with the app: no download. */

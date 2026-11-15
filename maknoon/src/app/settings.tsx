@@ -16,7 +16,7 @@ import { MADHHAB_NAMES, usePrefs } from '@/store/prefs';
 import { APP_NAME } from '@/config';
 import { METHODS, cityByKey } from '@/content/prayer';
 import { ar, basmala } from '@/content/quran';
-import { downloadPro, modelStatus, proStatus, recitationModel, recitationPro, removePro } from '@/recitation/model';
+import { modelStatus, proStatus, recitationModel, recitationPro, removePro } from '@/recitation/model';
 import { lastHeard } from '@/recitation/lastHeard';
 import { atStart } from '@/components/motion';
 import { fraction, type Download, useDownload } from '@/store/downloads';
@@ -53,21 +53,7 @@ export default function SettingsScreen() {
   const preview = basmala(); // canonical text from the source file, never typed
   const recStatus = modelStatus();
   const pro = proStatus();
-  const proDl0 = useDownload('recitation-pro-0');
-  const proDl1 = useDownload('recitation-pro-1');
-  const [proBusy, setProBusy] = useState(false); // downloading, joining or checking
-  const [proError, setProError] = useState(false);
   const [heardOpen, setHeardOpen] = useState(false); // «ما سمعه التسميع»: the last listening, as heard
-  const getPro = async () => {
-    setProBusy(true);
-    setProError(false);
-    try {
-      await downloadPro();
-    } catch {
-      setProError(true);
-    }
-    setProBusy(false);
-  };
   const sumStatus = summaryStatus();
   const sumDl = useDownload('summary');
   const meaning = prefs.meaningSearch;
@@ -142,27 +128,19 @@ export default function SettingsScreen() {
             <View style={[styles.row, { justifyContent: 'space-between', gap: 12 }]}>
               <View style={{ flex: 1 }}>
                 <Display size={16}>{recitationModel.title}</Display>
-                <Caption>{pro === 'ready' ? 'مدمج في التطبيق · يقرأ الكلمات أثناء التلاوة' : 'مدمج في التطبيق · يعمل دون اتصال'}</Caption>
+                <Caption>مدمج في التطبيق · يعمل دون اتصال</Caption>
               </View>
             </View>
-            {pro !== 'unsupported' && pro !== 'unavailable' ? (
+            {pro === 'ready' ? (
               <>
                 <View style={styles.sep} />
                 <View style={[styles.row, { justifyContent: 'space-between', gap: 12 }]}>
                   <View style={{ flex: 1 }}>
                     <Display size={16}>{recitationPro.title}</Display>
-                    <Caption>{pro === 'ready' ? 'مثبّت · التسميع يستخدمه الآن' : `${ar(Math.round(recitationPro.bytes / 1e6))} م.ب · أدق بنحو الضعف · تنزيل اختياري`}</Caption>
+                    <Caption>{`مثبّت · لم يعد التسميع يستخدمه · يشغل ${ar(Math.round(recitationPro.bytes / 1e6))} م.ب`}</Caption>
                   </View>
-                  {pro === 'missing' && !proBusy ? (
-                    <SoftButton label="تنزيل" onPress={() => void getPro()} />
-                  ) : pro === 'ready' ? (
-                    <SoftButton label="حذف" onPress={() => void removePro()} />
-                  ) : null}
+                  <SoftButton label="حذف" onPress={() => void removePro()} />
                 </View>
-                <DownloadProgress d={proDl1 ?? proDl0} retry={() => void getPro()} />
-                {proBusy && !proDl0 && !proDl1 ? <Caption color={colors.primary}>يجمع أجزاء النموذج ويتحقق من بصمته…</Caption> : null}
-                {proError && !proDl0 && !proDl1 ? <Caption color={colors.pendingInk}>تعذّر تجهيز النموذج أو لم يطابق بصمته. لم يُحفظ شيء.</Caption> : null}
-                <Caption>نموذج Whisper small مدرَّب على تلاوات القرآن (deepdml · Apache-2.0)، محوَّل ليعمل على الهاتف. أبطأ قليلًا من النموذج الأساسي، وأدق في تمييز الكلمات.</Caption>
               </>
             ) : null}
             <Caption>نموذج Tarteel لتمييز التلاوة (Apache-2.0)، محوَّل ليعمل على الهاتف. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل.</Caption>
