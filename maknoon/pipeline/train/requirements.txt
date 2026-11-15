@@ -1,0 +1,10 @@
+torch
+torchaudio
+transformers>=4.44
+huggingface_hub
+pyarrow
+accelerate
+soundfile
+librosa
+jiwer
+numpy
