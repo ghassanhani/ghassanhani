@@ -97,3 +97,39 @@ export function quietestPoint(audio: Uint8Array): number {
   }
   return best < 0 ? -1 : (best * FRAME + FRAME / 2) * 2;
 }
+
+/** 20 ms frame loudness (RMS) of the window. */
+function frames(audio: Uint8Array): Float32Array {
+  const pcm = new Int16Array(audio.buffer, audio.byteOffset, Math.floor(audio.length / 2));
+  const n = Math.floor(pcm.length / FRAME);
+  const rms = new Float32Array(n);
+  for (let f = 0; f < n; f++) {
+    let sum = 0;
+    for (let i = f * FRAME; i < (f + 1) * FRAME; i++) sum += pcm[i] * pcm[i];
+    rms[f] = Math.sqrt(sum / FRAME);
+  }
+  return rms;
+}
+
+/** The room's own noise in this window: its quietest tenth (a caller keeps the lowest it has seen). */
+export function quietLevel(audio: Uint8Array): number {
+  const rms = Array.from(frames(audio)).sort((a, b) => a - b);
+  return rms.length ? rms[Math.floor(rms.length * 0.1)] : Infinity;
+}
+
+/**
+ * How much of the window is voice, in seconds: 20 ms frames clearly above the room's noise (4×
+ * `floor`, the quietest level heard so far this session, never taken above −38 dBFS so a window of
+ * held vowels cannot pass for noise) and above a low absolute level (about −49 dBFS, so a quiet
+ * murmur still counts). The Quran model, given silence or room noise, writes Quran words from
+ * memory; a window with almost no voice is not read at all.
+ */
+export function voiced(audio: Uint8Array, floor = 20): number {
+  const rms = frames(audio);
+  const level = Math.max(VOICE, Math.min(Math.max(20, floor), MAX_FLOOR) * 4);
+  let on = 0;
+  for (let f = 0; f < rms.length; f++) if (rms[f] >= level) on++;
+  return (on * FRAME) / RATE;
+}
+const VOICE = 120; // ≈ −49 dBFS
+const MAX_FLOOR = 400; // ≈ −38 dBFS

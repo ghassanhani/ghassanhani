@@ -4,7 +4,7 @@ import { initWhisper, type WhisperContext } from 'whisper.rn/index';
 import LiveAudioStream from '@fugood/react-native-audio-pcm-stream';
 import type { Heard, Listening } from './listen';
 import { modelUris } from './model';
-import { clean, lastPause } from './pause';
+import { clean, lastPause, quietLevel, voiced } from './pause';
 
 /**
  * Microphone → on-device Whisper (SPEC §2.12, M10).
@@ -89,6 +89,7 @@ const RATE = 16000;
 const BPS = RATE * 2;
 const MIN_BYTES = BPS * 0.5; // wait for half a second of sound before the first reading
 const CUT_AFTER = BPS * 3; // past 3 s, finished phrases are set aside and the window moves on
+const SPOKEN = 0.3; // seconds of voice a window needs before it is read
 const HARD_CUT = BPS * 14; // a phrase that never pauses is set aside whole at 14 s
 // whisper.cpp writes noise and silence as bracketed tags: never part of what was recited
 const tags = (t: string) => t.replace(/\[[^\]]*\]|\([^)]*\)|\*[^*]*\*/g, ' ').replace(/\s+/g, ' ').trim();
@@ -120,6 +121,7 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
   let checking: Promise<void> = Promise.resolve();
   const jobs = new Set<{ stop: () => Promise<void> }>();
   let open = ''; // the latest reading of the phrase still being recited
+  let floor = Infinity; // the room's noise: the quietest level heard so far
   let live = true;
 
   const window = () => {
@@ -180,6 +182,10 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
     phrases.push(p);
     checking = checking
       .then(async () => {
+        if (voiced(audio, floor) < SPOKEN) {
+          p.sure = '';
+          return;
+        }
         const c = await transcribe(audio, true);
         p.sure = c.isAborted ? quick : tags(c.result);
       })
@@ -209,6 +215,17 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
 
   const read = async (final: boolean) => {
     const audio = window();
+    floor = Math.min(floor, quietLevel(audio));
+    // nothing said (silence, room noise): the model would write Quran words from memory, so the
+    // window is not read; a long silent window is let go, keeping its last half second
+    if (voiced(audio, floor) < SPOKEN) {
+      if (!final && audio.length >= CUT_AFTER) {
+        drop(audio.length - BPS / 2);
+        open = '';
+        onHeard?.(heard());
+      }
+      return;
+    }
     const r = await transcribe(audio, false);
     if (r.isAborted) return;
     // (the Quran models give no word timings: every reading is one block from 0 to 30 s, so the text

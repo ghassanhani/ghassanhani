@@ -121,8 +121,11 @@ export function useTasmee(ayahKeys: string[]) {
   const streamRaw = useMemo(() => (listening && streamHeard ? check(expected, streamHeard) : null), [expected, streamHeard, listening]);
   const reached = useMemo(() => {
     // from the raw alignment: a word not yet settled as a slip is still a word the reciter said
+    // the last word heard right, and at most one word heard differently just after it: words the
+    // model invents from noise are matched as «changed» one after another and would walk the page
+    // on by themselves, so the reveal never runs on through words not one of which was heard right
     const far = (st: WordState[] | undefined) => {
-      for (let i = (st?.length ?? 0) - 1; i >= 0; i--) if (st![i] === 'ok' || st![i] === 'changed') return i;
+      for (let i = (st?.length ?? 0) - 1; i >= 0; i--) if (st![i] === 'ok') return st![i + 1] === 'changed' ? i + 1 : i;
       return -1;
     };
     return Math.max(far(raw?.states), far(streamRaw?.states));
