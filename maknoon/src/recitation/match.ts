@@ -101,23 +101,50 @@ export function closeOnly(expected: string, heard: string): boolean {
 }
 
 const SKIPPED_SHARE = 0.8; // an ayah with this share of its words missing counts as skipped
-const WORD = 1; // cost of a missing, changed or extra word
+const WORD = 1; // cost of a missing or extra word
+// A changed word costs less than a skipped word and a stray word together (2), so a real slip is
+// still read as "changed"; but more than one stray word, so when the model writes stray words next
+// to a word heard right, they stay stray instead of being matched over the right one.
+const CHANGED = 1.2;
+const LEAD = 0.3; // cost of a word heard before the first expected one…
+const LEADING = 14; // …for the first 14 (the isti'adha and the basmala); past them, a full word
 
 /**
  * Align heard words to expected words (edit distance over words, plus free joins of
  * two words into one on either side), then turn the alignment into flags.
  */
+/**
+ * The speech model sometimes falls into a loop and writes one phrase over and over («… … … …»).
+ * A run of three or more copies of the same 1–8 words in a row is folded to one copy (two copies
+ * are kept: the Quran repeats a word or a phrase twice in places, and so does a reciter going back).
+ */
+export function squash(words: string[]): string[] {
+  const out = [...words];
+  for (let n = 1; n <= 8; n++) {
+    for (let i = 0; i + 3 * n <= out.length; i++) {
+      const same = (k: number) => out.slice(i + k * n, i + (k + 1) * n).join(' ') === out.slice(i, i + n).join(' ');
+      let k = 1;
+      while (i + (k + 1) * n <= out.length && same(k)) k++;
+      if (k >= 3) out.splice(i + n, (k - 1) * n);
+    }
+  }
+  return out;
+}
+
 export function check(ayat: ExpectedAyah[], heardText: string, opts: Options = {}): Result {
   const E = expectedWords(ayat);
-  const heard = fold(heardText).split(' ').filter(Boolean); // as heard (reported as is)
+  const heard = squash(fold(heardText).split(' ').filter(Boolean)); // as heard (reported as is), loops folded
   const H = heard.map(loose); // compared without inner alifs
   const n = E.length;
   const m = H.length;
   const W = m + 1;
   const cost = new Float32Array((n + 1) * W);
   const step = new Uint8Array((n + 1) * W); // 1 match/changed · 2 missing · 3 extra · 4 one expected = two heard · 5 two expected = one heard
+  // words heard before the first expected word cost little: the isti'adha and basmala, or the end
+  // of the previous page, said before the reciter starts (at the full price the opening words were
+  // matched against them and flagged as changed)
   for (let j = 1; j <= m; j++) {
-    cost[j] = j * WORD;
+    cost[j] = Math.min(j, LEADING) * LEAD + Math.max(0, j - LEADING) * WORD;
     step[j] = 3;
   }
   for (let i = 1; i <= n; i++) {
@@ -126,7 +153,7 @@ export function check(ayat: ExpectedAyah[], heardText: string, opts: Options = {
     const e = E[i - 1].norm;
     for (let j = 1; j <= m; j++) {
       const h = H[j - 1];
-      let best = cost[(i - 1) * W + (j - 1)] + (e === h || tail(E[i - 1].full, heard[j - 1]) ? 0 : WORD);
+      let best = cost[(i - 1) * W + (j - 1)] + (e === h || tail(E[i - 1].full, heard[j - 1]) ? 0 : CHANGED);
       let s = 1;
       const miss = cost[(i - 1) * W + j] + WORD;
       if (miss < best) {

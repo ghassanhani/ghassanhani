@@ -4,7 +4,7 @@ import { initWhisper, type WhisperContext } from 'whisper.rn/index';
 import LiveAudioStream from '@fugood/react-native-audio-pcm-stream';
 import type { Heard, Listening } from './listen';
 import { modelUris } from './model';
-import { clean, lastPause, quietestPoint } from './pause';
+import { clean, lastPause } from './pause';
 
 /**
  * Microphone → on-device Whisper (SPEC §2.12, M10).
@@ -90,7 +90,6 @@ const BPS = RATE * 2;
 const MIN_BYTES = BPS * 0.5; // wait for half a second of sound before the first reading
 const CUT_AFTER = BPS * 3; // past 3 s, finished phrases are set aside and the window moves on
 const HARD_CUT = BPS * 14; // a phrase that never pauses is set aside whole at 14 s
-const OVERLAP_MS = 800; // audio kept before a cut, so the next phrase keeps its first word
 // whisper.cpp writes noise and silence as bracketed tags: never part of what was recited
 const tags = (t: string) => t.replace(/\[[^\]]*\]|\([^)]*\)|\*[^*]*\*/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -166,11 +165,14 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
       release();
     }
   };
-  /** A phrase is finished: keep the fast reading now, and have the accurate model re-read its audio in turn. */
-  const finish = (quick: string, audio: Uint8Array) => {
-    // with one model only, a re-read of the same audio by the same model adds nothing but a wait
-    // in front of the live reading: the phrase is settled as read
-    if (ctx.accurate === ctx.fast) {
+  /**
+   * A phrase is finished: keep the reading that ended it (`quick`, the second opinion), and have the
+   * accurate model read the phrase's own audio in turn (the reading slips are judged on). `same`:
+   * `audio` is exactly what `quick` was read from.
+   */
+  const finish = (quick: string, audio: Uint8Array, same: boolean) => {
+    // the very audio just read, and one model only: a second reading would say the same
+    if (same && ctx.accurate === ctx.fast) {
       phrases.push({ quick, sure: quick });
       return;
     }
@@ -209,33 +211,23 @@ export async function startListening(onHeard?: (soFar: Heard) => void): Promise<
     const audio = window();
     const r = await transcribe(audio, false);
     if (r.isAborted) return;
-    const segs = r.segments.map((g) => ({ ...g, text: tags(g.text) }));
+    // (the Quran models give no word timings: every reading is one block from 0 to 30 s, so the text
+    // of a phrase is never picked out of a longer reading by time — its audio is read on its own)
     if (final) {
       // the last words
-      finish(tags(r.result), audio);
+      finish(tags(r.result), audio, true);
       open = '';
-    } else if (audio.length >= CUT_AFTER && (lastPause(audio) > BPS * 1.5 || quietestPoint(audio) > 0)) {
-      // cut in the middle of the reciter's last real pause, or — reciting fast, with no pause — at
-      // the quietest dip between two words: never inside a word. What came before is read once
-      // more, carefully and whole, and kept; the quick reading of the same stretch beside it
-      const pause = lastPause(audio);
-      const cut = pause > BPS * 1.5 ? pause : quietestPoint(audio);
-      const cutMs = (cut / BPS) * 1000;
-      const quick = segs.filter((g) => g.t1 * 10 <= cutMs + 150).map((g) => g.text).filter(Boolean).join(' ');
-      finish(quick, audio.slice(0, cut));
+    } else if (audio.length >= CUT_AFTER && lastPause(audio) > BPS * 1.5) {
+      // cut in the middle of the reciter's last real pause (never between two words said in one
+      // breath: cut there, words were split and misread). The phrase before it is read on its own
+      // and kept; this reading of the whole window is its second opinion.
+      const cut = lastPause(audio);
+      finish(tags(r.result), audio.slice(0, cut), false);
       drop(cut);
       open = '';
-    } else if (audio.length >= CUT_AFTER && segs.length >= 2) {
-      // keep every phrase but the last; the last one is read again with what follows
-      const last = segs[segs.length - 1];
-      const done = segs.slice(0, -1).map((g) => g.text).filter(Boolean).join(' ');
-      finish(done, audio.slice(0, Math.max(0, Math.round(last.t0 * 10 * (BPS / 1000)) & ~1)));
-      open = last.text;
-      // t0 is in 10 ms steps and can come a little late: keep OVERLAP_MS before it, so the phrase's
-      // first word is read again rather than lost (a word heard twice is not a mistake)
-      drop(Math.max(0, Math.round((last.t0 * 10 - OVERLAP_MS) * (BPS / 1000))));
     } else if (audio.length >= HARD_CUT) {
-      finish(tags(r.result), audio);
+      // no pause for 14 s: set the whole window aside
+      finish(tags(r.result), audio, true);
       open = '';
       drop(audio.length);
     } else open = tags(r.result);

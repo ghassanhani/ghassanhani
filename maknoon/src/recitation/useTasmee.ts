@@ -44,9 +44,22 @@ export function useTasmee(ayahKeys: string[]) {
   // `alt`: a second, independent reading of the same audio (a slip counts only where both agree)
   // `now`: all heard (shows the words); `sure`: finished phrases read by the accurate model (judged);
   // `alt`: those phrases' quick reading (a slip counts only where both readings agree)
-  const [heardPair, setHeardPair] = useState({ now: '', alt: '', sure: '' });
+  // `right`: every word (flat index) some reading has heard right, at any moment of this page. The
+  // model reads each word several times as the window moves; a word heard right once was said right
+  // and is never a slip (on a correct recitation, this alone removed most false red words).
+  const EMPTY = { now: '', alt: '', sure: '', right: new Set<number>() as ReadonlySet<number> };
+  const [heardPair, setHeardPair] = useState(EMPTY);
   const heard = heardPair.now;
-  const setHeard = (t: string, alt = t, sure = t) => setHeardPair((p) => (p.now === t && p.alt === alt && p.sure === sure ? p : { now: t, alt, sure }));
+  const expectedRef = useRef(expected);
+  useEffect(() => {
+    expectedRef.current = expected;
+  }, [expected]);
+  const setHeard = (t: string, alt = t, sure = t) =>
+    setHeardPair((p) => {
+      if (p.now === t && p.alt === alt && p.sure === sure) return p;
+      const ok = t ? check(expectedRef.current, t).states.flatMap((st, i) => (st === 'ok' && !p.right.has(i) ? [i] : [])) : [];
+      return { now: t, alt, sure, right: ok.length ? new Set([...p.right, ...ok]) : p.right };
+    });
   // Reader's choices in the check: keep unrecited words hidden (recite from memory), and mark slips.
   // «إخفاء الآيات»: unrecited words are hidden at once, before or during listening; starting to
   // listen turns it on (recite from memory), and the reader can turn it off to read along.
@@ -74,11 +87,16 @@ export function useTasmee(ayahKeys: string[]) {
   // The words shown come from everything heard; slips are judged only on the finished phrases the
   // accurate model has re-read (never on the phrase still being recited), and only where the quick
   // reading of the same audio agrees.
+  // Every word some reading has heard right, at any moment of this page (the model reads each word
+  // several times as the window moves): a word heard right once was said right, and is never a slip.
+  // Measured on a correct recitation, this alone removed most false red words.
+  const heardRight = heardPair.right;
   const result = useMemo(() => {
     if (!raw) return null;
     const id = (f: (typeof raw.flags)[number]) => (f.kind === 'skipped-ayah' ? f.ayah : `${f.ayah}:${f.word}`);
     const both = altRes ? new Set(altRes.flags.map(id)) : null;
-    const slips = (sureRes?.flags ?? []).filter((f) => !both || both.has(id(f)));
+    const right = (f: (typeof raw.flags)[number]) => f.kind !== 'skipped-ayah' && heardRight.has((layout.map.get(f.ayah)?.offset ?? -1e9) + f.word);
+    const slips = (sureRes?.flags ?? []).filter((f) => (!both || both.has(id(f))) && !right(f));
     const states: (WordState | 'unsure')[] = raw.states.map((st) => (st === 'changed' || st === 'missing' ? 'ok' : st));
     for (const f of slips) {
       const l = layout.map.get(f.ayah);
@@ -87,7 +105,7 @@ export function useTasmee(ayahKeys: string[]) {
       else states[l.offset + f.word] = f.unsure ? 'unsure' : f.kind;
     }
     return { ...raw, flags: slips, states };
-  }, [raw, sureRes, altRes, layout]);
+  }, [raw, sureRes, altRes, layout, heardRight]);
   const last = result?.last ?? -1;
   const listeningRef = useRef(false);
   useEffect(() => {
@@ -299,7 +317,7 @@ export function useTasmee(ayahKeys: string[]) {
     announced.current.clear();
     setAlert(null);
     setElapsed(0);
-    setHeardPair({ now: '', alt: '', sure: '' });
+    setHeardPair(EMPTY);
     setShownTo(-1);
     pace.current = { at: 0, gap: 600, to: -1 };
     setHinted([]);

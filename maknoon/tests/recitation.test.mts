@@ -224,3 +224,11 @@ test('a letter swallowed is «unsure»; another letter in its place is still a s
   assert.equal(closeOnly('يكتبون', 'تكتبون'), false);
   assert.equal(oneLetterShort('كتب', 'كت'), false);
 });
+
+test('squash: a phrase written three or more times in a row is folded to one; two copies stay', async () => {
+  const { squash } = await import('../src/recitation/match.ts');
+  const w = (s: string) => s.split(' ');
+  assert.deepEqual(squash(w('a b c b c b c d')), w('a b c d'));
+  assert.deepEqual(squash(w('a x x x x y')), w('a x y'));
+  assert.deepEqual(squash(w('a b a b c')), w('a b a b c'));
+});
