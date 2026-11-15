@@ -17,6 +17,7 @@ import { APP_NAME } from '@/config';
 import { METHODS, cityByKey } from '@/content/prayer';
 import { ar, basmala } from '@/content/quran';
 import { downloadPro, modelStatus, proStatus, recitationModel, recitationPro, removePro } from '@/recitation/model';
+import { lastHeard } from '@/recitation/lastHeard';
 import { atStart } from '@/components/motion';
 import { fraction, type Download, useDownload } from '@/store/downloads';
 import { downloadSummaryModel, removeSummaryModel, summaryModel, summaryStatus } from '@/assistant/summary';
@@ -56,6 +57,7 @@ export default function SettingsScreen() {
   const proDl1 = useDownload('recitation-pro-1');
   const [proBusy, setProBusy] = useState(false); // downloading, joining or checking
   const [proError, setProError] = useState(false);
+  const [heardOpen, setHeardOpen] = useState(false); // «ما سمعه التسميع»: the last listening, as heard
   const getPro = async () => {
     setProBusy(true);
     setProError(false);
@@ -164,6 +166,40 @@ export default function SettingsScreen() {
               </>
             ) : null}
             <Caption>نموذج Tarteel لتمييز التلاوة (Apache-2.0)، محوَّل ليعمل على الهاتف. يُعالَج الصوت على جهازك ولا يُحفظ ولا يُرسل.</Caption>
+            <View style={styles.sep} />
+            <Pressable accessibilityRole="button" onPress={() => setHeardOpen((v) => !v)} style={[styles.row, { justifyContent: 'space-between', gap: 12, paddingVertical: 4 }]}>
+              <View style={{ flex: 1 }}>
+                <Display size={16}>ما سمعه التسميع</Display>
+                <Caption>آخر استماع كما سمعه التطبيق · في الذاكرة فقط، يُمحى عند إغلاق التطبيق</Caption>
+              </View>
+              <Icon name="chevronLeft" size={20} color={colors.ink} />
+            </Pressable>
+            {heardOpen ? (
+              lastHeard.all ? (
+                <View style={{ gap: 8 }}>
+                  {(
+                    [
+                      ['ما عُدّ خطأ', lastHeard.slips || 'لا شيء'],
+                      ['القراءة المعتمدة', lastHeard.judged],
+                      ['القراءة الثانية', lastHeard.second],
+                      ['كل ما سُمع', lastHeard.all],
+                      ['تعرّف الهاتف الحي', lastHeard.live || 'لم يعمل'],
+                    ] as const
+                  ).map(([t, v]) => (
+                    <View key={t} style={{ gap: 2 }}>
+                      <Body size={13} weight="bold" color={colors.primary}>
+                        {t}
+                      </Body>
+                      <Body size={13} selectable>
+                        {v}
+                      </Body>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Caption>لم يُسمع شيء بعد منذ فتح التطبيق.</Caption>
+              )
+            ) : null}
           </GlassCard>
         </>
       ) : null}

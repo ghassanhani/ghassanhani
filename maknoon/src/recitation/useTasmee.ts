@@ -4,6 +4,7 @@ import { type Listening, listeningSupported, startListening, warmUp } from './li
 import { type ExpectedAyah, type WordState, check, wordCount } from './match';
 import { modelStatus } from './model';
 import { type Stream, startStream } from './stream';
+import { lastHeard } from './lastHeard';
 import { setAudioModeAsync } from 'expo-audio';
 import { haptic } from '@/components/motion';
 import { setPrefs } from '@/store/prefs';
@@ -110,6 +111,17 @@ export function useTasmee(ayahKeys: string[]) {
     return { ...raw, flags: slips, states };
   }, [raw, sureRes, altRes, layout, heardRight]);
   const last = result?.last ?? -1;
+  // for «ما سمعه التسميع» in Settings (memory only)
+  useEffect(() => {
+    if (!heardPair.now) return;
+    lastHeard.all = heardPair.now;
+    lastHeard.judged = heardPair.sure;
+    lastHeard.second = heardPair.alt;
+    lastHeard.slips = (result?.flags ?? []).map((f) => (f.kind === 'skipped-ayah' ? `آية ${f.ayah}` : f.kind === 'missing' ? `${f.expected} (لم تُسمع)` : `${f.expected} ← ${f.heard}${f.unsure ? ' ؟' : ''}`)).join(' · ');
+  }, [heardPair, result]);
+  useEffect(() => {
+    if (streamHeard) lastHeard.live = streamHeard;
+  }, [streamHeard]);
   const listeningRef = useRef(false);
   useEffect(() => {
     listeningRef.current = listening;
