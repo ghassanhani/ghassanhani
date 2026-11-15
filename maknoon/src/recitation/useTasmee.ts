@@ -47,7 +47,8 @@ export function useTasmee(ayahKeys: string[]) {
   // `right`: every word (flat index) some reading has heard right, at any moment of this page. The
   // model reads each word several times as the window moves; a word heard right once was said right
   // and is never a slip (on a correct recitation, this alone removed most false red words).
-  const EMPTY = { now: '', alt: '', sure: '', right: new Set<number>() as ReadonlySet<number> };
+  // `raw`: the alignment of `now` with the page (`rawOf`), made once when the text arrives
+  const EMPTY = { now: '', alt: '', sure: '', right: new Set<number>() as ReadonlySet<number>, raw: null as ReturnType<typeof check> | null, rawOf: null as ExpectedAyah[] | null };
   const [heardPair, setHeardPair] = useState(EMPTY);
   const heard = heardPair.now;
   const expectedRef = useRef(expected);
@@ -57,8 +58,10 @@ export function useTasmee(ayahKeys: string[]) {
   const setHeard = (t: string, alt = t, sure = t) =>
     setHeardPair((p) => {
       if (p.now === t && p.alt === alt && p.sure === sure) return p;
-      const ok = t ? check(expectedRef.current, t).states.flatMap((st, i) => (st === 'ok' && !p.right.has(i) ? [i] : [])) : [];
-      return { now: t, alt, sure, right: ok.length ? new Set([...p.right, ...ok]) : p.right };
+      const rawOf = expectedRef.current;
+      const raw = t ? (t === p.now && p.rawOf === rawOf ? p.raw : check(rawOf, t)) : null;
+      const ok = (raw?.states ?? []).flatMap((st, i) => (st === 'ok' && !p.right.has(i) ? [i] : []));
+      return { now: t, alt, sure, raw, rawOf, right: ok.length ? new Set([...p.right, ...ok]) : p.right };
     });
   // Reader's choices in the check: keep unrecited words hidden (recite from memory), and mark slips.
   // «إخفاء الآيات»: unrecited words are hidden at once, before or during listening; starting to
@@ -81,7 +84,7 @@ export function useTasmee(ayahKeys: string[]) {
   };
   const preview = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const raw = useMemo(() => (heard ? check(expected, heard) : null), [expected, heard]);
+  const raw = useMemo(() => (!heard ? null : heardPair.rawOf === expected ? heardPair.raw : check(expected, heard)), [expected, heard, heardPair.raw, heardPair.rawOf]);
   const sureRes = useMemo(() => (heardPair.sure ? check(expected, heardPair.sure) : null), [expected, heardPair.sure]);
   const altRes = useMemo(() => (heardPair.alt && heardPair.alt !== heardPair.sure ? check(expected, heardPair.alt) : null), [expected, heardPair.alt, heardPair.sure]);
   // The words shown come from everything heard; slips are judged only on the finished phrases the
@@ -337,8 +340,9 @@ export function useTasmee(ayahKeys: string[]) {
     const i = l.count === shown ? index : Math.min(l.count - 1, Math.round((index * (l.count - 1)) / Math.max(1, shown - 1)));
     const flat = l.offset + i;
     let st = result?.states[flat] ?? 'pending';
-    // not reached yet by the word-by-word reveal: still waiting
-    if (listening && flat > shownTo && st !== 'pending') st = 'pending';
+    // not reached yet by the word-by-word reveal: still waiting. After stopping too: past the last
+    // word heard right, the alignment may hold words the model only guessed at
+    if (flat > shownTo && st !== 'pending') st = 'pending';
     // a word already shown stays shown while the readings settle (no flashing)
     if (flat <= shownTo && st === 'pending') st = 'ok';
     // while reciting, a slip reads like any recited word unless the reader asked to see them

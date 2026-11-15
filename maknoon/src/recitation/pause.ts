@@ -111,15 +111,19 @@ function frames(audio: Uint8Array): Float32Array {
   return rms;
 }
 
-/** The room's own noise in this window: its quietest tenth (a caller keeps the lowest it has seen). */
+/**
+ * The room's own noise in this window: its quietest tenth (a caller keeps the lowest it has seen).
+ * Frames of pure digital silence are left out: a microphone gives a few as it starts, and they
+ * would set the floor to nothing and let any room noise pass for voice.
+ */
 export function quietLevel(audio: Uint8Array): number {
-  const rms = Array.from(frames(audio)).sort((a, b) => a - b);
+  const rms = Array.from(frames(audio)).filter((v) => v >= 2).sort((a, b) => a - b);
   return rms.length ? rms[Math.floor(rms.length * 0.1)] : Infinity;
 }
 
 /**
  * How much of the window is voice, in seconds: 20 ms frames clearly above the room's noise (4×
- * `floor`, the quietest level heard so far this session, never taken above −38 dBFS so a window of
+ * `floor`, the quietest level heard so far this session, never taken above −42 dBFS so a window of
  * held vowels cannot pass for noise) and above a low absolute level (about −49 dBFS, so a quiet
  * murmur still counts). The Quran model, given silence or room noise, writes Quran words from
  * memory; a window with almost no voice is not read at all.
@@ -132,4 +136,4 @@ export function voiced(audio: Uint8Array, floor = 20): number {
   return (on * FRAME) / RATE;
 }
 const VOICE = 120; // ≈ −49 dBFS
-const MAX_FLOOR = 400; // ≈ −38 dBFS
+const MAX_FLOOR = 250; // ≈ −42 dBFS
